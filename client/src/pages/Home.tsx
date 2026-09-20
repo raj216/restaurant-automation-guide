@@ -1,25 +1,157 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useState } from "react";
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  BadgeCheck,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  ChefHat,
+  ChevronDown,
+  Clock3,
+  Mail,
+  MapPin,
+  Megaphone,
+  MessageSquareText,
+  PhoneCall,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Utensils,
+  Wrench,
+  Zap,
+} from "lucide-react";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
-export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+const sources = [
+  { label: "Toast AI ordering", href: "https://support.toasttab.com/en/article/Get-Started-With-InceptAI-Integration" },
+  { label: "Square voice ordering", href: "https://squareup.com/help/us/en/article/8568-take-orders-with-ai-powered-voice-ordering" },
+  { label: "Toast SMS marketing", href: "https://support.toasttab.com/en/article/Get-Started-With-SMS-Marketing" },
+  { label: "Federal Reserve adoption data", href: "https://www.federalreserve.gov/econres/notes/feds-notes/monitoring-ai-adoption-in-the-u-s-economy-20260403.html" },
+];
 
+const faqs = [
+  {
+    q: "Does the AI really put the order into the POS?",
+    a: "When the selected vendor has a native integration, yes: the agent can create an order in the POS, order manager, or kitchen display system. The implementation must verify the exact connector, payment behavior, modifiers, and future-order support before launch.",
+  },
+  {
+    q: "What happens when the caller asks for a future pickup order?",
+    a: "The agent should confirm the calendar date, local timezone, fulfillment type, and exact time. If the POS supports scheduled orders, it creates one with a separate creation timestamp and fulfillment timestamp. If not, it sends a checkout link or transfers the request rather than guessing.",
+  },
+  {
+    q: "Can the same system send birthdays and win-back offers?",
+    a: "Yes, but the restaurant needs permissioned email or SMS data. A phone number collected for an order is not automatically permission to send marketing texts. Campaigns should be connected to a POS coupon or loyalty reward so redemptions and revenue can be measured.",
+  },
+  {
+    q: "Why would a restaurant pay an implementer if the software already exists?",
+    a: "Because a live demo is not the same as a reliable production workflow. Someone still needs to configure the menu, test modifiers, define human escalation, validate the POS ticket, document consent, and review failures after launch.",
+  },
+];
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <div className="section-label"><span className="section-dot" />{children}</div>;
+}
+
+function PhoneLedger() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div className="phone-ledger">
+      <div className="ledger-head">
+        <div>
+          <div className="eyebrow">LIVE CALL / ORDER FLOW</div>
+          <div className="ledger-title">Pickup order · #2048</div>
+        </div>
+        <div className="live-pill"><span /> LIVE</div>
+      </div>
+      <div className="call-line">
+        <div className="avatar-bubble"><PhoneCall size={17} /></div>
+        <div className="call-copy"><strong>AI host</strong><span>“What can I get started for you?”</span></div>
+        <span className="timestamp">01:00 AM</span>
+      </div>
+      <div className="order-card">
+        <div className="order-card-top"><span className="order-status"><CheckCircle2 size={15} /> Confirmed</span><span className="order-time">Tomorrow · 8:00 PM</span></div>
+        <div className="order-item"><span>1 × Spicy vodka rigatoni</span><b>$19.00</b></div>
+        <div className="order-item"><span>1 × Garlic knots · extra sauce</span><b>$8.50</b></div>
+        <div className="order-item"><span>Pickup · Jamie R.</span><b>••• 4821</b></div>
+        <div className="order-total"><span>Total after online payment</span><strong>$29.89</strong></div>
+      </div>
+      <div className="ledger-footer"><span><Zap size={14} /> Sent to POS / KDS</span><span>Receipt texted</span></div>
     </div>
   );
 }
+
+function FlowStep({ index, icon: Icon, title, text, tone }: { index: string; icon: React.ElementType; title: string; text: string; tone: string }) {
+  return (
+    <div className="flow-step">
+      <div className={`flow-icon ${tone}`}><Icon size={20} /></div>
+      <div className="flow-index">{index}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function App() {
+  const [openFaq, setOpenFaq] = useState(0);
+
+  return (
+    <div className="site-shell">
+      <div className="topline"><span>FIELD NOTE 01</span><span>Independent restaurants · NJ / NYC metro</span><span className="topline-right"><MapPin size={13} /> Jersey City → Manhattan</span></div>
+
+      <header className="nav-wrap">
+        <a className="brand" href="#top" aria-label="Orderline home"><span className="brand-mark"><Utensils size={15} /></span><span>order<span>line</span></span></a>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <a href="#workflow">The workflow</a>
+          <a href="#marketing">Retention layer</a>
+          <a href="#market">Best-fit niches</a>
+          <a href="#pilot">Pilot plan</a>
+        </nav>
+        <a className="nav-cta" href="#pilot">See the 90-day test <ArrowUpRight size={15} /></a>
+      </header>
+
+      <main id="top">
+        <section className="hero-section">
+          <div className="hero-grid">
+            <div className="hero-copy">
+              <div className="hero-kicker"><span className="kicker-line" /> A practical guide to restaurant automation</div>
+              <h1>Your phone should take the order while your team runs the kitchen.</h1>
+              <p className="hero-lede">A clear-eyed look at the systems behind AI phone ordering, POS handoffs, scheduled pickups, and permission-based customer marketing — built for independent operators in the NYC metro.</p>
+              <div className="hero-actions"><a className="button button-primary" href="#workflow">See how it works <ArrowRight size={17} /></a><a className="button button-ghost" href="#verdict">Read the verdict <ArrowDownRight size={17} /></a></div>
+              <div className="hero-meta"><div className="meta-avatars"><span>JC</span><span>HB</span><span>NY</span></div><div><strong>For owners who want fewer missed calls.</strong><small>Research-backed · no “AI for everyone” pitch</small></div></div>
+            </div>
+            <div className="hero-visual"><div className="visual-orbit orbit-one" /><div className="visual-orbit orbit-two" /><div className="visual-caption caption-left"><span className="caption-number">01</span><span>Call → confirmed order</span></div><PhoneLedger /><div className="visual-caption caption-right"><span className="caption-number">02</span><span>Order → kitchen</span></div></div>
+          </div>
+          <div className="proof-strip"><div className="proof-intro">THE SIGNAL<br /><span>behind the opportunity</span></div><div className="proof-stat"><strong>6<span>%</span></strong><span>of restaurants reported using AI for customer orders</span></div><div className="proof-divider" /><div className="proof-stat"><strong>18<span>%</span></strong><span>of U.S. firms had adopted AI by year-end 2025</span></div><div className="proof-divider" /><div className="proof-note"><ShieldCheck size={18} /><span>The gap is not software availability.<br /><b>It is reliable implementation.</b></span></div></div>
+        </section>
+
+        <section id="verdict" className="verdict-section section-pad">
+          <div className="section-grid"><div><SectionLabel>The short answer</SectionLabel><h2>There is a gap.<br /><em>It lives in the handoff.</em></h2></div><div className="verdict-copy"><p className="lead-paragraph">Restaurants can already buy the tools. Many still do not have a trusted person to select the right one, connect it to the POS, test the weird orders, and watch the system after launch.</p><p>That is why the strongest business is not a generic AI agency. It is a focused implementation and managed-optimization service for restaurants with real phone volume and a supported POS.</p><a className="text-link" href="#pilot">Turn the insight into a pilot <ArrowRight size={16} /></a></div></div>
+          <div className="signal-cards"><div className="signal-card warm"><div className="signal-card-head"><span className="mini-label">THE PRODUCT GAP</span><PhoneCall size={19} /></div><strong>Phone ordering</strong><p>Low reported adoption, clear rush-hour pain, and a direct path to measurable recovered demand.</p><div className="signal-tag">Best first wedge</div></div><div className="signal-card mint"><div className="signal-card-head"><span className="mini-label">THE EXECUTION GAP</span><CheckCircle2 size={19} /></div><strong>POS reliability</strong><p>Menu logic, modifiers, timing, payment, escalation, and ticket accuracy are where trust is won.</p><div className="signal-tag">Where you earn the fee</div></div><div className="signal-card lilac"><div className="signal-card-head"><span className="mini-label">THE RETENTION GAP</span><Megaphone size={19} /></div><strong>Marketing automation</strong><p>Often bundled already. The value is in consent, offer design, segmentation, and attribution.</p><div className="signal-tag">Best second module</div></div></div>
+        </section>
+
+        <section id="workflow" className="workflow-section section-pad">
+          <div className="workflow-heading"><div><SectionLabel>01 / The workflow</SectionLabel><h2>From “hello?”<br />to the kitchen screen.</h2></div><p>Native integrations can create a real POS order — not just send a transcript to an overwhelmed manager. The quality of the implementation determines whether the handoff is trustworthy.</p></div>
+          <div className="flow-grid"><FlowStep index="01" icon={PhoneCall} title="The call lands" text="A business number or forwarding rule routes the call to the voice agent, even during the dinner rush." tone="tone-amber" /><FlowStep index="02" icon={ChefHat} title="The menu guides it" text="The agent uses structured items, modifiers, hours, sold-out rules, and human escalation paths." tone="tone-mint" /><FlowStep index="03" icon={CalendarClock} title="Time gets explicit" text="“Tomorrow at 8” becomes a calendar date, timezone, order type, and fulfillment promise." tone="tone-lilac" /><FlowStep index="04" icon={Activity} title="The ticket arrives" text="With a native connector, the order reaches the POS, order manager, or KDS for fulfillment." tone="tone-blue" /></div>
+          <div className="schedule-panel"><div className="schedule-story"><div className="mini-label">THE EDGE CASE THAT MATTERS</div><h3>1:00 a.m. call.<br /><span>Tomorrow’s 8:00 p.m. pickup.</span></h3><p>The agent must separate creation time from fulfillment time, confirm the date, and know whether the POS supports scheduled orders. If it does not, it should send a checkout link or escalate — never guess.</p><div className="schedule-checks"><span><Check size={14} /> Calendar date</span><span><Check size={14} /> Local timezone</span><span><Check size={14} /> Scheduled POS support</span></div></div><div className="schedule-log"><div className="log-row"><span className="log-time">01:00</span><span className="log-dot amber" /><div><b>Call received</b><small>Jamie asks for pickup tomorrow</small></div></div><div className="log-row"><span className="log-time">01:01</span><span className="log-dot mint" /><div><b>Order confirmed</b><small>Modifiers and fulfillment time repeated</small></div></div><div className="log-row"><span className="log-time">01:01</span><span className="log-dot blue" /><div><b>POS / KDS queued</b><small>Payment link completed · receipt texted</small></div></div><div className="log-foot"><BadgeCheck size={16} /> Test this before you promise it.</div></div></div>
+        </section>
+
+        <section id="marketing" className="marketing-section section-pad">
+          <div className="marketing-layout"><div className="marketing-copy"><SectionLabel>02 / The retention layer</SectionLabel><h2>Turn a transaction into the next visit.</h2><p>Birthday offers, win-back messages, holiday promotions, and loyalty rewards can be automated — but only when the restaurant has permissioned data and a clear redemption path.</p><div className="consent-note"><ShieldCheck size={20} /><div><strong>Phone number ≠ marketing permission</strong><span>Opt-in, opt-out, quiet hours, and offer tracking belong in the setup.</span></div></div><a className="text-link" href="#pilot">See the service stack <ArrowRight size={16} /></a></div><div className="campaign-board"><div className="board-top"><span>RETENTION ENGINE</span><span className="board-status"><span /> automated</span></div><div className="campaign-row"><div className="campaign-icon pink"><Mail size={17} /></div><div><strong>Birthday reward</strong><small>Birthday month · email + loyalty</small></div><span className="campaign-count">128 due</span></div><div className="campaign-row"><div className="campaign-icon amber"><MessageSquareText size={17} /></div><div><strong>Win-back</strong><small>No visit in 45 days · SMS opt-in</small></div><span className="campaign-count">64 due</span></div><div className="campaign-row"><div className="campaign-icon mint"><Megaphone size={17} /></div><div><strong>Mother’s Day</strong><small>Scheduled · promo code MAMA26</small></div><span className="campaign-count">May 10</span></div><div className="board-bottom"><span><Zap size={14} /> POS redemption tracked</span><span>Consent ledger healthy</span></div></div></div>
+        </section>
+
+        <section id="market" className="market-section section-pad"><div className="market-heading"><div><SectionLabel>03 / Where the gap is</SectionLabel><h2>Start narrow.<br /><em>Expand with proof.</em></h2></div><p>Not every local business needs the same automation. Choose the category where a recovered call is valuable, the workflow repeats, and the owner feels the pain today.</p></div><div className="market-table"><div className="market-row market-head"><span>Category</span><span>Best workflow</span><span>Gap signal</span><span>First move</span></div><div className="market-row highlight"><div className="category-name"><span className="category-icon restaurant"><Utensils size={17} /></span><strong>Independent restaurants</strong></div><span>Phone orders · POS handoff · win-back</span><span className="gap-badge strong">Strong</span><span>Paid phone-recovery pilot</span></div><div className="market-row"><div className="category-name"><span className="category-icon wrench"><Wrench size={17} /></span><strong>Auto repair</strong></div><span>After-hours calls · appointments · reminders</span><span className="gap-badge strong">Strong</span><span>Second vertical</span></div><div className="market-row"><div className="category-name"><span className="category-icon home"><Zap size={17} /></span><strong>HVAC / home services</strong></div><span>Lead capture · dispatch request · follow-up</span><span className="gap-badge strong">Strong</span><span>High-value calls</span></div><div className="market-row"><div className="category-name"><span className="category-icon salon"><Sparkles size={17} /></span><strong>Salons / pet care</strong></div><span>Booking · no-show recovery · rebooking</span><span className="gap-badge medium">Medium</span><span>Platform-specific</span></div><div className="market-row"><div className="category-name"><span className="category-icon store"><Store size={17} /></span><strong>Convenience / coffee</strong></div><span>Loyalty · catering · local offers</span><span className="gap-badge selective">Selective</span><span>Only with repeat volume</span></div></div></section>
+
+        <section id="pilot" className="pilot-section section-pad"><div className="pilot-intro"><SectionLabel>04 / The 90-day test</SectionLabel><h2>Sell the outcome.<br /><em>Prove the handoff.</em></h2><p>Three paid pilots will tell you more than a year of generic AI positioning. Measure the baseline, configure one stack, and make the restaurant’s own data the case study.</p></div><div className="pilot-timeline"><div className="pilot-step"><span className="pilot-num">01</span><div><strong>Diagnose</strong><p>Count missed calls, phone orders, rush-hour interruptions, POS, and customer consent.</p></div></div><div className="pilot-step"><span className="pilot-num">02</span><div><strong>Deploy</strong><p>Install the vendor, configure the menu, test difficult orders, and define human handoff.</p></div></div><div className="pilot-step"><span className="pilot-num">03</span><div><strong>Report</strong><p>Track answered calls, completed orders, errors, transfers, redemptions, and repeat visits.</p></div></div><div className="pilot-price"><span>Suggested starting shape</span><strong>$750–$1,500</strong><small>setup + $350–$600/mo management<br />software billed transparently</small></div></div></section>
+
+        <section className="faq-section section-pad"><div className="faq-heading"><SectionLabel>Field questions</SectionLabel><h2>What owners will ask.</h2><p>Trust is built by naming the edge cases before they happen.</p></div><div className="faq-list">{faqs.map((faq, index) => <div key={faq.q} className={`faq-item ${openFaq === index ? "open" : ""}`}><button onClick={() => setOpenFaq(openFaq === index ? -1 : index)} aria-expanded={openFaq === index}><span>{faq.q}</span><ChevronDown size={18} /></button>{openFaq === index && <div className="faq-answer"><p>{faq.a}</p></div>}</div>)}</div></section>
+
+        <section className="closing-section"><div className="closing-glow" /><div className="closing-content"><div className="closing-mark"><PhoneCall size={21} /></div><SectionLabel>The point</SectionLabel><h2>Don’t sell “AI.”<br /><span>Sell the recovered order.</span></h2><p>Focused restaurants. Reliable handoffs. Permission-based retention. Start there.</p><a className="button button-light" href="#top">Back to the top <ArrowUpRight size={16} /></a></div></section>
+      </main>
+
+      <footer className="site-footer"><div className="footer-brand"><a className="brand" href="#top"><span className="brand-mark"><Utensils size={15} /></span><span>order<span>line</span></span></a><p>A practical field guide for restaurant automation in the NYC metro.</p></div><div className="footer-links"><div><span>Explore</span><a href="#workflow">The workflow</a><a href="#marketing">Retention layer</a><a href="#market">Best-fit niches</a></div><div><span>Sources</span>{sources.slice(0, 2).map(source => <a key={source.label} href={source.href} target="_blank" rel="noreferrer">{source.label} <ArrowUpRight size={12} /></a>)}</div></div><div className="footer-bottom"><span>Research checked September 2026</span><span>Built for operators, not hype.</span></div></footer>
+    </div>
+  );
+}
+
+export default App;
