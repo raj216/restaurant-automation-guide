@@ -13,6 +13,7 @@ import {
   Clock3,
   Mail,
   MapPin,
+  Send,
   Megaphone,
   MessageSquareText,
   PhoneCall,
@@ -94,6 +95,7 @@ function FlowStep({ index, icon: Icon, title, text, tone }: { index: string; ico
 
 function App() {
   const [openFaq, setOpenFaq] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
 
   return (
     <div className="site-shell">
@@ -107,7 +109,7 @@ function App() {
           <a href="#market">Best-fit niches</a>
           <a href="#pilot">Pilot plan</a>
         </nav>
-        <a className="nav-cta" href="#pilot">See the 90-day test <ArrowUpRight size={15} /></a>
+        <a className="nav-cta" href="#contact">Request a consultation <ArrowUpRight size={15} /></a>
       </header>
 
       <main id="top">
@@ -144,6 +146,7 @@ function App() {
 
         <section id="pilot" className="pilot-section section-pad"><div className="pilot-intro"><SectionLabel>04 / The 90-day test</SectionLabel><h2>Sell the outcome.<br /><em>Prove the handoff.</em></h2><p>Three paid pilots will tell you more than a year of generic AI positioning. Measure the baseline, configure one stack, and make the restaurant’s own data the case study.</p></div><div className="pilot-timeline"><div className="pilot-step"><span className="pilot-num">01</span><div><strong>Diagnose</strong><p>Count missed calls, phone orders, rush-hour interruptions, POS, and customer consent.</p></div></div><div className="pilot-step"><span className="pilot-num">02</span><div><strong>Deploy</strong><p>Install the vendor, configure the menu, test difficult orders, and define human handoff.</p></div></div><div className="pilot-step"><span className="pilot-num">03</span><div><strong>Report</strong><p>Track answered calls, completed orders, errors, transfers, redemptions, and repeat visits.</p></div></div><div className="pilot-price"><span>Suggested starting shape</span><strong>$750–$1,500</strong><small>setup + $350–$600/mo management<br />software billed transparently</small></div></div></section>
 
+        <section id="contact" className="contact-section section-pad"><div className="contact-layout"><div className="contact-copy"><SectionLabel>Start with your restaurant</SectionLabel><h2>Let’s find the<br /><em>missed-call leak.</em></h2><p>Tell us a little about the operation. We’ll come back with a practical recommendation for your phone flow, POS, and first 90-day test — not a generic AI pitch.</p><div className="contact-points"><span><CheckCircle2 size={16} /> 20-minute working session</span><span><CheckCircle2 size={16} /> POS-aware recommendations</span><span><CheckCircle2 size={16} /> No commitment to start</span></div></div><div className="lead-card">{submitted ? <div className="form-success"><div className="success-icon"><CheckCircle2 size={26} /></div><div className="mini-label">REQUEST RECEIVED</div><h3>Good first step.</h3><p>Your consultation request is ready for follow-up. We’ll use the details you shared to shape a restaurant-specific conversation.</p><button className="button button-primary" onClick={() => setSubmitted(false)}>Send another request <ArrowRight size={16} /></button></div> : <form onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }}><div className="form-head"><div><span className="mini-label">PERSONALIZED DEMO / CONSULTATION</span><h3>Make the handoff easier.</h3></div><div className="form-badge"><Sparkles size={14} /> Free first look</div></div><div className="form-grid"><label><span>Your name</span><input name="name" type="text" placeholder="Jamie Rivera" required /></label><label><span>Restaurant name</span><input name="restaurant" type="text" placeholder="Rivera Kitchen" required /></label><label><span>Email</span><input name="email" type="email" placeholder="jamie@restaurant.com" required /></label><label><span>Phone</span><input name="phone" type="tel" placeholder="(201) 555-0148" required /></label><label><span>City / neighborhood</span><input name="location" type="text" placeholder="Jersey City, NJ" required /></label><label><span>Current POS</span><select name="pos" defaultValue=""><option value="" disabled>Select your POS</option><option>Toast</option><option>Square</option><option>SpotOn</option><option>Clover</option><option>Other / not sure</option></select></label></div><label className="form-wide"><span>What would you like to improve first?</span><textarea name="need" rows={3} placeholder="Missed calls during dinner, future pickup orders, win-back messages..." required /></label><div className="form-footer"><span className="form-note"><ShieldCheck size={15} /> We’ll only use this to prepare your consultation.</span><button className="button button-primary" type="submit">Request my consultation <Send size={15} /></button></div></form>}</div></div></section>
         <section className="faq-section section-pad"><div className="faq-heading"><SectionLabel>Field questions</SectionLabel><h2>What owners will ask.</h2><p>Trust is built by naming the edge cases before they happen.</p></div><div className="faq-list">{faqs.map((faq, index) => <div key={faq.q} className={`faq-item ${openFaq === index ? "open" : ""}`}><button onClick={() => setOpenFaq(openFaq === index ? -1 : index)} aria-expanded={openFaq === index}><span>{faq.q}</span><ChevronDown size={18} /></button>{openFaq === index && <div className="faq-answer"><p>{faq.a}</p></div>}</div>)}</div></section>
 
         <section className="closing-section"><div className="closing-glow" /><div className="closing-content"><div className="closing-mark"><PhoneCall size={21} /></div><SectionLabel>The point</SectionLabel><h2>Don’t sell “AI.”<br /><span>Sell the recovered order.</span></h2><p>Focused restaurants. Reliable handoffs. Permission-based retention. Start there.</p><a className="button button-light" href="#top">Back to the top <ArrowUpRight size={16} /></a></div></section>
