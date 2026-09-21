@@ -19,7 +19,6 @@ import {
   PhoneCall,
   ShieldCheck,
   Sparkles,
-  Utensils,
   Zap,
 } from "lucide-react";
 
@@ -51,6 +50,10 @@ const faqs = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="section-label"><span className="section-dot" />{children}</div>;
+}
+
+function BrandLockup() {
+  return <><span className="regulars-mark" aria-hidden="true"><span className="regulars-mark-dot" /></span><span className="brand-word">regulars</span></>;
 }
 
 function PhoneLedger() {
@@ -99,10 +102,10 @@ function App() {
 
   return (
     <div className="site-shell">
-      <div className="topline"><span>FIELD NOTE 01</span><span>Independent restaurants · NJ / NYC metro</span><span className="topline-right"><MapPin size={13} /> Jersey City → Manhattan</span></div>
+      <div className="topline"><span>REGULARS / FIELD NOTE 01</span><span>Independent restaurants · NJ / NYC metro</span><span className="topline-right"><MapPin size={13} /> Jersey City → Manhattan</span></div>
 
       <header className="nav-wrap">
-        <a className="brand" href="#top" aria-label="Orderline home"><span className="brand-mark"><Utensils size={15} /></span><span>order<span>line</span></span></a>
+        <a className="brand" href="#top" aria-label="Regulars home"><BrandLockup /></a>
         <nav className="desktop-nav" aria-label="Main navigation">
           <a href="#workflow">The workflow</a>
           <a href="#marketing">Retention layer</a>
@@ -115,11 +118,11 @@ function App() {
         <section className="hero-section">
           <div className="hero-grid">
             <div className="hero-copy">
-              <div className="hero-kicker"><span className="kicker-line" /> A practical guide to restaurant automation</div>
+              <div className="hero-kicker"><span className="kicker-line" /> Answer every call. Create more regulars.</div>
               <h1>Your phone should take the order while your team runs the kitchen.</h1>
-              <p className="hero-lede">A clear-eyed look at the systems behind AI phone ordering, POS handoffs, scheduled pickups, and permission-based customer marketing — built for independent operators in the NYC metro.</p>
+              <p className="hero-lede">Regulars helps independent restaurants capture phone orders, hand them reliably to the POS, and bring opted-in guests back with timely follow-up — built for operators in the NYC metro.</p>
               <div className="hero-actions"><a className="button button-primary" href="#workflow">See how it works <ArrowRight size={17} /></a><a className="button button-ghost" href="#verdict">Read the verdict <ArrowDownRight size={17} /></a></div>
-              <div className="hero-meta"><div className="meta-avatars"><span>JC</span><span>HB</span><span>NY</span></div><div><strong>For owners who want fewer missed calls.</strong><small>Research-backed · no “AI for everyone” pitch</small></div></div>
+              <div className="hero-meta"><div className="meta-avatars"><span>JC</span><span>HB</span><span>NY</span></div><div><strong>For owners who want more orders — and more regulars.</strong><small>Research-backed · no “AI for everyone” pitch</small></div></div>
             </div>
             <div className="hero-visual"><div className="visual-orbit orbit-one" /><div className="visual-orbit orbit-two" /><div className="visual-caption caption-left"><span className="caption-number">01</span><span>Call → confirmed order</span></div><PhoneLedger /><div className="visual-caption caption-right"><span className="caption-number">02</span><span>Order → kitchen</span></div></div>
           </div>
@@ -146,10 +149,10 @@ function App() {
         <section id="contact" className="contact-section section-pad"><div className="contact-layout"><div className="contact-copy"><SectionLabel>Start with your restaurant</SectionLabel><h2>Let’s find the<br /><em>missed-call leak.</em></h2><p>Tell us a little about the operation. We’ll come back with a practical recommendation for your phone flow, POS, and first 90-day test — not a generic AI pitch.</p><div className="contact-points"><span><CheckCircle2 size={16} /> 20-minute working session</span><span><CheckCircle2 size={16} /> POS-aware recommendations</span><span><CheckCircle2 size={16} /> No commitment to start</span></div></div><div className="lead-card">{submitted ? <div className="form-success"><div className="success-icon"><CheckCircle2 size={26} /></div><div className="mini-label">REQUEST RECEIVED</div><h3>Good first step.</h3><p>Your consultation request reached the intake system. We’ll use the details you shared to shape a restaurant-specific conversation.</p><button className="button button-primary" onClick={() => { setSubmitted(false); setFormStatus("idle"); }}>Send another request <ArrowRight size={16} /></button></div> : <form action={formEndpoint || undefined} method="POST" onSubmit={async (event) => { event.preventDefault(); if (!formEndpoint) { setFormStatus("error"); return; } setFormStatus("submitting"); const response = await fetch(formEndpoint, { method: "POST", body: new FormData(event.currentTarget), headers: { Accept: "application/json" } }); if (response.ok) { setSubmitted(true); setFormStatus("idle"); } else { setFormStatus("error"); } }}><div className="form-head"><div><span className="mini-label">PERSONALIZED DEMO / CONSULTATION</span><h3>Make the handoff easier.</h3></div><div className="form-badge"><Sparkles size={14} /> Free first look</div></div><div className="form-grid"><label><span>Your name</span><input name="name" type="text" placeholder="Jamie Rivera" required /></label><label><span>Restaurant name</span><input name="restaurant" type="text" placeholder="Rivera Kitchen" required /></label><label><span>Email</span><input name="email" type="email" placeholder="jamie@restaurant.com" required /></label><label><span>Phone</span><input name="phone" type="tel" placeholder="(201) 555-0148" required /></label><label><span>City / neighborhood</span><input name="location" type="text" placeholder="Jersey City, NJ" required /></label><label><span>Current POS</span><select name="pos" defaultValue=""><option value="" disabled>Select your POS</option><option>Toast</option><option>Square</option><option>SpotOn</option><option>Clover</option><option>Other / not sure</option></select></label></div><label className="form-wide"><span>What would you like to improve first?</span><textarea name="need" rows={3} placeholder="Missed calls during dinner, future pickup orders, win-back messages..." required /></label><div className="form-footer"><span className="form-note"><ShieldCheck size={15} /> We’ll only use this to prepare your consultation.</span><button className="button button-primary" type="submit" disabled={formStatus === "submitting"}>{formStatus === "submitting" ? "Sending request…" : <>Request my consultation <Send size={15} /></>}</button></div>{formStatus === "error" && <p className="form-error" role="alert">This form is not connected yet. Add the restaurant’s Formspree endpoint to finish setup, then submissions will be emailed and stored automatically.</p>}</form>}</div></div></section>
         <section className="faq-section section-pad"><div className="faq-heading"><SectionLabel>Field questions</SectionLabel><h2>What owners will ask.</h2><p>Trust is built by naming the edge cases before they happen.</p></div><div className="faq-list">{faqs.map((faq, index) => <div key={faq.q} className={`faq-item ${openFaq === index ? "open" : ""}`}><button onClick={() => setOpenFaq(openFaq === index ? -1 : index)} aria-expanded={openFaq === index}><span>{faq.q}</span><ChevronDown size={18} /></button>{openFaq === index && <div className="faq-answer"><p>{faq.a}</p></div>}</div>)}</div></section>
 
-        <section className="closing-section"><div className="closing-glow" /><div className="closing-content"><div className="closing-mark"><PhoneCall size={21} /></div><SectionLabel>The point</SectionLabel><h2>Don’t sell “AI.”<br /><span>Sell the recovered order.</span></h2><p>Focused restaurants. Reliable handoffs. Permission-based retention. Start there.</p><a className="button button-light" href="#top">Back to the top <ArrowUpRight size={16} /></a></div></section>
+        <section className="closing-section"><div className="closing-glow" /><div className="closing-content"><div className="closing-mark"><span className="regulars-mark regulars-mark-large" aria-hidden="true"><span className="regulars-mark-dot" /></span></div><SectionLabel>The point</SectionLabel><h2>Don’t sell “AI.”<br /><span>Sell the recovered order.</span></h2><p>Answer every call. Create more regulars.</p><a className="button button-light" href="#top">Back to the top <ArrowUpRight size={16} /></a></div></section>
       </main>
 
-      <footer className="site-footer"><div className="footer-brand"><a className="brand" href="#top"><span className="brand-mark"><Utensils size={15} /></span><span>order<span>line</span></span></a><p>A practical field guide for restaurant automation in the NYC metro.</p></div><div className="footer-links"><div><span>Explore</span><a href="#workflow">The workflow</a><a href="#marketing">Retention layer</a><a href="#pilot">Pilot plan</a></div><div><span>Sources</span>{sources.slice(0, 2).map(source => <a key={source.label} href={source.href} target="_blank" rel="noreferrer">{source.label} <ArrowUpRight size={12} /></a>)}</div></div><div className="footer-bottom"><span>Research checked September 2026</span><span>Built for operators, not hype.</span></div></footer>
+      <footer className="site-footer"><div className="footer-brand"><a className="brand" href="#top" aria-label="Regulars home"><BrandLockup /></a><p>Phone-order recovery and guest follow-up for independent restaurants in the NYC metro.</p></div><div className="footer-links"><div><span>Explore</span><a href="#workflow">The workflow</a><a href="#marketing">Retention layer</a><a href="#pilot">Pilot plan</a></div><div><span>Sources</span>{sources.slice(0, 2).map(source => <a key={source.label} href={source.href} target="_blank" rel="noreferrer">{source.label} <ArrowUpRight size={12} /></a>)}</div></div><div className="footer-bottom"><span>Research checked September 2026</span><span>Answer every call. Create more regulars.</span></div></footer>
     </div>
   );
 }
