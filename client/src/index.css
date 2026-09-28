@@ -414,3 +414,55 @@ p { font-size: 17px; line-height: 1.68; }
 .trust-strip span { font-size: 14px; }
 .problem-list strong { font-size: 15px; }
 .problem-list span { font-size: 12px; }
+
+
+/* Motion. Everything below animates toward the static design above: once an
+   animation finishes, the page looks exactly as it does without motion. */
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; z-index: 30; height: 2px; background: var(--terracotta); transform-origin: 0 50%; pointer-events: none; }
+
+/* Heading words rise from behind a mask. The padding/negative-margin pair
+   enlarges the clipping box so ascenders and descenders are not cut off,
+   without moving the text. */
+.word-mask { display: inline-block; overflow: hidden; vertical-align: top; padding: .1em 0 .18em; margin: -.1em 0 -.18em; }
+.word { display: inline-block; will-change: transform; }
+
+.hero-visual::before { transform: translateY(var(--ring-y, 0px)); animation: ring-in 1.8s cubic-bezier(.22,1,.36,1) .45s both; }
+@keyframes ring-in { from { opacity: 0; scale: .82; } }
+
+.order-card { transition: box-shadow .5s cubic-bezier(.22,1,.36,1); }
+.order-card:hover { box-shadow: 20px 22px 0 rgba(199,190,170,.4); }
+
+/* "Your team checks the order" breathes while the sample order waits. */
+.status-list .current { border-radius: 2px; animation: awaiting-review 2.8s ease-in-out 3.2s infinite; }
+@keyframes awaiting-review { 50% { background-color: rgba(248,233,166,.75); box-shadow: 0 0 0 5px rgba(248,233,166,.75); } }
+
+.status-led { animation: led-live 2.4s ease-in-out infinite; }
+@keyframes led-live { 50% { box-shadow: 0 0 0 7px rgba(129,188,157,.06); } }
+
+/* Vertical rule beside the four workflow steps; the fill follows the scroll. */
+.workflow-steps { position: relative; }
+.workflow-track { position: absolute; top: 0; bottom: 0; left: -28px; width: 1px; background: var(--line); }
+.workflow-track-fill { position: absolute; top: 0; bottom: 0; left: -.5px; width: 2px; background: var(--terracotta); transform-origin: 50% 0; }
+
+/* Line icons draw their strokes in (DrawIcon sets pathLength="1"). */
+.draw-icon { transition: opacity .2s ease var(--draw-delay, 0s); }
+.draw-icon:not(.is-drawn) { opacity: 0; }
+.draw-icon :is(path, circle, rect, line, polyline, polygon, ellipse) { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s cubic-bezier(.22,1,.36,1) var(--draw-delay, 0s); }
+.draw-icon.is-drawn :is(path, circle, rect, line, polyline, polygon, ellipse) { stroke-dashoffset: 0; }
+
+/* Hover details. */
+.nav-cta svg, .button svg, .arrow-link svg, .text-link svg { transition: transform .3s cubic-bezier(.22,1,.36,1); }
+.nav-cta:hover svg, .button:hover svg, .arrow-link:hover svg { transform: translateX(3px); }
+.text-link:hover svg { transform: translate(2px, -2px); }
+.desktop-nav a { background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px; transition: color .2s ease, background-size .35s cubic-bezier(.22,1,.36,1); }
+.desktop-nav a:hover { background-size: 100% 1px; }
+.mark-transfer { transition: transform .35s cubic-bezier(.22,1,.36,1); }
+.brand-lockup:hover .mark-transfer { transform: translateX(2px); }
+
+@media (max-width: 680px) {
+  .workflow-track { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual::before, .status-list .current, .status-led { animation: none; }
+}
