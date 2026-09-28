@@ -8,6 +8,8 @@ export interface TextAreaFieldProps {
   rows?: number;
   /** Muted note after the label, e.g. "(optional)". */
   hint?: string;
+  /** Most characters the box takes. */
+  maxLength?: number;
 }
 
 /** A labelled multi-line text box, styled like Field. Use inside a FormCard. */
@@ -18,6 +20,7 @@ export function TextAreaField({
   required,
   rows = 4,
   hint,
+  maxLength,
 }: TextAreaFieldProps) {
   return (
     <label>
@@ -26,7 +29,7 @@ export function TextAreaField({
         {required && " *"}
         {hint && <span className="field-hint"> {hint}</span>}
       </span>
-      <textarea name={name} rows={rows} placeholder={placeholder} required={required} />
+      <textarea name={name} rows={rows} placeholder={placeholder} required={required} maxLength={maxLength} />
     </label>
   );
 }

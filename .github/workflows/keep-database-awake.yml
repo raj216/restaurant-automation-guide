@@ -1,0 +1,26 @@
+# Supabase pauses free projects after a quiet week, and a paused database
+# can't save contact-form requests. A tiny query a few times a day counts
+# as activity (https://supabase.com/docs/guides/platform/free-project-pausing).
+# Not needed once the project is on a paid plan.
+name: Keep the database awake
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping the Kadmivo database
+        # The publishable key is public; it is also in the website's code.
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 20 \
+            -X POST "https://wikfhxcayrauimictlmk.supabase.co/rest/v1/rpc/leads_keepalive" \
+            -H "apikey: sb_publishable_d2AMHdVV8wmCWQ5lV7almg_k0ksq26M" \
+            -H "Content-Type: application/json" \
+            -d '{}'

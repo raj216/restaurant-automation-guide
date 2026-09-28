@@ -1,6 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { Icon } from "../brand/Icon";
 import type { IconName } from "../brand/glyphs";
+import { useFormSending } from "../forms/FormCard";
 import { cx } from "../utils";
 
 export interface ButtonProps {
@@ -19,7 +20,8 @@ export interface ButtonProps {
 /**
  * The primary call to action: a glowing gold pill with a trailing arrow that nudges forward on hover.
  *
- * Use one per view; pair it with a TextLink for the secondary action.
+ * Use one per view; pair it with a TextLink for the secondary action. As
+ * a FormCard's submit button it shows "Sending…" while the form sends.
  */
 export function Button({
   children,
@@ -30,8 +32,14 @@ export function Button({
   disabled,
   className,
 }: ButtonProps) {
-  const classes = cx("button button-primary", className);
-  const content = (
+  const sending = useFormSending() && type === "submit" && !href;
+  const classes = cx("button button-primary", sending && "is-sending", className);
+  const content = sending ? (
+    <>
+      <span className="button-spinner" aria-hidden="true" />
+      Sending…
+    </>
+  ) : (
     <>
       {children}
       {icon && <Icon name={icon} size={18} />}
@@ -45,7 +53,7 @@ export function Button({
     );
   }
   return (
-    <button className={classes} type={type} onClick={onClick} disabled={disabled}>
+    <button className={classes} type={type} onClick={onClick} disabled={disabled || sending}>
       {content}
     </button>
   );

@@ -45,7 +45,7 @@ export { ControlPanel, type ControlPanelProps, type ControlRow } from "./cards/C
 export { PriceCard, type PriceCardProps } from "./cards/PriceCard";
 
 // Forms
-export { FormCard, type FormCardProps, type FormSuccessContent } from "./forms/FormCard";
+export { FormCard, type FormCardProps, type FormSubmitResult, type FormSuccessContent } from "./forms/FormCard";
 export { FormGrid, type FormGridProps } from "./forms/FormGrid";
 export { Field, type FieldProps } from "./forms/Field";
 export { SelectField, type SelectFieldProps } from "./forms/SelectField";

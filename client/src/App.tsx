@@ -1,16 +1,24 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
+// The Leads page loads on its own, so visitors never download it.
+const Admin = lazy(() => import("./pages/Admin"));
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/admin"}>
+        <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--midnight)" }} />}>
+          <Admin />
+        </Suspense>
+      </Route>
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -65,6 +65,23 @@ function font(ctx: Ctx, weight: number, size: number, stretch: "normal" | "semi-
   if ("letterSpacing" in ctx) ctx.letterSpacing = `${tracking}px`;
 }
 
+/** A rounded rectangle with Apple-style continuous corners, like the phone's own. */
+function smoothRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
+  const e = Math.min(r * 1.2, w / 2, h / 2);
+  const c = e * 0.36;
+  ctx.beginPath();
+  ctx.moveTo(x + e, y);
+  ctx.lineTo(x + w - e, y);
+  ctx.bezierCurveTo(x + w - c, y, x + w, y + c, x + w, y + e);
+  ctx.lineTo(x + w, y + h - e);
+  ctx.bezierCurveTo(x + w, y + h - c, x + w - c, y + h, x + w - e, y + h);
+  ctx.lineTo(x + e, y + h);
+  ctx.bezierCurveTo(x + c, y + h, x, y + h - c, x, y + h - e);
+  ctx.lineTo(x, y + e);
+  ctx.bezierCurveTo(x, y + c, x + c, y, x + e, y);
+  ctx.closePath();
+}
+
 function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -109,8 +126,49 @@ export async function loadFonts() {
 
 // ── The screen ───────────────────────────────────────────────────────────
 
+// The iPhone 18 Pro Max display is 2868 × 1320 pixels: drawn here at 640
+// wide, 1 mm is about 8.8 px.
 export const SCREEN_W = 640;
-export const SCREEN_H = 1366;
+export const SCREEN_H = 1391;
+
+/** Status bar, drawn around the Dynamic Island: the time, then signal, Wi-Fi and battery. */
+function statusBar(ctx: Ctx) {
+  ctx.fillStyle = INK.cream;
+  ctx.textAlign = "center";
+  font(ctx, 600, 27);
+  ctx.fillText("7:42", 128, 54);
+  // Signal.
+  for (let i = 0; i < 4; i++) {
+    const h = 8 + i * 4.2;
+    roundRect(ctx, 452 + i * 8.5, 52 - h, 6, h, 1.6);
+    ctx.fill();
+  }
+  // Wi-Fi: three arcs over a dot.
+  ctx.save();
+  ctx.strokeStyle = INK.cream;
+  ctx.lineCap = "round";
+  ctx.lineWidth = 3.6;
+  for (const r of [7, 13, 19]) {
+    ctx.beginPath();
+    ctx.arc(514, 53, r, Math.PI * 1.25, Math.PI * 1.75);
+    ctx.stroke();
+  }
+  ctx.restore();
+  disc(ctx, 514, 51, 2.6, INK.cream);
+  // Battery.
+  ctx.save();
+  ctx.strokeStyle = "rgba(246,241,231,.45)";
+  ctx.lineWidth = 2.4;
+  roundRect(ctx, 540, 33, 46, 22, 6.5);
+  ctx.stroke();
+  ctx.restore();
+  roundRect(ctx, 543.5, 36.5, 33, 15, 3.5);
+  ctx.fill();
+  roundRect(ctx, 588.5, 40, 3.5, 8, 1.5);
+  ctx.fillStyle = "rgba(246,241,231,.45)";
+  ctx.fill();
+  ctx.textAlign = "left";
+}
 
 export type ScreenKind = "idle" | "ringing" | "answered" | "menu" | "order" | "team";
 
@@ -121,7 +179,7 @@ export function drawScreen(canvas: HTMLCanvasElement, kind: ScreenKind, k = 0) {
   const H = SCREEN_H;
   ctx.clearRect(0, 0, W, H);
   ctx.save();
-  roundRect(ctx, 0, 0, W, H, 88);
+  smoothRect(ctx, 0, 0, W, H, 87);
   ctx.clip();
 
   const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -139,10 +197,13 @@ export function drawScreen(canvas: HTMLCanvasElement, kind: ScreenKind, k = 0) {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // The island.
-  roundRect(ctx, W / 2 - 80, 34, 160, 46, 23);
-  ctx.fillStyle = "#02080B";
+  // The Dynamic Island: 13.5 mm wide on the iPhone 18 Pro, with the front camera at its right end.
+  roundRect(ctx, W / 2 - 59, 16, 118, 54, 27);
+  ctx.fillStyle = "#010304";
   ctx.fill();
+  disc(ctx, W / 2 + 32, 43, 11, "#0a0f14");
+  disc(ctx, W / 2 + 32, 43, 5, "#14202b");
+  statusBar(ctx);
 
   ctx.textBaseline = "alphabetic";
   if (kind === "idle") {
@@ -295,17 +356,11 @@ export function drawScreen(canvas: HTMLCanvasElement, kind: ScreenKind, k = 0) {
     });
     icon(ctx, "hand", W / 2, 1080, 92, teamDone ? INK.jade : INK.lantern, 2);
   }
-  ctx.restore();
-}
-
-/** A white rounded-rectangle mask of the screen, for the glass layer. */
-export function drawScreenMask(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d") as Ctx;
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  roundRect(ctx, 0, 0, canvas.width, canvas.height, canvas.width * 0.1375);
-  ctx.fillStyle = "#fff";
+  // The home indicator.
+  roundRect(ctx, W / 2 - 97, H - 22, 194, 7, 3.5);
+  ctx.fillStyle = "rgba(246,241,231,.72)";
   ctx.fill();
+  ctx.restore();
 }
 
 // ── The paper ticket ─────────────────────────────────────────────────────

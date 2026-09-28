@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon, useMotionKit } from "@/kit";
 import { PhoneCanvas, hasWebGL } from "./PhoneCanvas";
 import { PhonePoster } from "./PhonePoster";
+import { heroPhonePixels } from "./scene/fit";
 import type { PhoneScene } from "./scene/phoneScene";
 
 /**
@@ -15,6 +16,22 @@ export function HeroPhone() {
   const [failed, setFailed] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
   const live = Boolean(scene) && !failed;
+
+  // Size the CSS phone like the 3D one (566 px tall before scaling), so the
+  // hand-over doesn't jump.
+  useLayoutEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const size = () => {
+      const phone = heroPhonePixels(el.clientWidth, el.clientHeight);
+      el.style.setProperty("--poster-scale", (phone / 577).toFixed(3));
+      el.style.setProperty("--poster-lift", `${(-phone * 0.05).toFixed(1)}px`);
+    };
+    size();
+    const observer = new ResizeObserver(size);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = stage.current;

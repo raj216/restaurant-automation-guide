@@ -8,10 +8,14 @@ export interface FieldProps {
   required?: boolean;
   /** Muted note after the label, e.g. "(optional)". */
   hint?: string;
+  /** Most characters the input takes. */
+  maxLength?: number;
+  /** Browser autofill hint, e.g. "name", "email", "tel", "organization". */
+  autoComplete?: string;
 }
 
 /** A labelled text input: night-blue field, soft rounded corners, gold focus ring. Use inside a FormCard. */
-export function Field({ label, name, type, placeholder, required, hint }: FieldProps) {
+export function Field({ label, name, type, placeholder, required, hint, maxLength, autoComplete }: FieldProps) {
   return (
     <label>
       <span className="field-label">
@@ -19,7 +23,14 @@ export function Field({ label, name, type, placeholder, required, hint }: FieldP
         {required && " *"}
         {hint && <span className="field-hint"> {hint}</span>}
       </span>
-      <input name={name} type={type} placeholder={placeholder} required={required} />
+      <input
+        name={name}
+        type={type}
+        placeholder={placeholder}
+        required={required}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
+      />
     </label>
   );
 }

@@ -11,7 +11,6 @@ import {
   AmbientLight,
   BufferAttribute,
   CanvasTexture,
-  CylinderGeometry,
   DirectionalLight,
   DoubleSide,
   Euler,
@@ -19,7 +18,6 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  MeshPhysicalMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
   Plane,
@@ -30,20 +28,19 @@ import {
   SRGBColorSpace,
   Scene,
   Texture,
-  TorusGeometry,
   Vector3,
   WebGLRenderer,
   type Material,
+  type Object3D,
 } from "three";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { CAMERA_FOV, HERO_FIT, fitDistance } from "./fit";
+import { PHONE, buildIphone, studioScene, type Finish } from "./iphone";
 import {
   SCREEN_H,
   SCREEN_W,
   TICKET_H,
   TICKET_W,
   drawScreen,
-  drawScreenMask,
   drawStamp,
   drawTicket,
   loadFonts,
@@ -67,12 +64,11 @@ export interface PhoneScene {
   dispose(): void;
 }
 
-// Phone and ticket sizes, in scene units (the phone is 1.6 tall).
-const W = 0.78;
-const H = 1.6;
-const D = 0.09;
-const SW = W - 0.056;
-const SH = H - 0.056;
+// The finish the phone is shown in: "silver", "black", "lightBlue" or "burgundy".
+const FINISH: Finish = "silver";
+
+// Ticket sizes, in scene units (100 mm; the phone is 1.634 tall).
+const H = PHONE.height;
 const TW = 0.62;
 const TH = (TW * TICKET_H) / TICKET_W;
 const SLOT = H / 2 - 0.015; // where the ticket leaves the phone, in phone space
@@ -99,6 +95,16 @@ const POSES = [
 ];
 const LANDED_POSITION = new Vector3(0.52, 0.16, 0.55);
 const LANDED_QUATERNION = new Quaternion().setFromEuler(new Euler(-0.06, -0.2, 0.05));
+
+/** Frees what a throwaway scene (like the studio, once captured) holds on the GPU. */
+function disposeObjects(root: Object3D) {
+  root.traverse(object => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.dispose();
+    for (const material of (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) as Material[]) material.dispose();
+  });
+}
 
 function makeTexture(canvas: HTMLCanvasElement, renderer: WebGLRenderer) {
   const texture = new CanvasTexture(canvas);
@@ -134,12 +140,16 @@ export async function createPhoneScene(
   };
   canvas.addEventListener("webglcontextlost", lost);
 
+  // One photo-studio capture lights everything: the phone's metal and glass
+  // reflect it, and the paper ticket takes its soft light.
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
-  const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environment = environment;
+  const studioSet = studioScene();
+  const studio = pmrem.fromScene(studioSet, 0.02).texture;
+  disposeObjects(studioSet);
+  scene.environment = studio;
 
-  const camera = new PerspectiveCamera(28, 1, 0.1, 60);
+  const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 60);
 
   // Warm key light, the lantern glow from behind, a cool fill.
   const key = new DirectionalLight(0xffe7c2, 1.5);
@@ -150,89 +160,20 @@ export async function createPhoneScene(
   scene.add(key, rim, fill);
 
   // ── The phone ──────────────────────────────────────────────────────────
-  const phone = new Group();
-  const metal = new MeshPhysicalMaterial({
-    color: 0x1b2e37,
-    metalness: 0.78,
-    roughness: 0.3,
-    clearcoat: 1,
-    clearcoatRoughness: 0.16,
-    envMapIntensity: 1.15,
-  });
-  phone.add(new Mesh(new RoundedBoxGeometry(W, H, D, 6, 0.12), metal));
-
   const screenCanvas = canvasOf(SCREEN_W, SCREEN_H);
   drawScreen(screenCanvas, "idle");
   const screenTexture = makeTexture(screenCanvas, renderer);
-  const screen = new Mesh(
-    new PlaneGeometry(SW, SH),
-    new MeshBasicMaterial({ map: screenTexture, transparent: true, toneMapped: false })
-  );
-  screen.position.z = D / 2 + 0.0015;
-  phone.add(screen);
+  const iphone = buildIphone(screenTexture, studio, FINISH);
+  const phone = iphone.group;
 
-  // A faint glass reflection over the screen.
-  const maskCanvas = canvasOf(160, 342);
-  drawScreenMask(maskCanvas);
-  const mask = new CanvasTexture(maskCanvas);
-  const glass = new Mesh(
-    new PlaneGeometry(SW, SH),
-    new MeshPhysicalMaterial({
-      color: 0x000000,
-      roughness: 0.06,
-      metalness: 0,
-      clearcoat: 1,
-      transparent: true,
-      opacity: 0.12,
-      alphaMap: mask,
-      envMapIntensity: 1.6,
-      depthWrite: false,
-    })
-  );
-  glass.position.z = D / 2 + 0.003;
-  phone.add(glass);
-
-  // Side buttons.
-  const button = (height: number, y: number, side: 1 | -1) => {
-    const mesh = new Mesh(new RoundedBoxGeometry(0.014, height, 0.03, 2, 0.006), metal);
-    mesh.position.set(side * (W / 2 + 0.004), y, 0);
-    phone.add(mesh);
-  };
-  button(0.22, 0.36, 1);
-  button(0.12, 0.44, -1);
-  button(0.12, 0.27, -1);
-
-  // The back: a glowing lantern ring and a camera block.
-  const logo = new Mesh(
-    new TorusGeometry(0.15, 0.012, 16, 96),
-    new MeshStandardMaterial({ color: 0xffb23f, emissive: 0xffb23f, emissiveIntensity: 1.5, roughness: 0.4 })
-  );
-  logo.position.set(0, 0.02, -D / 2 - 0.004);
-  phone.add(logo);
-  const cameraBlock = new Mesh(
-    new RoundedBoxGeometry(0.27, 0.27, 0.022, 4, 0.07),
-    new MeshPhysicalMaterial({ color: 0x0c1a20, metalness: 0.4, roughness: 0.22, clearcoat: 1 })
-  );
-  cameraBlock.position.set(0.2, 0.56, -D / 2 - 0.009);
-  phone.add(cameraBlock);
-  const lensMaterial = new MeshPhysicalMaterial({ color: 0x050b0e, metalness: 0.2, roughness: 0.05, clearcoat: 1 });
-  for (const [x, y] of [
-    [0.25, 0.61],
-    [0.15, 0.51],
-  ]) {
-    const lens = new Mesh(new CylinderGeometry(0.048, 0.048, 0.02, 40), lensMaterial);
-    lens.rotation.x = Math.PI / 2;
-    lens.position.set(x, y, -D / 2 - 0.022);
-    phone.add(lens);
-  }
-
-  // The voice waveform shown while the call is answered.
+  // The voice waveform shown while the call is answered, over the line on the screen.
   const bars = new Group();
   const barMaterial = new MeshBasicMaterial({ color: 0xffb23f, toneMapped: false });
   const barCount = 17;
+  const waveY = PHONE.screenHeight / 2 - (746 / SCREEN_H) * PHONE.screenHeight;
   for (let i = 0; i < barCount; i++) {
     const bar = new Mesh(new PlaneGeometry(0.016, 1), barMaterial);
-    bar.position.set(-0.24 + (i * 0.48) / (barCount - 1), -0.013, D / 2 + 0.0025);
+    bar.position.set(-0.24 + (i * 0.48) / (barCount - 1), waveY, iphone.screenZ + 0.0008);
     bars.add(bar);
   }
   bars.visible = false;
@@ -251,8 +192,12 @@ export async function createPhoneScene(
     ticketGeometry,
     new MeshStandardMaterial({
       map: ticketTexture,
+      // The lights add up to more than white; a darker base keeps the paper
+      // white once lit and the print dark and crisp.
+      color: 0xbdbdbd,
       roughness: 0.8,
       metalness: 0,
+      envMapIntensity: 0.6,
       side: DoubleSide,
       transparent: true,
       alphaTest: 0.5,
@@ -310,8 +255,7 @@ export async function createPhoneScene(
   let frame = 0;
   let active = false;
   let screenKey = "";
-  let fitHeight = mode === "hero" ? 2.05 : 2.45;
-  let fitWidth = mode === "hero" ? 1.5 : 2.35;
+  let fit = mode === "hero" ? HERO_FIT : { height: 2.45, width: 2.35 };
 
   const local = new Matrix4();
   const attached = new Matrix4();
@@ -424,9 +368,7 @@ export async function createPhoneScene(
   function frameCamera(width: number, height: number) {
     const aspect = width / Math.max(1, height);
     camera.aspect = aspect;
-    const tan = Math.tan((camera.fov * Math.PI) / 360);
-    const distance = Math.max(fitHeight / 2 / tan, fitWidth / 2 / (tan * aspect));
-    camera.position.set(0, 0, distance + 0.4);
+    camera.position.set(0, 0, fitDistance(fit, aspect));
     camera.lookAt(0, mode === "story" ? -0.05 : 0, 0);
     camera.updateProjectionMatrix();
   }
@@ -471,13 +413,7 @@ export async function createPhoneScene(
       if (width < 2 || height < 2) return;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 700 ? 1.75 : 2));
       renderer.setSize(width, height, false);
-      if (mode === "story" && width / height < 0.9) {
-        fitHeight = 2.5;
-        fitWidth = 1.95;
-      } else if (mode === "story") {
-        fitHeight = 2.45;
-        fitWidth = 2.35;
-      }
+      if (mode === "story") fit = width / height < 0.9 ? { height: 2.5, width: 1.95 } : { height: 2.45, width: 2.35 };
       frameCamera(width, height);
       render();
     },
@@ -504,7 +440,8 @@ export async function createPhoneScene(
         }
       });
       textures.forEach(texture => texture.dispose());
-      environment.dispose();
+      iphone.dispose();
+      studio.dispose();
       pmrem.dispose();
       renderer.dispose();
     },

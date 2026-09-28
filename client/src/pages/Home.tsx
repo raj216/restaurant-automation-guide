@@ -1,5 +1,8 @@
 import { HeroPhone } from "@/components/phone/HeroPhone";
 import { PhoneStory } from "@/components/phone/PhoneStory";
+import { CONTACT_OPTIONS, LEAD_LIMITS, POS_OPTIONS, readLeadFields, submitLead } from "@/lib/leads";
+import { randomId } from "@/lib/supabase";
+import { useRef } from "react";
 import {
   ActionRow,
   Button,
@@ -32,6 +35,7 @@ import {
   type ControlRow,
   type Feature,
   type FooterColumn,
+  type FormSubmitResult,
   type NavLink,
   type NumberedListItem,
   type TimelineItem,
@@ -110,6 +114,12 @@ function HomePage() {
   const { reduce } = useMotionKit();
   // The hero plays once the brand font is in, so nothing re-flows mid-move.
   const fontsReady = useFontsReady(["Mona Sans"]);
+
+  // One id per filled-in form: a retry or a second click can't save it twice.
+  const leadId = useRef(randomId());
+  const pageOpenedAt = useRef(Date.now());
+  const sendLead = async (form: HTMLFormElement): Promise<FormSubmitResult> =>
+    submitLead(readLeadFields(form), leadId.current, pageOpenedAt.current);
 
   return (
     <>
@@ -274,6 +284,7 @@ function HomePage() {
                 kicker="PHONE-ORDER PREFLIGHT"
                 title="Tell us where the phone breaks down."
                 note="We use these details only to prepare for this review. No promotional list."
+                onSubmit={sendLead}
                 success={{
                   title: "Request received.",
                   text: "We will review your restaurant details and follow up with the next practical step.",
@@ -282,16 +293,16 @@ function HomePage() {
                 }}
               >
                 <FormGrid>
-                  <Field label="Your name" name="name" placeholder="Jamie Rivera" required />
-                  <Field label="Restaurant name" name="restaurant" placeholder="Rivera Kitchen" required />
-                  <Field label="Email" name="email" type="email" placeholder="jamie@restaurant.com" required />
-                  <Field label="Phone" name="phone" type="tel" placeholder="(201) 555-0148" hint="(optional)" />
-                  <Field label="City / neighborhood" name="location" placeholder="Jersey City, NJ" required />
-                  <SelectField label="Current POS" name="pos" placeholder="Select your POS" options={["Toast", "Square", "SpotOn", "Clover", "Other / not sure"]} required />
+                  <Field label="Your name" name="name" placeholder="Jamie Rivera" required maxLength={LEAD_LIMITS.name} autoComplete="name" />
+                  <Field label="Restaurant name" name="restaurant" placeholder="Rivera Kitchen" required maxLength={LEAD_LIMITS.restaurant} autoComplete="organization" />
+                  <Field label="Email" name="email" type="email" placeholder="jamie@restaurant.com" required maxLength={LEAD_LIMITS.email} autoComplete="email" />
+                  <Field label="Phone" name="phone" type="tel" placeholder="(201) 555-0148" hint="(optional)" maxLength={LEAD_LIMITS.phone} autoComplete="tel" />
+                  <Field label="City / neighborhood" name="location" placeholder="Jersey City, NJ" required maxLength={LEAD_LIMITS.location} autoComplete="address-level2" />
+                  <SelectField label="Current POS" name="pos" placeholder="Select your POS" options={POS_OPTIONS} required />
                 </FormGrid>
-                <TextAreaField label="What happens when the phone gets busy?" name="need" rows={4} placeholder="Calls ring out during dinner, staff puts people on hold..." required />
+                <TextAreaField label="What happens when the phone gets busy?" name="need" rows={4} placeholder="Calls ring out during dinner, staff puts people on hold..." required maxLength={LEAD_LIMITS.need} />
                 <FormActions>
-                  <SelectField label="Best way to respond" name="contact_preference" options={["Email me", "Call me", "Either is fine"]} />
+                  <SelectField label="Best way to respond" name="contact_preference" options={CONTACT_OPTIONS} />
                   <Button type="submit">Request my phone-order review</Button>
                 </FormActions>
               </FormCard>
