@@ -466,3 +466,6 @@ p { font-size: 17px; line-height: 1.68; }
 @media (prefers-reduced-motion: reduce) {
   .hero-visual::before, .status-list .current, .status-led { animation: none; }
 }
+
+/* <KadmivoProvider motion="off">: the kit renders its final, static state. */
+.kadmivo-motion-off *, .kadmivo-motion-off *::before, .kadmivo-motion-off *::after { animation: none !important; }

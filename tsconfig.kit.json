@@ -1,0 +1,21 @@
+{
+  // Type declarations for the brand kit build (see vite.kit.config.ts).
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "client/src/kit",
+    "outDir": "kit/dist/types",
+    "types": []
+  },
+  "include": ["client/src/kit/**/*"],
+  // The build entry only adds the stylesheet import.
+  "exclude": ["client/src/kit/lib.ts"]
+}

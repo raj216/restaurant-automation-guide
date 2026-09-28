@@ -1,0 +1,9 @@
+{
+  "name": "@kadmivo/brand-kit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Kadmivo site's own building blocks, built from client/src/kit by `pnpm build:kit`.",
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/types/index.d.ts"
+}
