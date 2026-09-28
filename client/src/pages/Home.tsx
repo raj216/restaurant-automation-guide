@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { m, useScroll, useTransform, type MotionStyle } from "framer-motion";
+import { HeroPhone } from "@/components/phone/HeroPhone";
+import { PhoneStory } from "@/components/phone/PhoneStory";
 import {
   ActionRow,
   Button,
@@ -11,10 +11,10 @@ import {
   FormCard,
   FormGrid,
   Heading,
+  Icon,
   KadmivoProvider,
   NoticeBar,
   NumberedList,
-  OrderCard,
   PriceCard,
   PromiseList,
   RuleCallout,
@@ -27,15 +27,13 @@ import {
   TextLink,
   Timeline,
   TrustStrip,
-  WorkflowSteps,
   useFontsReady,
   useMotionKit,
+  type ControlRow,
   type Feature,
   type FooterColumn,
   type NavLink,
   type NumberedListItem,
-  type OrderItem,
-  type OrderStep,
   type TimelineItem,
   type WorkflowStep,
 } from "@/kit";
@@ -45,18 +43,6 @@ const navLinks: NavLink[] = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Your control", href: "#control" },
   { label: "Trial", href: "#trial" },
-];
-
-const orderItems: OrderItem[] = [
-  { name: "1 × Rigatoni", note: "extra sauce · no cheese", price: "$19.00" },
-  { name: "1 × Garlic knots", note: "sauce on the side", price: "$8.50" },
-];
-
-const orderSteps: OrderStep[] = [
-  { label: "Customer confirmed", state: "done" },
-  { label: "Menu checked", state: "done" },
-  { label: "Your team checks the order", state: "current" },
-  { label: "Reaches POS", state: "pending" },
 ];
 
 const problems: NumberedListItem[] = [
@@ -70,6 +56,13 @@ const workflow: WorkflowStep[] = [
   { icon: "clipboard-check", title: "The menu is checked", text: "Items, prices, special requests, hours, and available options are checked against the menu you approve." },
   { icon: "check-circle", title: "The order is repeated", text: "The customer hears the complete order and confirms it before an order draft is created." },
   { icon: "hand", title: "Your team checks it", text: "A team member accepts, changes, rejects, or transfers the order before it reaches the POS." },
+];
+
+const handoff: ControlRow[] = [
+  { label: "Customer", value: "Confirms order", state: "done" },
+  { label: "Menu", value: "Checked first", state: "done" },
+  { label: "Your team", value: "Checks the order", state: "current" },
+  { label: "Kitchen", value: "Follows the POS", state: "pending" },
 ];
 
 const guardrails: Feature[] = [
@@ -115,15 +108,8 @@ export default function Home() {
 
 function HomePage() {
   const { reduce } = useMotionKit();
-  // The hero plays once the brand fonts are in, so nothing re-flows mid-move.
-  const fontsReady = useFontsReady(["Fraunces", "Manrope"]);
-
-  // Hero depth: the order card drifts up as the hero scrolls away while the
-  // ring behind it lags, so the two separate slightly.
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const visualY = useTransform(heroProgress, [0, 1], [0, -70]);
-  const ringY = useTransform(heroProgress, [0, 1], ["0px", "90px"]);
+  // The hero plays once the brand font is in, so nothing re-flows mid-move.
+  const fontsReady = useFontsReady(["Mona Sans"]);
 
   return (
     <>
@@ -139,109 +125,116 @@ function HomePage() {
 
         <main id="main">
           {/* 1. Hero */}
-          <section className="hero section-grid" aria-labelledby="hero-title" ref={heroRef}>
-            <div className="hero-copy">
-              <Eyebrow playOnLoad ready={fontsReady} delay={0.1}>Phone-order support for independent restaurants</Eyebrow>
-              <Heading level={1} id="hero-title" playOnLoad ready={fontsReady} delay={0.2}>Recover the phone orders your restaurant misses during the rush.</Heading>
-              <Text variant="lede" playOnLoad ready={fontsReady} delay={0.65}>Kadmivo answers routine restaurant calls, checks each order against the menu you approve, and gives your team an order draft to check.</Text>
-              <Text variant="emphasis" playOnLoad ready={fontsReady} delay={0.75}>Your team checks the order before it reaches the POS or kitchen.</Text>
-              <ActionRow playOnLoad ready={fontsReady} delay={0.85}>
-                <Button href="#how-it-works">See how it works</Button>
-                <TextLink href="#contact">Book a phone-order review</TextLink>
-              </ActionRow>
-              <TrustStrip
-                label="Kadmivo safeguards"
-                playOnLoad
-                ready={fontsReady}
-                delay={1}
-                items={[
-                  { icon: "clipboard-check", label: "Menu checked first" },
-                  { icon: "user", label: "Team member checks every order" },
-                  { icon: "lock", label: "No card numbers over the phone" },
-                ]}
-              />
+          <section className="hero" aria-labelledby="hero-title">
+            <div className="hero-inner">
+              <div className="hero-copy">
+                <Eyebrow variant="chip" playOnLoad ready={fontsReady} delay={0.1}>
+                  Phone-order support for independent restaurants
+                </Eyebrow>
+                <Heading level={1} id="hero-title" highlight="during the rush." playOnLoad ready={fontsReady} delay={0.2}>
+                  Recover the phone orders your restaurant misses during the rush.
+                </Heading>
+                <Text variant="lede" playOnLoad ready={fontsReady} delay={0.65}>
+                  Kadmivo answers routine restaurant calls, checks each order against the menu you approve, and gives your team an order draft to check.
+                </Text>
+                <Text variant="emphasis" playOnLoad ready={fontsReady} delay={0.75}>
+                  <Icon name="check-circle" size={22} /> Your team checks the order before it reaches the POS or kitchen.
+                </Text>
+                <ActionRow playOnLoad ready={fontsReady} delay={0.85}>
+                  <Button href="#how-it-works">See how it works</Button>
+                  <TextLink href="#contact">Book a phone-order review</TextLink>
+                </ActionRow>
+                <TrustStrip
+                  label="Kadmivo safeguards"
+                  playOnLoad
+                  ready={fontsReady}
+                  delay={1}
+                  items={[
+                    { icon: "clipboard-check", label: "Menu checked first" },
+                    { icon: "user", label: "Team member checks every order" },
+                    { icon: "lock", label: "No card numbers over the phone" },
+                  ]}
+                />
+              </div>
+              <HeroPhone />
             </div>
-
-            <m.div
-              className="hero-visual"
-              aria-label="Sample order draft awaiting team review"
-              style={reduce ? undefined : ({ y: visualY, "--ring-y": ringY } as MotionStyle)}
-            >
-              <OrderCard
-                playOnLoad
-                ready={fontsReady}
-                kicker="ASSISTED ORDER · SAMPLE"
-                notice="NOT A LIVE ORDER"
-                label="CUSTOMER CONFIRMED"
-                title="Order draft K-021"
-                badge="Pending review"
-                customer="Pickup for Maya"
-                pickup="Today · 8:20 PM"
-                time="7:42 PM"
-                items={orderItems}
-                steps={orderSteps}
-                footer="The kitchen follows the POS ticket—not an AI transcript."
-              />
-            </m.div>
+            {!reduce && (
+              <span className="scroll-cue" aria-hidden="true">
+                <span />
+              </span>
+            )}
           </section>
 
           {/* 2. Problem */}
-          <section className="problem-section section-grid" id="problem">
-            <div className="section-intro">
-              <Eyebrow>During the rush</Eyebrow>
-              <Heading delay={0.1}>When the dining room gets busy, the phone becomes another table to manage.</Heading>
-            </div>
-            <div className="problem-content">
-              <Text variant="lead" delay={0.1}>Calls go unanswered. Staff put callers on hold. Special requests get misunderstood. Future pickup orders get lost in the rush.</Text>
-              <Text delay={0.2}>Those missed calls become missed orders and frustrated customers. Kadmivo gives routine phone orders a controlled path without taking the final decision away from your team.</Text>
-              <NumberedList delay={0.1} items={problems} />
+          <section className="problem-section" id="problem">
+            <div className="split">
+              <div>
+                <Eyebrow>During the rush</Eyebrow>
+                <Heading delay={0.1} highlight="another table to manage.">
+                  When the dining room gets busy, the phone becomes another table to manage.
+                </Heading>
+              </div>
+              <div className="problem-content">
+                <Text variant="lead" delay={0.1}>
+                  Calls go unanswered. Staff put callers on hold. Special requests get misunderstood. Future pickup orders get lost in the rush.
+                </Text>
+                <Text delay={0.2}>
+                  Those missed calls become missed orders and frustrated customers. Kadmivo gives routine phone orders a controlled path without taking the final decision away from your team.
+                </Text>
+                <NumberedList delay={0.1} items={problems} />
+              </div>
             </div>
           </section>
 
-          {/* 3. How it works */}
-          <section className="workflow-section" id="how-it-works">
-            <div className="section-grid">
-              <div className="workflow-intro">
+          {/* 3. How it works: the phone tells the story as you scroll. */}
+          <section className="story-section" id="how-it-works">
+            <div className="section-head">
+              <div>
                 <Eyebrow>How one call becomes an approved order</Eyebrow>
                 <Heading delay={0.1}>One call. One order your team can check.</Heading>
-                <Text variant="lead" delay={0.2}>Kadmivo handles the routine parts of the call. Your team makes the final decision.</Text>
               </div>
-              <WorkflowSteps steps={workflow} />
+              <Text variant="lead" delay={0.2}>
+                Kadmivo handles the routine parts of the call. Your team makes the final decision.
+              </Text>
             </div>
-            <RuleCallout label="THE SIMPLE RULE">No order is accepted until your team has checked it.</RuleCallout>
+            <PhoneStory steps={workflow} />
+            <div className="rule-wrap">
+              <RuleCallout label="THE SIMPLE RULE">
+                No order is accepted until <em>your team</em> has checked it.
+              </RuleCallout>
+            </div>
           </section>
 
           {/* 4. Control and safeguards */}
-          <section className="control-section dark-section" id="control">
-            <div className="section-grid">
-              <div>
+          <section className="control-section" id="control">
+            <div className="split">
+              <div className="control-intro">
                 <Eyebrow>Built for real restaurant operations</Eyebrow>
                 <Heading delay={0.1}>Your restaurant stays in control.</Heading>
-                <Text delay={0.2}>Kadmivo is designed to help during the rush—not to replace your judgment.</Text>
+                <Text variant="lead" delay={0.2}>
+                  Kadmivo is designed to help during the rush—not to replace your judgment.
+                </Text>
               </div>
               <ControlPanel
                 delay={0.15}
                 label="HOW THE SAFE HANDOFF WORKS"
                 status="Team review stays visible"
                 description="Every order has a clear path before it reaches the POS or kitchen."
-                rows={[
-                  { label: "Customer", value: "Confirms order" },
-                  { label: "Menu", value: "Checked first" },
-                  { label: "Your team", value: "Checks the order" },
-                  { label: "Kitchen", value: "Follows the POS" },
-                ]}
+                rows={handoff}
               />
             </div>
             <FeatureGrid items={guardrails} />
           </section>
 
           {/* 5. Trial */}
-          <section className="pilot-section" id="trial">
-            <div className="section-grid">
-              <div>
+          <section className="trial-section light-section" id="trial">
+            <div className="split">
+              <div className="trial-copy">
                 <Eyebrow>Start small. See if it works.</Eyebrow>
                 <Heading delay={0.1}>Start with one location and a few hours of phone coverage.</Heading>
-                <Text variant="lead" delay={0.2}>Before we begin, we review your busiest phone hours, menu, POS, staffing, and the calls your team currently misses.</Text>
+                <Text variant="lead" delay={0.2}>
+                  Before we begin, we review your busiest phone hours, menu, POS, staffing, and the calls your team currently misses.
+                </Text>
                 <Text delay={0.3}>Then we run a 90-day supervised trial with clear rules and measurable results.</Text>
               </div>
               <PriceCard
@@ -256,13 +249,17 @@ function HomePage() {
           </section>
 
           {/* 6. Contact */}
-          <section className="contact-section dark-section" id="contact">
-            <div className="section-grid">
-              <div>
+          <section className="contact-section" id="contact">
+            <div className="split">
+              <div className="contact-copy">
                 <Eyebrow>See if your restaurant is a fit</Eyebrow>
                 <Heading delay={0.1}>{"Let's look at the calls your team is missing."}</Heading>
-                <Text delay={0.2}>In a 20-minute phone-order review, we will look at your busiest phone hours, current POS, menu, staffing, and whether this supervised trial could work for your team and budget.</Text>
-                <Text delay={0.3}>You do not need to commit to anything. We will first determine whether the workflow fits your restaurant.</Text>
+                <Text delay={0.2}>
+                  In a 20-minute phone-order review, we will look at your busiest phone hours, current POS, menu, staffing, and whether this supervised trial could work for your team and budget.
+                </Text>
+                <Text delay={0.3}>
+                  You do not need to commit to anything. We will first determine whether the workflow fits your restaurant.
+                </Text>
                 <PromiseList
                   delay={0.4}
                   items={[

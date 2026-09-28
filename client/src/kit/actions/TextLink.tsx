@@ -6,19 +6,18 @@ import { cx } from "../utils";
 export interface TextLinkProps {
   children: ReactNode;
   href: string;
-  /** Trailing icon, or null for none. Default "arrow-up-right". */
+  /** Trailing icon, or null for none. Default none. */
   icon?: IconName | null;
   className?: string;
 }
 
 /**
- * The quiet secondary link: small bold underlined text with a diagonal arrow, terracotta on hover.
+ * The quiet secondary link: bold text on a gold underline that turns gold on hover.
  */
-export function TextLink({ children, href, icon = "arrow-up-right", className }: TextLinkProps) {
+export function TextLink({ children, href, icon = null, className }: TextLinkProps) {
   return (
     <a className={cx("text-link", className)} href={href}>
       {children}
-      {icon && " "}
       {icon && <Icon name={icon} size={16} />}
     </a>
   );

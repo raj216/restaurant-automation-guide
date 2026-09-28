@@ -5,13 +5,13 @@ import { cx } from "../utils";
 
 const variantClass = {
   body: undefined,
-  lead: "large-copy",
+  lead: "lead-copy",
   lede: "hero-lede",
   emphasis: "hero-emphasis",
 };
 
 export interface TextProps extends EntranceProps {
-  /** body: regular paragraph. lead: large serif opener. lede: the hero introduction. emphasis: short bold line. Default body. */
+  /** body: regular paragraph. lead: larger opener. lede: the hero introduction. emphasis: short bold line, e.g. after a check icon. Default body. */
   variant?: "body" | "lead" | "lede" | "emphasis";
   children: ReactNode;
   className?: string;

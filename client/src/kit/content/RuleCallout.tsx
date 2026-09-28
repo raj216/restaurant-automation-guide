@@ -1,23 +1,26 @@
 import type { ReactNode } from "react";
+import { Icon } from "../brand/Icon";
 import { Reveal } from "../motion/Reveal";
 
 export interface RuleCalloutProps {
-  /** Small terracotta label, e.g. "THE SIMPLE RULE". */
+  /** Small gold label after a lock, e.g. "THE SIMPLE RULE". */
   label: string;
-  /** One sentence, set in the serif. */
+  /** One sentence, set large. Wrap a phrase in <em> to set it in gold. */
   children: ReactNode;
 }
 
 /**
- * A full-width statement between two rules: a small terracotta label, then one sentence in the serif.
+ * A glowing banner for the one rule that matters: a small gold label with a lock, then one large sentence.
  *
- * For light sections. The top rule is dark, the bottom one light.
+ * It rises in, then the sentence follows.
  */
 export function RuleCallout({ label, children }: RuleCalloutProps) {
   return (
-    <Reveal className="acceptance-rule" variant="wipe">
-      <span>{label}</span>
-      <Reveal as="strong" delay={0.45} distance={12}>
+    <Reveal className="rule-callout" distance={30}>
+      <span className="rule-label">
+        <Icon name="lock" size={22} /> {label}
+      </span>
+      <Reveal as="strong" className="rule-statement" delay={0.3} distance={12}>
         {children}
       </Reveal>
     </Reveal>

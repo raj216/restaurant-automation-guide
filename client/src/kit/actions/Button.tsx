@@ -17,7 +17,7 @@ export interface ButtonProps {
 }
 
 /**
- * The primary call to action: a solid terracotta block with a trailing arrow that lifts on hover.
+ * The primary call to action: a glowing gold pill with a trailing arrow that nudges forward on hover.
  *
  * Use one per view; pair it with a TextLink for the secondary action.
  */
@@ -34,7 +34,6 @@ export function Button({
   const content = (
     <>
       {children}
-      {icon && " "}
       {icon && <Icon name={icon} size={18} />}
     </>
   );

@@ -21,14 +21,11 @@ export function TextAreaField({
 }: TextAreaFieldProps) {
   return (
     <label>
-      {label}
-      {required && " *"}
-      {hint && (
-        <>
-          {" "}
-          <span>{hint}</span>
-        </>
-      )}
+      <span className="field-label">
+        {label}
+        {required && " *"}
+        {hint && <span className="field-hint"> {hint}</span>}
+      </span>
       <textarea name={name} rows={rows} placeholder={placeholder} required={required} />
     </label>
   );

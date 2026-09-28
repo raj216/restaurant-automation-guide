@@ -12,20 +12,22 @@ export interface FeatureGridProps {
 export type Feature = FeatureGridProps["items"][number];
 
 /**
- * Three ruled columns for a dark section, each with a drawn icon, a white serif title and a short explanation.
+ * Three cards side by side, each with a drawn gold icon in a soft disc, a title and a short explanation.
  *
- * Stacks on phones.
+ * Stacks on phones. The cards rise in turn and lift on hover.
  */
 export function FeatureGrid({ items }: FeatureGridProps) {
   return (
-    <Reveal className="guardrail-grid" variant="wipe">
+    <div className="feature-grid">
       {items.map((item, i) => (
-        <Reveal key={item.title} delay={at(0.15 + 0.15 * i)} distance={18}>
-          <DrawIcon name={item.icon} delay={at(0.35 + 0.15 * i)} />
+        <Reveal key={item.title} className="feature-card" delay={at(0.1 + 0.12 * i)} distance={24}>
+          <span className="icon-disc">
+            <DrawIcon name={item.icon} size={22} delay={at(0.3 + 0.12 * i)} />
+          </span>
           <h3>{item.title}</h3>
           <p>{item.text}</p>
         </Reveal>
       ))}
-    </Reveal>
+    </div>
   );
 }

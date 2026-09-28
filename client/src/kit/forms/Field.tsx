@@ -10,18 +10,15 @@ export interface FieldProps {
   hint?: string;
 }
 
-/** A labelled text input on warm paper with a hairline border. Use inside a FormCard. */
+/** A labelled text input: night-blue field, soft rounded corners, gold focus ring. Use inside a FormCard. */
 export function Field({ label, name, type, placeholder, required, hint }: FieldProps) {
   return (
     <label>
-      {label}
-      {required && " *"}
-      {hint && (
-        <>
-          {" "}
-          <span>{hint}</span>
-        </>
-      )}
+      <span className="field-label">
+        {label}
+        {required && " *"}
+        {hint && <span className="field-hint"> {hint}</span>}
+      </span>
       <input name={name} type={type} placeholder={placeholder} required={required} />
     </label>
   );

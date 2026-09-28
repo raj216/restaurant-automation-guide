@@ -10,7 +10,7 @@ export interface SelectFieldProps {
   defaultValue?: string;
 }
 
-/** A labelled drop-down menu, styled like Field. Use inside a FormCard. */
+/** A labelled drop-down menu with a chevron, styled like Field. Use inside a FormCard. */
 export function SelectField({
   label,
   name,
@@ -21,8 +21,10 @@ export function SelectField({
 }: SelectFieldProps) {
   return (
     <label>
-      {label}
-      {required && " *"}
+      <span className="field-label">
+        {label}
+        {required && " *"}
+      </span>
       <select
         name={name}
         required={required}

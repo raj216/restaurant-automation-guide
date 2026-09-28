@@ -1,15 +1,15 @@
 import { Reveal } from "../motion/Reveal";
-import { at } from "../utils";
+import { at, cx } from "../utils";
 
 export interface ControlPanelProps {
-  /** Small warm label at the top, e.g. "HOW THE SAFE HANDOFF WORKS". */
+  /** Small label at the top, e.g. "HOW THE SAFE HANDOFF WORKS". */
   label: string;
-  /** Beside the green status light, e.g. "Team review stays visible". */
+  /** In the green status chip, e.g. "Team review stays visible". */
   status: string;
-  /** One line of explanation. */
+  /** One line of explanation under the rows. */
   description: string;
-  /** Label/value rows, each { label, value }, e.g. { label: "Menu", value: "Checked first" }. */
-  rows: { label: string; value: string }[];
+  /** Label/value rows, each { label, value, state }; state done (green dot), current (gold, pulsing) or pending (hollow). */
+  rows: { label: string; value: string; state?: "done" | "current" | "pending" }[];
   /** Seconds to wait, once in view, before the panel rises. */
   delay?: number;
 }
@@ -18,27 +18,35 @@ export interface ControlPanelProps {
 export type ControlRow = ControlPanelProps["rows"][number];
 
 /**
- * A dark status panel: small label, a softly pulsing green status light, a line of text, and label/value rows.
+ * A status panel: small label and a green status chip, then label/value rows, each led by a status dot, and a note.
  *
- * The rows uncover one by one.
+ * The current row glows gold. The rows uncover one by one.
  */
 export function ControlPanel({ label, status, description, rows, delay = 0 }: ControlPanelProps) {
   return (
     <Reveal className="control-panel" delay={delay} distance={36}>
-      <div className="control-panel-label">{label}</div>
-      <div className="control-status">
-        <span className="status-led" />
-        <strong>{status}</strong>
+      <div className="control-panel-head">
+        <span className="panel-label">{label}</span>
+        <span className="status-chip">
+          <span className="status-led" aria-hidden="true" />
+          {status}
+        </span>
       </div>
-      <p>{description}</p>
       <div className="control-rows">
         {rows.map((row, i) => (
-          <Reveal key={row.label} variant="wipe" delay={at(delay + 0.3 + 0.15 * i)}>
+          <Reveal
+            key={row.label}
+            className={cx("control-row", row.state === "done" && "is-done", row.state === "current" && "is-current")}
+            variant="wipe"
+            delay={at(delay + 0.3 + 0.15 * i)}
+          >
+            <span className="row-dot" aria-hidden="true" />
             <span>{row.label}</span>
             <strong>{row.value}</strong>
           </Reveal>
         ))}
       </div>
+      <p className="panel-note">{description}</p>
     </Reveal>
   );
 }

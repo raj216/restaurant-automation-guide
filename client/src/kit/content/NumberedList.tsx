@@ -12,18 +12,20 @@ export interface NumberedListProps {
 export type NumberedListItem = NumberedListProps["items"][number];
 
 /**
- * A ruled list of numbered points: a terracotta number, a bold title and a line of detail. For light sections.
+ * A ruled list of numbered points: a gold number, a title and a line of detail.
  *
  * The rules uncover, then each point rises in turn.
  */
 export function NumberedList({ items, delay = 0 }: NumberedListProps) {
   return (
-    <Reveal className="problem-list" variant="wipe" delay={delay}>
+    <Reveal className="numbered-list" variant="wipe" delay={delay}>
       {items.map((item, i) => (
-        <Reveal key={item.title} delay={at(delay + 0.2 + 0.12 * i)} distance={14}>
-          <span>{pad(i)}</span>
-          <strong>{item.title}</strong>
-          <p>{item.text}</p>
+        <Reveal key={item.title} className="numbered-item" delay={at(delay + 0.2 + 0.12 * i)} distance={14}>
+          <span className="numbered-index">{pad(i)}</span>
+          <div>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </div>
         </Reveal>
       ))}
     </Reveal>
