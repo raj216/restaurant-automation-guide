@@ -368,7 +368,7 @@ export function Dashboard() {
               </span>
               <span className="dash-title">
                 <Lock size={12} />
-                {DASHBOARD.windowTitle}
+                <span>{DASHBOARD.windowTitle}</span>
               </span>
               <span className="dash-online">
                 <span className="live-dot" />
