@@ -3,7 +3,7 @@ import { Faq } from "@/site/Faq";
 import { Footer } from "@/site/Footer";
 import { Hero } from "@/site/Hero";
 import { HowItWorks } from "@/site/HowItWorks";
-import { useSpotlight } from "@/site/motion";
+import { usePauseOffscreen, useSpotlight } from "@/site/motion";
 import { Motto } from "@/site/Motto";
 import { Nav } from "@/site/Nav";
 import { Pilot } from "@/site/Pilot";
@@ -33,6 +33,7 @@ function ScrollProgress() {
 /** The CoHost AI home page. Every word is in site/content.ts. */
 export default function Home() {
   useSpotlight();
+  usePauseOffscreen();
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">

@@ -8,6 +8,9 @@
 .site::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .045; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
 .wrap { width: min(1200px, calc(100% - 2 * var(--gutter))); margin-inline: auto; }
 .site [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
+/* Looping animations stop while their section is off screen (usePauseOffscreen) and, once the 3D phone takes over, in the hidden CSS phone. */
+[data-paused] *, [data-paused] *::before, [data-paused] *::after,
+.poster.is-hidden *, .poster.is-hidden *::before, .poster.is-hidden *::after { animation-play-state: paused !important; }
 .skip { position: fixed; left: 16px; top: -64px; z-index: 80; padding: 10px 16px; border-radius: 10px; background: #fff; color: var(--ink-0); font-weight: 600; transition: top .2s ease; }
 .skip:focus { top: 12px; }
 .word { display: inline-block; }
@@ -104,7 +107,8 @@
 .stage { position: relative; width: min(1280px, 100%); height: clamp(560px, 60vw, 690px); margin: clamp(4px, 1.5vw, 20px) auto 0; }
 /* Only as wide as the phone needs, so the 3D canvas draws no more pixels than it must. */
 .stage-phone { position: absolute; inset: 0; width: min(100%, 640px); margin-inline: auto; }
-.stage-glow { position: absolute; left: 50%; top: 50%; width: min(620px, 90vw); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); filter: blur(90px); opacity: .32; animation: turn 14s linear infinite; pointer-events: none; }
+/* The spinning discs (this glow, the orbs) turn as a whole, which the compositor does without repainting them. */
+.stage-glow { position: absolute; left: 50%; top: 50%; width: min(620px, 90vw); aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); filter: blur(90px); opacity: .32; animation: spin 14s linear infinite; pointer-events: none; }
 @keyframes turn { to { --angle: 360deg; } }
 .ripples { position: absolute; left: 50%; top: 50%; width: 1px; height: 1px; pointer-events: none; }
 .ripples i { position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; margin: -260px 0 0 -260px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .09); animation: ripple 5.4s var(--ease) infinite; }
@@ -146,7 +150,8 @@
 .poster-screen::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 3px; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); filter: blur(4px); opacity: .9; animation: turn 6s linear infinite; }
 .poster-island { position: absolute; top: 17px; left: 50%; width: 46px; height: 20px; margin-left: -23px; border-radius: 999px; background: #000; }
 .poster-top { position: absolute; top: 12px; left: 26px; right: 22px; display: flex; justify-content: space-between; color: var(--text); font-size: 10.5px; font-weight: 600; }
-.poster-orb { position: absolute; top: 88px; left: 50%; width: 118px; height: 118px; margin-left: -59px; border-radius: 50%; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); filter: blur(1px) saturate(1.2); box-shadow: 0 0 60px rgba(139, 92, 246, .55); animation: turn 5s linear infinite; }
+.poster-orb { position: absolute; top: 88px; left: 50%; width: 118px; height: 118px; margin-left: -59px; border-radius: 50%; filter: blur(1px) saturate(1.2); box-shadow: 0 0 60px rgba(139, 92, 246, .55); }
+.poster-orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); animation: spin 5s linear infinite; }
 .poster-orb::after { content: ""; position: absolute; inset: 18%; border-radius: 50%; background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 60%); }
 .poster-who { position: absolute; top: 228px; left: 0; right: 0; display: grid; gap: 2px; text-align: center; }
 .poster-who b { font-size: 15px; font-weight: 650; }
@@ -156,7 +161,7 @@
 .poster-lines p.me { justify-self: end; background: rgba(139, 92, 246, .28); }
 .poster-home { position: absolute; bottom: 7px; left: 50%; width: 84px; height: 3.5px; margin-left: -42px; border-radius: 2px; background: rgba(255, 255, 255, .75); }
 .poster-top svg { margin-top: 1px; }
-.poster-orb.is-ringing { animation: turn 5s linear infinite, breathe 1s ease-in-out infinite; }
+.poster-orb.is-ringing { animation: breathe 1s ease-in-out infinite; }
 @keyframes breathe { 50% { scale: 1.08; } }
 .poster-banner { position: absolute; top: 34px; left: 8px; right: 8px; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 16px; background: rgba(34, 38, 52, .96); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--spam); animation: banner .5s var(--ease) both; }
 .poster-banner span { display: grid; color: var(--text-2); font-size: 9.5px; line-height: 1.3; }
@@ -273,7 +278,8 @@
 @keyframes travel { from { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } to { transform: translateY(var(--travel, 200px)); opacity: 0; } }
 .role { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; }
 .role-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--c); }
-.role-icon.brio { background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); color: #fff; animation: turn 6s linear infinite; }
+.role-icon.brio { overflow: hidden; background: none; color: #fff; }
+.role-icon.brio::before { content: ""; position: absolute; inset: -25%; z-index: -1; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); animation: spin 6s linear infinite; }
 .role p { color: var(--text-2); font-size: 15px; line-height: 1.55; }
 .role p strong { display: block; margin-bottom: 2px; color: var(--text); font-size: 15.5px; font-weight: 600; }
 
@@ -308,7 +314,7 @@
 @keyframes ring { 0%, 10% { background: var(--line-3); box-shadow: none; } 18%, 60% { background: var(--amber); box-shadow: 0 0 10px var(--amber); } 70%, 100% { background: var(--line-3); box-shadow: none; } }
 .chip-brio { gap: 8px; padding-left: 6px; }
 .chip-brio .mini-orb { width: 22px; height: 22px; }
-.mini-orb { width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); box-shadow: 0 0 22px rgba(139, 92, 246, .55); animation: turn 4s linear infinite; }
+.mini-orb { width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); box-shadow: 0 0 22px rgba(139, 92, 246, .55); animation: spin 4s linear infinite; }
 .forward-note { color: var(--text-3); font-family: var(--mono); font-size: 11px; }
 /* 3: alerts arriving */
 .alerts { position: absolute; left: 50%; top: 22px; width: min(276px, calc(100% - 24px)); height: 170px; transform: translateX(-50%); }
@@ -445,8 +451,9 @@
   .forward-row { flex-direction: column; gap: 8px; }
   .forward-note { max-width: 240px; text-align: center; line-height: 1.5; text-wrap: balance; }
 }
-/* Touch screens: every tap target at least 44px tall. */
+/* Touch screens: every tap target at least 44px tall, and the pilot card's border holds still (sweeping it repaints the whole card every frame). */
 @media (pointer: coarse) {
+  .pilot-card::before { animation: none; }
   .brand { min-height: 44px; }
   .nav-links a, .nav .btn, .detail .btn { height: 44px; }
   .footer-links a { display: inline-flex; align-items: center; min-height: 44px; margin-inline: -8px; padding-inline: 8px; }
@@ -457,5 +464,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .event { opacity: 1; transform: none; }
-  .aurora i, .stage-glow, .ripples i, .hl, .poster-orb, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .role-icon.brio, .mini-orb, .ticker-row { animation: none; }
+  .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .role-icon.brio::before, .mini-orb, .ticker-row { animation: none; }
 }

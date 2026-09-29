@@ -161,6 +161,26 @@ export function useFontsReady(timeout = 900) {
 }
 
 /**
+ * Marks each section `data-paused` while it's off screen, which stops its
+ * looping CSS animations (see site.css), so a phone only draws the ones in view.
+ */
+export function usePauseOffscreen() {
+  useEffect(() => {
+    const watch = new IntersectionObserver(
+      entries => {
+        for (const entry of entries)
+          entry.target.toggleAttribute("data-paused", !entry.isIntersecting);
+      },
+      { rootMargin: "120px 0px" }
+    );
+    document
+      .querySelectorAll(".site section, .site footer")
+      .forEach(part => watch.observe(part));
+    return () => watch.disconnect();
+  }, []);
+}
+
+/**
  * Lets `[data-spotlight]` panels follow the pointer with a soft light: one
  * listener for the whole page, on devices with a mouse.
  */
