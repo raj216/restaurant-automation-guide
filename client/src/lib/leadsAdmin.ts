@@ -110,7 +110,7 @@ export const leadsApi = {
 };
 
 // The session token is kept on this device for its 30 days.
-const SESSION_KEY = "kadmivo.leads.session";
+const SESSION_KEY = "cohost.leads.session";
 
 export function loadSession(): string | null {
   try {

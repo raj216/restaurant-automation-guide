@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Ping the Kadmivo database
+      - name: Ping the CoHost AI database
         # The publishable key is public; it is also in the website's code.
         run: |
           curl --fail --silent --show-error --retry 3 --retry-delay 20 \

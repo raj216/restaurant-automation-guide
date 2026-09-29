@@ -1,4 +1,4 @@
-// The Kadmivo database: the Supabase project "kadmivo-ordering".
+// The CoHost AI database: Supabase project wikfhxcayrauimictlmk.
 //
 // Both values are public by design. The key only reaches the functions
 // that are meant to be called from a browser (see supabase/migrations/),

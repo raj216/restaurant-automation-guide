@@ -1,4 +1,4 @@
--- Requests from the contact form on the Kadmivo website, and the
+-- Requests from the contact form on the website, and the
 -- passcode-protected Leads page (/admin) that reads them.
 --
 -- Everything lives in the private schema, which the Data API doesn't
@@ -30,7 +30,7 @@ create table private.website_leads (
 );
 
 comment on table private.website_leads is
-  'Requests sent from the contact form on the Kadmivo website. Read them on the website at /admin.';
+  'Requests sent from the contact form on the website. Read them on the website at /admin.';
 
 create index website_leads_created_at_idx on private.website_leads (created_at desc);
 create index website_leads_ip_hash_idx on private.website_leads (ip_hash, created_at desc);
