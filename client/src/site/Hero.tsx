@@ -5,8 +5,6 @@ import { Reveal, Words, useFontsReady } from "./motion";
 
 export function Hero() {
   const fonts = useFontsReady();
-  const highlight = HERO.titleHighlight.split(" ");
-  const lastWord = highlight.pop() ?? "";
   const startWords = HERO.titleStart.trim().split(" ").length;
 
   return (
@@ -27,21 +25,12 @@ export function Hero() {
         <h1 id="hero-title">
           <Words text={HERO.titleStart} ready={fonts} delay={0.08} />{" "}
           <Words
-            text={highlight.join(" ")}
+            text={HERO.titleHighlight}
             className="hl"
+            suffix={HERO.titleEnd}
             ready={fonts}
             delay={0.08 + startWords * 0.055}
-          />{" "}
-          {/* The full stop stays on the same line as the last word. */}
-          <span className="nowrap">
-            <Words
-              text={lastWord}
-              className="hl"
-              ready={fonts}
-              delay={0.08 + (startWords + highlight.length) * 0.055}
-            />
-            {HERO.titleEnd}
-          </span>
+          />
         </h1>
         <Reveal
           as="p"

@@ -9,7 +9,6 @@
 .site [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
 .skip { position: fixed; left: 16px; top: -64px; z-index: 80; padding: 10px 16px; border-radius: 10px; background: #fff; color: var(--ink-0); font-weight: 600; transition: top .2s ease; }
 .skip:focus { top: 12px; }
-.nowrap { white-space: nowrap; }
 .word { display: inline-block; }
 
 /* Words */
@@ -358,7 +357,7 @@
 .pilot-form { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: min(780px, 100%); margin-top: 10px; }
 .field { position: relative; flex: 1 1 210px; }
 .field-wide { flex: 1.6 1 340px; }
-.field input { width: 100%; height: 54px; padding: 0 18px; border: 0; border-radius: 14px; background: rgba(21, 25, 38, .9); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--text); font-size: 15.5px; transition: box-shadow .2s ease; }
+.field input { width: 100%; height: 54px; padding: 0 18px; border: 0; border-radius: 14px; background: rgba(21, 25, 38, .9); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--text); font-size: 16px; transition: box-shadow .2s ease; }
 .field input::placeholder { color: var(--text-3); }
 .field input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--sky), 0 0 0 4px rgba(56, 189, 248, .18); }
 .field input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--alert), 0 0 0 4px rgba(248, 113, 113, .15); }
@@ -423,6 +422,9 @@
   .ticket-head { flex-direction: column; }
   .stage { height: 600px; }
   .pilot-form .btn { width: 100%; }
+  .pilot-card { padding-inline: 16px; }
+  .field input { padding: 0 14px; }
+  .field input::placeholder { font-size: 14.5px; }
   .faq-a p { padding-right: 0; }
   .stat { min-height: 136px; padding: 18px 16px; }
   .stat-label { font-size: 13.5px; }

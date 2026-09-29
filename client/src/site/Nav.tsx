@@ -74,42 +74,46 @@ export function Nav() {
   const close = () => setOpen(false);
 
   return (
-    <header className="nav">
-      <div className="wrap nav-inner">
-        <Brand onClick={close} />
-        <nav className="nav-menu" aria-label="Main">
-          <ul className="nav-links">
-            {NAV.map(link => {
-              const here = current === link.href.slice(1);
-              return (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className={here ? "is-current" : undefined}
-                    aria-current={here ? "true" : undefined}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-        <a className="btn btn-primary nav-cta" href="#pilot">
-          {PILOT_CTA}
-        </a>
-        <button
-          ref={toggle}
-          type="button"
-          className="menu-button"
-          aria-expanded={open}
-          aria-controls="site-menu"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen(value => !value)}
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
+    <>
+      <header className="nav">
+        <div className="wrap nav-inner">
+          <Brand onClick={close} />
+          <nav className="nav-menu" aria-label="Main">
+            <ul className="nav-links">
+              {NAV.map(link => {
+                const here = current === link.href.slice(1);
+                return (
+                  <li key={link.href}>
+                    <a
+                      href={link.href}
+                      className={here ? "is-current" : undefined}
+                      aria-current={here ? "true" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+          <a className="btn btn-primary nav-cta" href="#pilot">
+            {PILOT_CTA}
+          </a>
+          <button
+            ref={toggle}
+            type="button"
+            className="menu-button"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen(value => !value)}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </header>
+      {/* Outside the header: its blur would otherwise pin this fixed sheet
+          inside the header's own box. */}
       <AnimatePresence>
         {open && (
           <m.div
@@ -150,6 +154,6 @@ export function Nav() {
           </m.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

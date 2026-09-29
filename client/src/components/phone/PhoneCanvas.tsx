@@ -69,12 +69,22 @@ export function PhoneCanvas({ onReady, onFail }: PhoneCanvasProps) {
       }
     };
 
-    // Load once the page is up and the browser has a moment.
-    const idle = window.requestIdleCallback
-      ? window.requestIdleCallback(() => void start(), { timeout: 1200 })
-      : window.setTimeout(() => void start(), 250);
+    // Building the scene is heavy, so wait until the hero's headline has
+    // arrived (about 2.4 s in) and the browser has a moment: doing it during
+    // the entrance would stutter it on slower devices. The CSS phone shows
+    // until then.
+    let idle = 0;
+    const later = window.setTimeout(
+      () => {
+        idle = window.requestIdleCallback
+          ? window.requestIdleCallback(() => void start(), { timeout: 1200 })
+          : window.setTimeout(() => void start(), 50);
+      },
+      Math.max(0, 2400 - performance.now())
+    );
     return () => {
       cancelled = true;
+      window.clearTimeout(later);
       if (window.cancelIdleCallback) window.cancelIdleCallback(idle);
       window.clearTimeout(idle);
       cleanups.forEach(cleanup => cleanup());

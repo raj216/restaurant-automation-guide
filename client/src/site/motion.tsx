@@ -73,16 +73,20 @@ export function Reveal({
 /**
  * Text that arrives word by word on page load. Each word is its own box, so
  * the sentence still reads as one to screen readers (the spaces are real).
+ * `className` styles the words; `suffix` (a full stop, say) rides in with
+ * the last word, unstyled, and never wraps away from it.
  */
 export function Words({
   text,
   className,
+  suffix,
   delay = 0,
   step = 0.055,
   ready = true,
 }: {
   text: string;
   className?: string;
+  suffix?: string;
   delay?: number;
   step?: number;
   ready?: boolean;
@@ -91,31 +95,38 @@ export function Words({
   const words = text.split(" ").filter(Boolean);
   return (
     <>
-      {words.map((word, i) => (
-        <span key={`${word}-${i}`}>
-          {reduce ? (
-            <span className={`word${className ? ` ${className}` : ""}`}>
-              {word}
-            </span>
-          ) : (
-            <m.span
-              className={`word${className ? ` ${className}` : ""}`}
-              initial={{ opacity: 0, y: "0.35em", filter: "blur(10px)" }}
-              animate={
-                ready ? { opacity: 1, y: 0, filter: "blur(0px)" } : undefined
-              }
-              transition={{
-                duration: 0.8,
-                ease: EASE,
-                delay: delay + i * step,
-              }}
-            >
-              {word}
-            </m.span>
-          )}
-          {i < words.length - 1 ? " " : ""}
-        </span>
-      ))}
+      {words.map((word, i) => {
+        const last = i === words.length - 1;
+        const inner = (
+          <>
+            <span className={className}>{word}</span>
+            {last && suffix}
+          </>
+        );
+        return (
+          <span key={`${word}-${i}`}>
+            {reduce ? (
+              <span className="word">{inner}</span>
+            ) : (
+              <m.span
+                className="word"
+                initial={{ opacity: 0, y: "0.35em", filter: "blur(10px)" }}
+                animate={
+                  ready ? { opacity: 1, y: 0, filter: "blur(0px)" } : undefined
+                }
+                transition={{
+                  duration: 0.8,
+                  ease: EASE,
+                  delay: delay + i * step,
+                }}
+              >
+                {inner}
+              </m.span>
+            )}
+            {last ? "" : " "}
+          </span>
+        );
+      })}
     </>
   );
 }
