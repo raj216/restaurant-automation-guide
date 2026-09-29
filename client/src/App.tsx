@@ -15,7 +15,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/admin"}>
-        <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--midnight)" }} />}>
+        <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--ink-0)" }} />}>
           <Admin />
         </Suspense>
       </Route>
@@ -35,7 +35,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>

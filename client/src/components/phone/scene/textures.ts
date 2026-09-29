@@ -1,20 +1,27 @@
-// 2D drawings for the 3D phone: its screen in each story state, the paper
-// order ticket and the approval stamp. Drawn in Mona Sans on canvases that
-// become textures.
+// The 3D phone's screen: Brio on a call, drawn in Geist on a canvas that
+// becomes a texture. The voice orb and the glow around the screen's edge are
+// live shaders drawn over it (see effects.ts); this leaves their place dark.
+
+import { STAGE } from "@/site/content";
 
 export const INK = {
-  midnight: "#07151C",
-  dusk: "#0D212B",
-  tide: "#1B3440",
-  cream: "#F6F1E7",
-  mist: "#9CB0B8",
-  slate: "#4A5E66",
-  lantern: "#FFB23F",
-  ember: "#FF7A3D",
-  jade: "#3FD69A",
+  top: "#0c0f18",
+  bottom: "#05060a",
+  text: "#f4f5f8",
+  text2: "#a4abbb",
+  text3: "#7c8497",
+  amber: "#ffb547",
+  coral: "#ff6a55",
+  rose: "#ff4f9a",
+  violet: "#8b5cf6",
+  sky: "#38bdf8",
+  green: "#34d399",
+  red: "#ff453a",
 };
 
-const FAMILY = '"Mona Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+const FAMILY =
+  '"Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+const MONO = '"Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace';
 
 // Lucide paths (24 × 24), the same icons the site uses.
 const ICONS = {
@@ -22,17 +29,15 @@ const ICONS = {
     "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
   ],
   check: ["M20 6 9 17l-5-5"],
-  clipboard: [
-    "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z",
-    "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2",
-    "m9 14 2 2 4-4",
+  micOff: [
+    "M2 2l20 20",
+    "M18.89 13.23A7.12 7.12 0 0 0 19 12v-2",
+    "M5 10v2a7 7 0 0 0 12 5",
+    "M15 9.34V5a3 3 0 0 0-5.68-1.33",
+    "M9 9v3a3 3 0 0 0 5.12 2.12",
+    "M12 19v3",
   ],
-  hand: [
-    "M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2",
-    "M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2",
-    "M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8",
-    "M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15",
-  ],
+  handoff: ["M8 3 4 7l4 4", "M4 7h16", "m16 21 4-4-4-4", "M20 17H4"],
 };
 type IconKey = keyof typeof ICONS;
 const paths = new Map<IconKey, Path2D[]>();
@@ -45,11 +50,22 @@ function iconPaths(name: IconKey) {
   return list;
 }
 
-type Ctx = CanvasRenderingContext2D & { letterSpacing?: string; fontStretch?: string };
+type Ctx = CanvasRenderingContext2D & { letterSpacing?: string };
 
-function icon(ctx: Ctx, name: IconKey, cx: number, cy: number, size: number, color: string, weight = 2) {
+function icon(
+  ctx: Ctx,
+  name: IconKey,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string,
+  weight = 2,
+  turn = 0
+) {
   ctx.save();
-  ctx.translate(cx - size / 2, cy - size / 2);
+  ctx.translate(cx, cy);
+  ctx.rotate(turn);
+  ctx.translate(-size / 2, -size / 2);
   ctx.scale(size / 24, size / 24);
   ctx.strokeStyle = color;
   ctx.lineWidth = weight;
@@ -59,14 +75,26 @@ function icon(ctx: Ctx, name: IconKey, cx: number, cy: number, size: number, col
   ctx.restore();
 }
 
-function font(ctx: Ctx, weight: number, size: number, stretch: "normal" | "semi-expanded" | "expanded" = "normal", tracking = 0) {
-  ctx.font = `${weight} ${size}px ${FAMILY}`;
-  if ("fontStretch" in ctx) ctx.fontStretch = stretch;
+function font(
+  ctx: Ctx,
+  weight: number,
+  size: number,
+  family = FAMILY,
+  tracking = 0
+) {
+  ctx.font = `${weight} ${size}px ${family}`;
   if ("letterSpacing" in ctx) ctx.letterSpacing = `${tracking}px`;
 }
 
 /** A rounded rectangle with Apple-style continuous corners, like the phone's own. */
-function smoothRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
+function smoothRect(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
   const e = Math.min(r * 1.2, w / 2, h / 2);
   const c = e * 0.36;
   ctx.beginPath();
@@ -82,379 +110,316 @@ function smoothRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: num
   ctx.closePath();
 }
 
-function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
+function roundRect(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+  ctx.roundRect(x, y, w, h, r);
 }
 
-function disc(ctx: Ctx, x: number, y: number, r: number, fill: string) {
+function disc(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  r: number,
+  fill: string | CanvasGradient
+) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fillStyle = fill;
   ctx.fill();
 }
 
-function ring(ctx: Ctx, x: number, y: number, r: number, color: string, width: number) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.stroke();
+function spectrum(ctx: Ctx, x0: number, y0: number, x1: number, y1: number) {
+  const g = ctx.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, INK.amber);
+  g.addColorStop(0.3, INK.coral);
+  g.addColorStop(0.55, INK.rose);
+  g.addColorStop(0.8, INK.violet);
+  g.addColorStop(1, INK.sky);
+  return g;
 }
 
-function checkDisc(ctx: Ctx, x: number, y: number, r: number, scale = 1) {
-  if (scale <= 0) return;
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  disc(ctx, 0, 0, r, INK.jade);
-  icon(ctx, "check", 0, 0, r * 1.2, INK.midnight, 3);
-  ctx.restore();
+/** Splits text into lines no wider than `max`, in the context's current font. */
+function wrap(ctx: Ctx, text: string, max: number) {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of text.split(" ")) {
+    const next = line ? `${line} ${word}` : word;
+    if (ctx.measureText(next).width > max && line) {
+      lines.push(line);
+      line = word;
+    } else line = next;
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
-/** Loads the brand font before anything is drawn with it. */
+/** Loads the fonts the screen is drawn in. */
 export async function loadFonts() {
   if (!("fonts" in document)) return;
-  const wanted = [400, 600, 700].map(w => document.fonts.load(`${w} 40px "Mona Sans"`));
-  await Promise.race([Promise.all(wanted), new Promise(resolve => setTimeout(resolve, 1800))]);
+  const wanted = [
+    document.fonts.load(`400 40px ${FAMILY}`),
+    document.fonts.load(`600 40px ${FAMILY}`),
+    document.fonts.load(`500 40px ${MONO}`),
+  ];
+  await Promise.race([
+    Promise.all(wanted),
+    new Promise(resolve => setTimeout(resolve, 1800)),
+  ]);
 }
 
-// ── The screen ───────────────────────────────────────────────────────────
+// ── Layout ───────────────────────────────────────────────────────────────
 
-// The iPhone 18 Pro Max display is 2868 × 1320 pixels: drawn here at 640
-// wide, 1 mm is about 8.8 px.
+// The iPhone 18 Pro Max display is 2868 × 1320 pixels: drawn here at 640 wide.
 export const SCREEN_W = 640;
 export const SCREEN_H = 1391;
+/** The voice orb: center and radius, in screen pixels. The orb shader sits here. */
+export const ORB = { x: 320, y: 352, r: 132 };
+/** Corner radius of the display, in screen pixels. */
+export const SCREEN_CORNER = 87;
+
+const clock = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+const ease = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
 
 /** Status bar, drawn around the Dynamic Island: the time, then signal, Wi-Fi and battery. */
 function statusBar(ctx: Ctx) {
-  ctx.fillStyle = INK.cream;
+  ctx.fillStyle = INK.text;
   ctx.textAlign = "center";
   font(ctx, 600, 27);
-  ctx.fillText("7:42", 128, 54);
-  // Signal.
+  ctx.fillText(STAGE.clock, 118, 54);
   for (let i = 0; i < 4; i++) {
     const h = 8 + i * 4.2;
-    roundRect(ctx, 452 + i * 8.5, 52 - h, 6, h, 1.6);
+    roundRect(ctx, 462 + i * 8.5, 52 - h, 6, h, 1.6);
     ctx.fill();
   }
-  // Wi-Fi: three arcs over a dot.
   ctx.save();
-  ctx.strokeStyle = INK.cream;
+  ctx.strokeStyle = INK.text;
   ctx.lineCap = "round";
   ctx.lineWidth = 3.6;
   for (const r of [7, 13, 19]) {
     ctx.beginPath();
-    ctx.arc(514, 53, r, Math.PI * 1.25, Math.PI * 1.75);
+    ctx.arc(522, 53, r, Math.PI * 1.25, Math.PI * 1.75);
     ctx.stroke();
   }
   ctx.restore();
-  disc(ctx, 514, 51, 2.6, INK.cream);
-  // Battery.
+  disc(ctx, 522, 51, 2.6, INK.text);
   ctx.save();
-  ctx.strokeStyle = "rgba(246,241,231,.45)";
+  ctx.strokeStyle = "rgba(244,245,248,.45)";
   ctx.lineWidth = 2.4;
-  roundRect(ctx, 540, 33, 46, 22, 6.5);
+  roundRect(ctx, 546, 33, 44, 22, 6.5);
   ctx.stroke();
   ctx.restore();
-  roundRect(ctx, 543.5, 36.5, 33, 15, 3.5);
+  roundRect(ctx, 549.5, 36.5, 31, 15, 3.5);
+  ctx.fillStyle = INK.text;
   ctx.fill();
-  roundRect(ctx, 588.5, 40, 3.5, 8, 1.5);
-  ctx.fillStyle = "rgba(246,241,231,.45)";
+  roundRect(ctx, 592.5, 40, 3.5, 8, 1.5);
+  ctx.fillStyle = "rgba(244,245,248,.45)";
   ctx.fill();
   ctx.textAlign = "left";
 }
 
-export type ScreenKind = "idle" | "ringing" | "answered" | "menu" | "order" | "team";
+/** The Dynamic Island. On a call it widens into a live activity: Brio's dot and a waveform. */
+function island(ctx: Ctx, onCall: boolean, t: number) {
+  const W = SCREEN_W;
+  const width = onCall ? 236 : 118;
+  roundRect(ctx, W / 2 - width / 2, 16, width, 54, 27);
+  ctx.fillStyle = "#000";
+  ctx.fill();
+  // Front camera.
+  disc(ctx, W / 2 + 32, 43, 11, "#0a0d14");
+  disc(ctx, W / 2 + 32, 43, 5, "#161d2b");
+  if (!onCall) return;
+  disc(ctx, W / 2 - 92, 43, 11, spectrum(ctx, W / 2 - 103, 32, W / 2 - 81, 54));
+  for (let i = 0; i < 5; i++) {
+    const h = 8 + 16 * Math.abs(Math.sin(t * 5.1 + i * 1.3));
+    roundRect(ctx, W / 2 + 62 + i * 9, 43 - h / 2, 5, h, 2.5);
+    ctx.fillStyle = [INK.amber, INK.coral, INK.rose, INK.violet, INK.sky][i];
+    ctx.fill();
+  }
+}
 
-/** Draws the phone screen for a story state; k is progress within that state (0–1). */
-export function drawScreen(canvas: HTMLCanvasElement, kind: ScreenKind, k = 0) {
+/** The CoHost AI mark, as an app icon. */
+function appIcon(ctx: Ctx, x: number, y: number, s: number) {
+  smoothRect(ctx, x, y, s, s, s * 0.24);
+  ctx.fillStyle = "#0e1119";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,.16)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  const k = s / 32;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(k, k);
+  ctx.strokeStyle = INK.text;
+  ctx.lineWidth = 3.4;
+  ctx.lineCap = "round";
+  ctx.stroke(new Path2D("M21.9 10.3A8.2 8.2 0 1 0 21.9 21.7"));
+  disc(ctx, 24.4, 16, 3.1, spectrum(ctx, 21, 13, 28, 19));
+  ctx.restore();
+}
+
+export interface ScreenState {
+  /** -1 ringing, then 0–3 as in the cards around the phone. */
+  step: number;
+  /** Seconds on the call. */
+  seconds: number;
+  /** 0–1: how far the newest thing on screen has come in. */
+  enter: number;
+  /** Seconds since the scene started, for the island's waveform. */
+  time: number;
+}
+
+/** Draws Brio's call screen. */
+export function drawScreen(
+  canvas: HTMLCanvasElement,
+  { step, seconds, enter, time }: ScreenState
+) {
   const ctx = canvas.getContext("2d") as Ctx;
   const W = SCREEN_W;
   const H = SCREEN_H;
+  const ringing = step < 0;
   ctx.clearRect(0, 0, W, H);
   ctx.save();
-  smoothRect(ctx, 0, 0, W, H, 87);
+  smoothRect(ctx, 0, 0, W, H, SCREEN_CORNER);
   ctx.clip();
 
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, "#0B1E27");
-  bg.addColorStop(1, INK.midnight);
+  bg.addColorStop(0, INK.top);
+  bg.addColorStop(1, INK.bottom);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
-
-  const glowY = kind === "menu" || kind === "order" || kind === "team" ? 260 : 560;
-  const glowStrength = kind === "ringing" ? 0.66 : kind === "idle" ? 0.6 : 0.32;
-  const glow = ctx.createRadialGradient(W / 2, glowY, 0, W / 2, glowY, 560);
-  glow.addColorStop(0, `rgba(255,178,63,${glowStrength})`);
-  glow.addColorStop(0.45, `rgba(255,122,61,${glowStrength * 0.28})`);
-  glow.addColorStop(1, "rgba(255,122,61,0)");
+  // Brio's light, behind the orb.
+  const glow = ctx.createRadialGradient(ORB.x, ORB.y, 0, ORB.x, ORB.y, 470);
+  glow.addColorStop(0, "rgba(139,92,246,.26)");
+  glow.addColorStop(0.45, "rgba(255,79,154,.08)");
+  glow.addColorStop(1, "rgba(255,79,154,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // The Dynamic Island: 13.5 mm wide on the iPhone 18 Pro, with the front camera at its right end.
-  roundRect(ctx, W / 2 - 59, 16, 118, 54, 27);
-  ctx.fillStyle = "#010304";
-  ctx.fill();
-  disc(ctx, W / 2 + 32, 43, 11, "#0a0f14");
-  disc(ctx, W / 2 + 32, 43, 5, "#14202b");
+  island(ctx, !ringing, time);
   statusBar(ctx);
-
   ctx.textBaseline = "alphabetic";
-  if (kind === "idle") {
+
+  // Who, and how long.
+  ctx.textAlign = "center";
+  font(ctx, 600, 46, FAMILY, -1);
+  ctx.fillStyle = INK.text;
+  ctx.fillText(ringing ? STAGE.events[0].title : "Brio", W / 2, 566);
+  font(ctx, 500, 24, MONO);
+  ctx.fillStyle = INK.text2;
+  ctx.fillText(
+    ringing ? STAGE.caller : `${STAGE.caller} • ${clock(seconds)}`,
+    W / 2,
+    610
+  );
+
+  // The conversation, one bubble per line said so far.
+  font(ctx, 400, 26);
+  let y = 656;
+  const lines = STAGE.transcript.filter(line => line.step <= step);
+  lines.forEach((line, i) => {
+    const newest = i === lines.length - 1 && line.step === step;
+    const k = newest ? ease(enter) : 1;
+    const rows = wrap(ctx, line.text, 420);
+    const bw = Math.max(...rows.map(row => ctx.measureText(row).width)) + 48;
+    const bh = rows.length * 34 + 30;
+    const x = line.brio ? W - 40 - bw : 40;
     ctx.save();
-    ctx.shadowColor = INK.lantern;
-    ctx.shadowBlur = 44;
-    ring(ctx, W / 2, 560, 88, INK.lantern, 20);
-    ctx.restore();
-    ring(ctx, W / 2, 560, 88, INK.lantern, 20);
-    font(ctx, 700, 58, "expanded", 1);
-    ctx.fillStyle = INK.cream;
-    ctx.textAlign = "center";
-    ctx.fillText("Kadmivo", W / 2, 790);
-  } else if (kind === "ringing") {
-    [300, 220, 150].forEach((r, i) => ring(ctx, W / 2, 560, r, `rgba(255,178,63,${0.14 + i * 0.16})`, 5));
-    ctx.save();
-    ctx.shadowColor = INK.lantern;
-    ctx.shadowBlur = 60;
-    disc(ctx, W / 2, 560, 108, INK.lantern);
-    ctx.restore();
-    icon(ctx, "phone", W / 2, 560, 96, INK.midnight, 2.2);
-  } else if (kind === "answered") {
-    ctx.save();
-    ctx.shadowColor = INK.jade;
-    ctx.shadowBlur = 40;
-    disc(ctx, W / 2, 400, 78, INK.jade);
-    ctx.restore();
-    icon(ctx, "phone", W / 2, 400, 70, INK.midnight, 2.4);
-    // The voice waveform is drawn by bars in the 3D scene, over this line.
-    ctx.fillStyle = "rgba(156,176,184,.18)";
-    ctx.fillRect(96, 745, W - 192, 3);
-  } else if (kind === "menu") {
-    disc(ctx, W / 2, 250, 62, "rgba(255,178,63,.16)");
-    icon(ctx, "clipboard", W / 2, 250, 64, INK.lantern, 2.2);
-    const rows: [string, string][] = [
-      ["1 × Rigatoni", "extra sauce · no cheese"],
-      ["1 × Garlic knots", "sauce on the side"],
-    ];
-    rows.forEach(([name, note], i) => {
-      const y = 400 + i * 230;
-      roundRect(ctx, 44, y, W - 88, 196, 40);
-      ctx.fillStyle = INK.dusk;
-      ctx.fill();
-      ctx.strokeStyle = INK.tide;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.textAlign = "left";
-      font(ctx, 700, 44);
-      ctx.fillStyle = INK.cream;
-      ctx.fillText(name, 84, y + 86);
-      font(ctx, 400, 32);
-      ctx.fillStyle = INK.mist;
-      ctx.fillText(note, 84, y + 138);
-      const at = i === 0 ? 0.3 : 0.6;
-      const pop = Math.min(1, Math.max(0, (k - at) / 0.12));
-      checkDisc(ctx, W - 116, y + 98, 38, pop < 1 ? pop * 1.12 : 1);
-    });
-    if (k > 0.82) {
-      ctx.globalAlpha = Math.min(1, (k - 0.82) / 0.1);
-      icon(ctx, "clipboard", 196, 922, 44, INK.jade, 2.4);
-      font(ctx, 600, 38);
-      ctx.fillStyle = INK.jade;
-      ctx.textAlign = "left";
-      ctx.fillText("Menu checked", 236, 936);
-      ctx.globalAlpha = 1;
-    }
-  } else if (kind === "order") {
-    ctx.textAlign = "left";
-    font(ctx, 600, 26, "semi-expanded", 4);
-    ctx.fillStyle = INK.mist;
-    ctx.fillText("ASSISTED ORDER · SAMPLE", 60, 190);
-    font(ctx, 700, 52, "semi-expanded");
-    ctx.fillStyle = INK.cream;
-    ctx.fillText("Order draft K-021", 60, 270);
-    font(ctx, 400, 30);
-    ctx.fillStyle = INK.mist;
-    ctx.fillText("Pickup for Maya · Today · 8:20 PM", 60, 326);
-    // Pending chip.
-    roundRect(ctx, 60, 370, 322, 70, 35);
-    ctx.fillStyle = "rgba(255,178,63,.16)";
+    ctx.globalAlpha = k;
+    ctx.translate(0, (1 - k) * 22);
+    roundRect(ctx, x, y, bw, bh, 26);
+    if (line.brio) {
+      const fill = ctx.createLinearGradient(x, y, x + bw, y + bh);
+      fill.addColorStop(0, "rgba(139,92,246,.42)");
+      fill.addColorStop(1, "rgba(255,79,154,.26)");
+      ctx.fillStyle = fill;
+    } else ctx.fillStyle = "rgba(255,255,255,.09)";
     ctx.fill();
-    disc(ctx, 100, 405, 11, INK.lantern);
-    font(ctx, 600, 32);
-    ctx.fillStyle = INK.lantern;
-    ctx.fillText("Pending review", 126, 416);
-    // The items, as they print.
-    ctx.fillStyle = INK.tide;
-    ctx.fillRect(60, 500, W - 120, 3);
-    const items: [string, string][] = [
-      ["1 × Rigatoni", "$19.00"],
-      ["1 × Garlic knots", "$8.50"],
-    ];
-    items.forEach(([name, price], i) => {
-      const y = 590 + i * 96;
-      font(ctx, 600, 38);
-      ctx.fillStyle = INK.cream;
-      ctx.textAlign = "left";
-      ctx.fillText(name, 60, y);
-      ctx.textAlign = "right";
-      ctx.fillText(price, W - 60, y);
-    });
-    ctx.fillStyle = INK.tide;
-    ctx.fillRect(60, 760, W - 120, 3);
-    // Printing: an arrow up the screen.
-    ctx.globalAlpha = 0.55 + 0.45 * Math.sin(k * Math.PI * 6) ** 2;
-    ctx.save();
-    ctx.translate(W / 2, 980);
-    ctx.rotate(-Math.PI / 2);
-    ctx.strokeStyle = INK.lantern;
-    ctx.lineWidth = 7;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    ctx.moveTo(-46, 0);
-    ctx.lineTo(46, 0);
-    ctx.moveTo(10, -36);
-    ctx.lineTo(46, 0);
-    ctx.lineTo(10, 36);
-    ctx.stroke();
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  } else {
-    // Team review, then on to the POS.
+    ctx.fillStyle = INK.text;
     ctx.textAlign = "left";
-    font(ctx, 700, 50, "semi-expanded");
-    ctx.fillStyle = INK.cream;
-    ctx.fillText("Order draft K-021", 60, 250);
-    const teamDone = k > 0.55;
-    const posDone = k > 0.86;
-    const rows: [string, "done" | "current" | "pending"][] = [
-      ["Customer confirmed", "done"],
-      ["Menu checked", "done"],
-      ["Your team checks the order", teamDone ? "done" : "current"],
-      ["Reaches POS", posDone ? "done" : teamDone ? "current" : "pending"],
-    ];
-    rows.forEach(([label, state], i) => {
-      const y = 400 + i * 150;
-      if (i > 0) {
-        ctx.fillStyle = INK.tide;
-        ctx.fillRect(60, y - 75, W - 120, 3);
-      }
-      if (state === "done") checkDisc(ctx, 96, y - 12, 30);
-      else if (state === "current") {
-        disc(ctx, 96, y - 12, 30, "rgba(255,178,63,.2)");
-        disc(ctx, 96, y - 12, 14, INK.lantern);
-      } else ring(ctx, 96, y - 12, 26, INK.mist, 4);
-      font(ctx, state === "current" ? 700 : 600, 34);
-      ctx.fillStyle = state === "current" ? INK.lantern : state === "done" ? INK.cream : INK.mist;
-      ctx.fillText(label, 150, y);
-    });
-    icon(ctx, "hand", W / 2, 1080, 92, teamDone ? INK.jade : INK.lantern, 2);
+    rows.forEach((row, r) => ctx.fillText(row, x + 24, y + 43 + r * 34));
+    ctx.restore();
+    y += bh + 16;
+  });
+
+  // Sent to the manager.
+  if (step >= 2) {
+    const k = step === 2 ? ease(enter * 1.4 - 0.4) : 1;
+    font(ctx, 600, 23);
+    const label = STAGE.sent;
+    const cw = ctx.measureText(label).width + 76;
+    const cx = W / 2 - cw / 2;
+    ctx.save();
+    ctx.globalAlpha = k;
+    roundRect(ctx, cx, y + 6, cw, 50, 25);
+    ctx.fillStyle = "rgba(52,211,153,.14)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(52,211,153,.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    disc(ctx, cx + 30, y + 31, 12, INK.green);
+    icon(ctx, "check", cx + 30, y + 31, 15, "#05060a", 3.4);
+    ctx.fillStyle = INK.green;
+    ctx.textAlign = "left";
+    ctx.fillText(label, cx + 52, y + 39);
+    ctx.restore();
   }
+
+  // Call controls.
+  const by = 1252;
+  if (ringing) {
+    disc(ctx, 200, by, 50, INK.red);
+    icon(ctx, "phone", 200, by, 44, "#fff", 2.2, (Math.PI * 3) / 4);
+    const pulse = 0.5 + 0.5 * Math.sin(time * 9);
+    disc(ctx, 440, by, 50 + pulse * 8, "rgba(52,211,153,.25)");
+    disc(ctx, 440, by, 50, INK.green);
+    icon(ctx, "phone", 440, by, 44, "#fff", 2.2);
+  } else {
+    disc(ctx, 170, by, 46, "rgba(255,255,255,.12)");
+    icon(ctx, "micOff", 170, by, 40, INK.text, 2);
+    disc(ctx, 320, by, 46, "rgba(255,255,255,.12)");
+    icon(ctx, "handoff", 320, by, 40, INK.text, 2);
+    disc(ctx, 470, by, 46, INK.red);
+    icon(ctx, "phone", 470, by, 40, "#fff", 2.2, (Math.PI * 3) / 4);
+  }
+
+  // The robocall, dropped: a notification slides down over the call.
+  if (step >= 3) {
+    const k = ease(enter);
+    const top = 84 - (1 - k) * 150;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, k * 1.5);
+    smoothRect(ctx, 22, top, W - 44, 122, 38);
+    ctx.fillStyle = "rgba(34,38,52,.96)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.1)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    appIcon(ctx, 44, top + 29, 64);
+    ctx.textAlign = "left";
+    font(ctx, 600, 26);
+    ctx.fillStyle = INK.text;
+    ctx.fillText(STAGE.events[3].title, 128, top + 54);
+    font(ctx, 400, 23);
+    ctx.fillStyle = INK.text2;
+    ctx.fillText(`${STAGE.events[3].main} • 2s`, 128, top + 90);
+    ctx.textAlign = "right";
+    font(ctx, 400, 21);
+    ctx.fillStyle = INK.text3;
+    ctx.fillText("now", W - 50, top + 52);
+    ctx.restore();
+  }
+
   // The home indicator.
   roundRect(ctx, W / 2 - 97, H - 22, 194, 7, 3.5);
-  ctx.fillStyle = "rgba(246,241,231,.72)";
+  ctx.fillStyle = "rgba(244,245,248,.72)";
   ctx.fill();
   ctx.restore();
-}
-
-// ── The paper ticket ─────────────────────────────────────────────────────
-
-export const TICKET_W = 600;
-export const TICKET_H = 800;
-
-/** The printed order ticket, with a torn zigzag bottom edge. */
-export function drawTicket(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d") as Ctx;
-  const W = TICKET_W;
-  const H = TICKET_H;
-  const tooth = 24;
-  ctx.clearRect(0, 0, W, H);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(W, 0);
-  ctx.lineTo(W, H - tooth);
-  for (let x = W; x > 0; x -= tooth * 2) {
-    ctx.lineTo(x - tooth, H);
-    ctx.lineTo(x - tooth * 2, H - tooth);
-  }
-  ctx.closePath();
-  const paper = ctx.createLinearGradient(0, 0, 0, H);
-  paper.addColorStop(0, "#F9F5EC");
-  paper.addColorStop(1, "#EFE8DA");
-  ctx.fillStyle = paper;
-  ctx.fill();
-
-  const dashed = (y: number) => {
-    ctx.save();
-    ctx.setLineDash([12, 10]);
-    ctx.strokeStyle = "rgba(7,21,28,.3)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(40, y);
-    ctx.lineTo(W - 40, y);
-    ctx.stroke();
-    ctx.restore();
-  };
-
-  ctx.textAlign = "left";
-  font(ctx, 700, 24, "semi-expanded", 4);
-  ctx.fillStyle = INK.slate;
-  ctx.fillText("ORDER DRAFT K-021", 40, 72);
-  ctx.textAlign = "right";
-  font(ctx, 500, 26);
-  ctx.fillText("7:42 PM", W - 40, 72);
-  ctx.textAlign = "left";
-  font(ctx, 400, 28);
-  ctx.fillText("Pickup for Maya · Today · 8:20 PM", 40, 128);
-  dashed(168);
-
-  const items: [string, string, string][] = [
-    ["1 × Rigatoni", "$19.00", "extra sauce · no cheese"],
-    ["1 × Garlic knots", "$8.50", "sauce on the side"],
-  ];
-  items.forEach(([name, price, note], i) => {
-    const y = 236 + i * 124;
-    font(ctx, 700, 38);
-    ctx.fillStyle = INK.midnight;
-    ctx.textAlign = "left";
-    ctx.fillText(name, 40, y);
-    ctx.textAlign = "right";
-    ctx.fillText(price, W - 40, y);
-    ctx.textAlign = "left";
-    font(ctx, 400, 26);
-    ctx.fillStyle = INK.slate;
-    ctx.fillText(note, 40, y + 44);
-  });
-  dashed(444);
-  font(ctx, 700, 34);
-  ctx.fillStyle = INK.midnight;
-  ctx.textAlign = "left";
-  ctx.fillText("Total", 40, 510);
-  ctx.textAlign = "right";
-  ctx.fillText("$27.50", W - 40, 510);
-  ctx.textAlign = "left";
-  font(ctx, 600, 26);
-  ctx.fillStyle = INK.slate;
-  ctx.fillText("Customer confirmed · Menu checked", 40, 578);
-  font(ctx, 700, 22, "semi-expanded", 4);
-  ctx.fillText("NOT A LIVE ORDER", 40, 690);
-}
-
-/** The team's approval stamp: a jade disc with a check. */
-export function drawStamp(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d") as Ctx;
-  const s = canvas.width;
-  ctx.clearRect(0, 0, s, s);
-  ctx.save();
-  ctx.shadowColor = "rgba(63,214,154,.7)";
-  ctx.shadowBlur = s * 0.08;
-  disc(ctx, s / 2, s / 2, s * 0.4, INK.jade);
-  ctx.restore();
-  icon(ctx, "check", s / 2, s / 2, s * 0.5, INK.midnight, 3.2);
 }

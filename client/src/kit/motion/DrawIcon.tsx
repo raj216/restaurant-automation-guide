@@ -32,7 +32,7 @@ export function DrawIcon({
   const inView = useInView(ref, VIEWPORT);
   const { reduce } = useMotionKit();
   // Normalise every stroke to length 1 before paint so the CSS dash trick
-  // in index.css can draw any icon with the same two values.
+  // in kadmivo.css can draw any icon with the same two values.
   useLayoutEffect(() => {
     if (reduce) return;
     ref.current

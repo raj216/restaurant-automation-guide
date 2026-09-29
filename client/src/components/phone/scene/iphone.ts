@@ -173,8 +173,8 @@ function flashTexture() {
 }
 
 /**
- * A photo studio for reflections: three.js's neutral room, plus a warm soft
- * box and a lantern-gold strip that keep the metal in the site's light.
+ * A photo studio for reflections: three.js's neutral room, plus a soft box
+ * and violet and sky strips that put Brio's colors along the metal edges.
  */
 export function studioScene() {
   const studio = new RoomEnvironment();
@@ -187,9 +187,10 @@ export function studioScene() {
     mesh.lookAt(0, 0, 0);
     studio.add(mesh);
   };
-  box(8, 4.5, 0xffe7c4, 5, -4.5, 9, 7); // warm soft box, above left
-  box(1.4, 9, 0xffb23f, 9, -9, 4, -5); // lantern strip behind, left
-  box(1.2, 8, 0xdcebf4, 5, 10, 4, 3); // cool strip, right
+  box(8, 4.5, 0xfff4e8, 5, -4.5, 9, 7); // soft box, above left
+  box(1.4, 9, 0x8b5cf6, 9, -9, 4, -5); // violet strip behind, left
+  box(1.2, 8, 0x38bdf8, 6, 10, 4, 3); // sky strip, right
+  box(6, 1, 0xff4f9a, 5, 2, -8, 4); // rose strip, below
   return studio;
 }
 

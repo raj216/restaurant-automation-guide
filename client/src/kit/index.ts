@@ -1,6 +1,6 @@
-// The Kadmivo brand kit: the site's own building blocks. The home page is
-// built from these, and the design system in Claude Design is synced from
-// them (see .design-sync/).
+// The Kadmivo brand kit: the building blocks of the Kadmivo site, drawn with
+// kadmivo.css. The design system in Claude Design is synced from them (see
+// .design-sync/). The live site is now CoHost AI (client/src/site/).
 
 // Motion
 export { KadmivoProvider, type KadmivoProviderProps } from "./motion/KadmivoProvider";

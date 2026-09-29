@@ -8,7 +8,7 @@
 
 ## How this sync is wired
 
-- The design system is the site's own kit: components in `client/src/kit/`, styles in `client/src/index.css`. `client/src/pages/Home.tsx` is built from the kit, so the live site and the design system share one source.
+- The design system is the Kadmivo kit: components in `client/src/kit/`, styles in `client/src/kit/kadmivo.css`. The live site moved to the CoHost AI design (`client/src/site/`), so the kit no longer draws the home page.
 - `pnpm run build:kit` (cfg.buildCmd) writes `kit/dist/index.js` (library build; react, framer-motion and lucide-react external), `kit/dist/kadmivo.css` (the site stylesheet, unminified) and `kit/dist/types/`. The converter finds the package through `kit/package.json` (`@kadmivo/brand-kit`); the entry is pinned in cfg.entry.
 - Converter deps live in `.ds-sync/`: `npm i esbuild ts-morph @types/react playwright@1.56.1`. Playwright 1.56.x matches the cached `chromium-1194` under `/opt/pw-browsers`.
 - Build: `node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules ./node_modules --out ./ds-bundle`; then `package-validate.mjs` and `package-capture.mjs` as usual, or the driver (`resync.mjs`, same flags).
