@@ -52,10 +52,12 @@ export function Brand({ onClick }: { onClick?: () => void }) {
       aria-label="CoHost AI, powered by Brio. Back to top"
       onClick={onClick}
     >
-      <LogoMark className="brand-mark" />
-      <span className="brand-name">CoHost AI</span>
+      {/* Real spaces between the parts, so the text reads "CoHost AI
+          Powered by Brio" when copied or indexed; the layout spaces them. */}
+      <LogoMark className="brand-mark" />{" "}
+      <span className="brand-name">CoHost AI</span>{" "}
       <span className="brand-badge">
-        Powered by<b>Brio</b>
+        Powered by <b>Brio</b>
       </span>
     </a>
   );

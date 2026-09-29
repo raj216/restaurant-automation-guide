@@ -16,6 +16,7 @@ import {
   Timer,
 } from "lucide-react";
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
@@ -52,8 +53,11 @@ function TicketHead({
       <div>
         <h3>{title}</h3>
         <p className="meta">
-          {meta.map(part => (
-            <span key={part}>{part}</span>
+          {meta.map((part, i) => (
+            <Fragment key={part}>
+              {i > 0 && <span className="sep"> • </span>}
+              <span>{part}</span>
+            </Fragment>
           ))}
         </p>
       </div>
