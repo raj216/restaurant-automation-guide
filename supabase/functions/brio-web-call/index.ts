@@ -28,9 +28,10 @@ import {
   visitorIp,
 } from "../_shared/webCall.ts";
 
-// The website agent's id, if it isn't set as a secret. Agent ids aren't secret:
-// without our API key, nobody can start a call with one.
-const WEB_AGENT_ID = "";
+// The website agent ("Brio – Website" in Retell), unless the secret says
+// otherwise. Agent ids aren't secret: without our API key, nobody can start a
+// call with one.
+const WEB_AGENT_ID = "agent_1868ad004e9872f920bdb76ead";
 
 const env = (name: string): string => Deno.env.get(name) ?? "";
 const log = (event: string, details: Record<string, unknown> = {}) => console.log(JSON.stringify({ event, ...details }));
