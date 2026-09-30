@@ -1,8 +1,11 @@
 {
-  "name": "kadmivo",
+  "name": "cohostai",
   "compatibility_date": "2026-06-01",
   "assets": {
     "directory": "./dist/public",
     "not_found_handling": "single-page-application",
   },
+  // Required by `wrangler preview`, which Workers Builds runs for
+  // non-production branches. Empty: the Worker has no bindings to override.
+  "previews": {},
 }
