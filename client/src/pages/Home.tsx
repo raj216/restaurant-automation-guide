@@ -1,3 +1,5 @@
+import { BrioCall } from "@/site/BrioCall";
+import { BRIO_CALL } from "@/site/content";
 import { Dashboard } from "@/site/Dashboard";
 import { Faq } from "@/site/Faq";
 import { Footer } from "@/site/Footer";
@@ -54,6 +56,7 @@ export default function Home() {
               <Pilot />
             </main>
             <Footer />
+            {BRIO_CALL.enabled && <BrioCall />}
           </div>
         </ToastProvider>
       </MotionConfig>

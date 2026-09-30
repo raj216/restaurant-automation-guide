@@ -445,6 +445,8 @@
   .dots { display: none; }
   .dash-title { justify-self: start; font-size: 11px; }
   .dash-title span { direction: rtl; text-align: left; }
+  /* Above the Talk to Brio button (brio-call.css). */
+  .toasts { bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 /* Step 2's picture stacks top to bottom where the row wouldn't fit. */
 @media (max-width: 380px) {

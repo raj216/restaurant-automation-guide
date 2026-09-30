@@ -13,34 +13,20 @@
 //   * It signs in as the restaurant's "agent" account (never the service_role
 //     key), so Row Level Security and the calls table's rules apply.
 //   * Saving the same call again updates it (Retell may retry).
+//   * Calls from the website's "Talk to Brio" button aren't a restaurant's
+//     calls, so they're left out.
 //
 // Settings are the Supabase secrets the retell function already uses:
 //   RETELL_API_KEY, AGENT_EMAIL, AGENT_PASSWORD, PUBLIC_API_KEY, TEST_RESTAURANT_ID.
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { agentClient } from "../_shared/agent.ts";
 import { callRowFromRetell, RETELL_CALL_EVENTS } from "../_shared/callRow.ts";
 import { verifyRetellSignature } from "../_shared/retellSignature.ts";
+import { isWebsiteCall } from "../_shared/webCall.ts";
 
 const env = (name: string): string => Deno.env.get(name) ?? "";
 const log = (event: string, details: Record<string, unknown>) => console.log(JSON.stringify({ event, ...details }));
-
-// One signed-in agent connection per server instance, reused between calls.
-let client: SupabaseClient | null = null;
-async function agent(): Promise<SupabaseClient> {
-  if (client) {
-    const { data } = await client.auth.getSession(); // also refreshes an expired login
-    if (!data?.session) client = null;
-  }
-  if (!client) {
-    const fresh = createClient(env("SUPABASE_URL"), env("PUBLIC_API_KEY") || env("SUPABASE_ANON_KEY"), {
-      auth: { persistSession: false, autoRefreshToken: true, detectSessionInUrl: false },
-    });
-    const { error } = await fresh.auth.signInWithPassword({ email: env("AGENT_EMAIL"), password: env("AGENT_PASSWORD") });
-    if (error) throw new Error(`Agent login failed: ${error.message}`);
-    client = fresh;
-  }
-  return client;
-}
 
 // deno-lint-ignore no-explicit-any
 async function findRestaurantId(db: SupabaseClient, call: Record<string, any>): Promise<string | null> {
@@ -78,9 +64,10 @@ Deno.serve(async (req: Request) => {
   if (!RETELL_CALL_EVENTS.includes(event) || !call || typeof call !== "object") {
     return Response.json({ ok: true, ignored: typeof event === "string" ? event : null });
   }
+  if (isWebsiteCall(call)) return Response.json({ ok: true, ignored: "website call" });
 
   try {
-    const db = await agent();
+    const db = await agentClient();
     const restaurantId = await findRestaurantId(db, call);
     if (!restaurantId) {
       log("retell_events_unknown_restaurant", { call_id: call.call_id ?? null, event });

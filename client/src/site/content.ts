@@ -376,6 +376,64 @@ export const PILOT = {
   done: "Demo request received! We will configure your menu profile and contact you within 2 hours.",
 };
 
+/**
+ * The "Talk to Brio" button in the corner: a live call with Brio in the
+ * browser, and once per visitor, a pop-up that rings like an incoming call.
+ * Set `enabled` to false to take it off the page.
+ */
+export const BRIO_CALL = {
+  enabled: true,
+  launcher: "Talk to Brio",
+  missed: "Call Brio back",
+  onCall: "On call",
+  ring: {
+    name: "Brio",
+    line: "CoHost AI · Incoming call",
+    text: "Hi! Got a question about CoHost AI? Ask me out loud, right here in your browser.",
+    note: "Uses your microphone",
+    answer: "Answer",
+    decline: "Not now",
+  },
+  title: "Talk to Brio",
+  subtitle: "CoHost AI's phone wingman",
+  intro:
+    "Ask anything about CoHost AI: the 14-day pilot, setup, or how Brio handles your calls. You can also place a pretend to-go order and hear exactly what your callers would.",
+  start: "Start Call",
+  consent: "Uses your microphone. Calls may be recorded and transcribed.",
+  status: {
+    mic: "Waiting for your microphone…",
+    connecting: "Calling Brio…",
+    speaking: "Brio is speaking",
+    listening: "Listening…",
+    ended: "Call ended",
+    wrapUp: "30 seconds left",
+  },
+  mute: "Mute",
+  end: "End Call",
+  minimize: "Minimize the call",
+  close: "Close",
+  sound: "Can't hear Brio? Turn on sound.",
+  thanks: "Thanks for talking with Brio.",
+  next: "Want Brio answering your restaurant's phone?",
+  again: "Call Again",
+  retry: "Try Again",
+  numberInstead: "Leave Your Number Instead",
+  problems: {
+    mic_denied:
+      "Brio needs your microphone. Allow it for this site in your browser's settings, then try again.",
+    no_mic:
+      "We couldn't use a microphone on this device. Check that one is connected and not busy in another app, then try again.",
+    unsupported:
+      "This browser can't place the call. Open the page in Chrome or Safari (not inside a social app) and try again.",
+    busy: "Brio's web line is busy today. Leave your number and we'll call you.",
+    try_later:
+      "You've called Brio a few times already. Try again in an hour, or leave your number.",
+    closed:
+      "Brio's web line isn't open yet. Leave your number and we'll call you.",
+    failed: "The call didn't connect. Check your connection and try again.",
+  },
+};
+
 export const FOOTER = {
   company: "CoHost AI, Inc.",
   motto: '"We deal with calls so your host can deal with actual customers."',
