@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /inbox
+
+Sitemap: https://cohost.site/sitemap.xml

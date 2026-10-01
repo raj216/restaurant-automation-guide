@@ -1,0 +1,6 @@
+/admin
+  X-Robots-Tag: noindex, nofollow
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+/inbox
+  X-Robots-Tag: noindex, nofollow
