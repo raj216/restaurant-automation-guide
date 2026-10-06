@@ -9,6 +9,8 @@ import Home from "./pages/Home";
 
 // The Leads page loads on its own, so visitors never download it.
 const Admin = lazy(() => import("./pages/Admin"));
+// The manager dashboard is its own bundle too.
+const Dashboard = lazy(() => import("./dashboard/DashboardApp"));
 
 function Router() {
   return (
@@ -17,6 +19,12 @@ function Router() {
       <Route path={"/admin"}>
         <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--ink-0)" }} />}>
           <Admin />
+        </Suspense>
+      </Route>
+      {/* Every /dashboard address opens the dashboard, which reads the rest of the address itself. */}
+      <Route path={/^\/dashboard(\/.*)?$/}>
+        <Suspense fallback={<div style={{ minHeight: "100svh", background: "#17161b" }} />}>
+          <Dashboard />
         </Suspense>
       </Route>
       <Route path={"/404"} component={NotFound} />

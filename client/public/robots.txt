@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /inbox
+Disallow: /dashboard
 
 Sitemap: https://cohost.site/sitemap.xml
