@@ -4,3 +4,7 @@
   X-Robots-Tag: noindex, nofollow
 /inbox
   X-Robots-Tag: noindex, nofollow
+/dashboard
+  X-Robots-Tag: noindex, nofollow
+/dashboard/*
+  X-Robots-Tag: noindex, nofollow
