@@ -12,3 +12,9 @@ export const BASE = ON_DASHBOARD_HOST ? "" : IN_DEMO ? "/demo" : "/dashboard";
 export function hrefTo(path: string): string {
   return `${BASE}${path}` || "/";
 }
+
+const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+
+/** The example shown inside the home page: no banner, and the page can choose the theme. */
+export const EMBED = IN_DEMO && params.has("embed");
+export const DEMO_THEME: "light" | "dark" | null = IN_DEMO && (params.get("theme") === "dark" || params.get("theme") === "light") ? (params.get("theme") as "light" | "dark") : null;

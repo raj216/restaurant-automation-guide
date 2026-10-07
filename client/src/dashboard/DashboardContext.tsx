@@ -31,7 +31,7 @@ import { prefs, type Theme } from "./lib/prefs";
 import { UndoStore, type PendingStep } from "./lib/undo";
 import type { LiveData, Order, OrderState, Restaurant, Role } from "./lib/types";
 import { callerLabel, orderCode } from "./lib/format";
-import { BASE, IN_DEMO } from "./base";
+import { BASE, DEMO_THEME, IN_DEMO } from "./base";
 
 export const POLL_MS = 10_000;
 
@@ -96,7 +96,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [offline, setOffline] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [theme, setThemeState] = useState<Theme>(prefs.getTheme());
+  const [theme, setThemeState] = useState<Theme>(DEMO_THEME ?? prefs.getTheme());
 
   // ---- Auth ----
   useEffect(() => {
