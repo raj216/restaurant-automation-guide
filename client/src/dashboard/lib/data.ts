@@ -8,6 +8,8 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase";
+import { IN_DEMO } from "../base";
+import * as demo from "./demoData";
 import type {
   CallLog,
   GuestRequest,
@@ -66,6 +68,7 @@ export function isStateConflict(error: unknown): boolean {
 // ---- Who is signed in, and which restaurants ----
 
 export async function fetchMemberships(userId: string): Promise<Membership[]> {
+  if (IN_DEMO) return demo.demoMemberships();
   const { data, error } = await db().from("restaurant_members").select("restaurant_id, role").eq("user_id", userId);
   if (error) fail(error);
   return (data ?? []) as Membership[];
@@ -75,6 +78,7 @@ const RESTAURANT_COLS =
   "id,name,timezone,currency,accepting_orders,staffed_review_windows,closed_dates,last_call_minutes,takes_reservation_requests,host_notes,phone_number,transfer_phone_number,current_menu_version";
 
 export async function fetchRestaurants(ids: string[]): Promise<Restaurant[]> {
+  if (IN_DEMO) return demo.demoRestaurants();
   if (ids.length === 0) return [];
   const { data, error } = await db().from("restaurants").select(RESTAURANT_COLS).in("id", ids).order("name");
   if (error) fail(error);
@@ -180,6 +184,7 @@ async function fetchCalls(restaurantId: string): Promise<CallLog[]> {
 
 /** Everything the live board polls for, in one go. */
 export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
+  if (IN_DEMO) return demo.demoLiveData();
   const [reached, escalated, requests, calls] = await Promise.all([
     fetchReachedOrders(restaurantId),
     fetchEscalatedOrders(restaurantId),
@@ -196,6 +201,7 @@ export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
  * the caller changed or didn't confirm, mid-call corrections). Owners can look at them.
  */
 export async function fetchPhoneDrafts(restaurantId: string, reachedIds: Set<string>): Promise<Order[]> {
+  if (IN_DEMO) return demo.demoPhoneDrafts();
   const { data, error } = await db()
     .from("orders")
     .select(ORDER_COLS)
@@ -209,6 +215,7 @@ export async function fetchPhoneDrafts(restaurantId: string, reachedIds: Set<str
 // ---- Detail screens ----
 
 export async function fetchOrder(restaurantId: string, orderId: string): Promise<Order | null> {
+  if (IN_DEMO) return demo.demoOrder(orderId);
   const { data, error } = await db()
     .from("orders")
     .select(ORDER_COLS)
@@ -220,6 +227,7 @@ export async function fetchOrder(restaurantId: string, orderId: string): Promise
 }
 
 export async function fetchOrderEvents(restaurantId: string, orderId: string): Promise<OrderEvent[]> {
+  if (IN_DEMO) return demo.demoOrderEvents(orderId);
   const { data, error } = await db()
     .from("order_events")
     .select("id,order_id,from_state,to_state,actor_kind,actor_user_id,reason,created_at")
@@ -233,6 +241,7 @@ export async function fetchOrderEvents(restaurantId: string, orderId: string): P
 
 /** The call with its transcript. Details arrive about a minute after the call ends. */
 export async function fetchCallDetail(restaurantId: string, callId: string): Promise<CallLog | null> {
+  if (IN_DEMO) return demo.demoCall(callId);
   const { data, error } = await db()
     .from("call_logs")
     .select(`${CALL_LIST_COLS},transcript`)
@@ -246,6 +255,7 @@ export async function fetchCallDetail(restaurantId: string, callId: string): Pro
 }
 
 export async function fetchMenu(restaurantId: string, version: number): Promise<MenuItem[]> {
+  if (IN_DEMO) return demo.demoMenu();
   const { data, error } = await db()
     .from("menu_items")
     .select(
@@ -267,6 +277,13 @@ export async function transitionOrder(args: {
   to: OrderState;
   reason: string;
 }): Promise<void> {
+  if (IN_DEMO) {
+    try {
+      return demo.demoTransition(args.orderId, args.from, args.to, args.reason);
+    } catch (e) {
+      throw new DataError(e instanceof Error ? e.message : "state_conflict", "PT409");
+    }
+  }
   const { error } = await db().rpc("transition_order", {
     p_restaurant_id: args.restaurantId,
     p_order_id: args.orderId,
@@ -279,6 +296,7 @@ export async function transitionOrder(args: {
 }
 
 export async function setRequestStatus(restaurantId: string, requestId: string, status: RequestStatus): Promise<void> {
+  if (IN_DEMO) return demo.demoSetRequestStatus(requestId, status);
   const { data, error } = await db()
     .from("guest_requests")
     .update({ status })
@@ -290,6 +308,7 @@ export async function setRequestStatus(restaurantId: string, requestId: string, 
 }
 
 export async function setItemAvailable(restaurantId: string, itemId: string, available: boolean): Promise<void> {
+  if (IN_DEMO) return demo.demoSetItemAvailable(itemId, available);
   const { data, error } = await db()
     .from("menu_items")
     .update({ available })
@@ -316,6 +335,7 @@ export type RestaurantPatch = Partial<
 
 /** Owners only. The database refuses this for anyone else. */
 export async function updateRestaurant(restaurantId: string, patch: RestaurantPatch): Promise<Restaurant> {
+  if (IN_DEMO) return demo.demoUpdateRestaurant(patch);
   const { data, error } = await db().from("restaurants").update(patch).eq("id", restaurantId).select(RESTAURANT_COLS);
   if (error) fail(error);
   if (!data || data.length === 0) throw new DataError("Only owners can change settings.", "no_rows");

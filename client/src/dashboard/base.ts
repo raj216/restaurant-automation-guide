@@ -3,7 +3,10 @@
 
 export const ON_DASHBOARD_HOST = typeof window !== "undefined" && /^dashboard\./i.test(window.location.hostname);
 
-export const BASE = ON_DASHBOARD_HOST ? "" : "/dashboard";
+/** cohost.site/demo: the example dashboard, with made-up data and no sign-in. */
+export const IN_DEMO = !ON_DASHBOARD_HOST && typeof window !== "undefined" && /^\/demo(\/|$)/.test(window.location.pathname);
+
+export const BASE = ON_DASHBOARD_HOST ? "" : IN_DEMO ? "/demo" : "/dashboard";
 
 /** A link inside the dashboard. The home screen on its own host is "/". */
 export function hrefTo(path: string): string {

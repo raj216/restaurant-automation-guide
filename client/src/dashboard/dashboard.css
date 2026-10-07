@@ -312,3 +312,7 @@
 /* orders list beside an open order: fewer columns so both fit */
 .cd .d-orders-grid.d-compact{grid-template-columns:90px minmax(0,1fr) 150px}
 .cd .d-orders-grid.d-compact .d-hide-compact{display:none}
+
+/* the example dashboard's banner */
+.cd .d-banner.d-demo{background:var(--accent-soft);color:var(--accent-ink);height:auto;min-height:44px;padding-block:8px;flex-wrap:wrap}
+.cd .d-demo-link{margin-left:auto;font-weight:800;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
