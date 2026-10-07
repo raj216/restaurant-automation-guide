@@ -9,8 +9,8 @@
 export const DEMO_LINE: { label: string; tel: string } | null = null;
 
 export const NAV = [
-  { label: "Live Dashboard", href: "#dashboard" },
   { label: "How It Works", href: "#how-it-works" },
+  { label: "Example Dashboard", href: "/demo" },
   { label: "POS Roadmap", href: "#roadmap" },
   { label: "FAQ", href: "#faq" },
 ];
@@ -161,140 +161,6 @@ export const PIPELINE = {
 
 export const WINGMAN_NOTE = "Friday • 7:30 PM";
 
-export const RECORDING = { length: 48 };
-
-export const SPAM_FACTS = [
-  "1.8s call",
-  "0 rings at the host stand",
-  "Solicitor blocked",
-];
-
-export type Kind = "order" | "reservation" | "alert" | "spam";
-
-export interface Ticket {
-  kind: Kind;
-  caller: string;
-  badge: string;
-  summary: string;
-  status: string;
-}
-
-export const DASHBOARD = {
-  eyebrow: "Instant Visibility",
-  titleStart: "See how Brio organizes your ",
-  titleHighlight: "phone rush",
-  text: "Your team isn't trapped on the phone for four minutes. Calls are resolved, structured into summaries, and flagged for review when you have a free second.",
-  windowTitle: "dashboard.cohost.site",
-  fullScreen: "Full screen",
-  frameTitle: "CoHost AI example dashboard with sample customers",
-  example: "Open the example dashboard",
-  exampleNote: "Sample customers and orders. No sign-up needed.",
-  online: "Online",
-  live: "Live Activity (7:32 PM)",
-  feed: [
-    {
-      kind: "order",
-      caller: "(646) 555-0142",
-      badge: "To-Go Order",
-      summary: "2x Rigatoni Vodka + Salad",
-      status: "Ready for review • 1m ago",
-    },
-    {
-      kind: "reservation",
-      caller: "(917) 555-0187",
-      badge: "Reservation",
-      summary: "Party of 4 • Tonight 8:00 PM",
-      status: "Confirmed with caller • 4m ago",
-    },
-    {
-      kind: "alert",
-      caller: "(212) 555-0163",
-      badge: "Guest Alert",
-      summary: "Left sunglasses at booth #4",
-      status: "Needs quick manager follow-up • 8m ago",
-    },
-    {
-      kind: "spam",
-      caller: "Blocked Caller",
-      badge: "Robocall Dropped",
-      summary: '"Working Capital Loan Offer"',
-      status: "Terminated in 2s • Zero floor ringing",
-    },
-  ] as Ticket[],
-};
-
-export const ORDER_TICKET = {
-  title: "To-Go Order Summary (#1082)",
-  meta: ["Caller: Sarah L.", "(646) 555-0142", "Pickup Estimated: 7:55 PM"],
-  badge: "Order Captured",
-  itemsTitle: "Structured Items & Modifiers",
-  items: [
-    {
-      name: "1x Rigatoni alla Vodka",
-      note: "(Sub Gluten-Free Penne)",
-      price: "$24.00",
-    },
-    { name: "1x Classic Rigatoni alla Vodka", price: "$22.00" },
-    { name: "1x Arugula & Shaved Fennel Salad", price: "$14.00" },
-  ],
-  subtotal: ["Subtotal Estimate", "$60.00"],
-  transcriptTitle: "Call Audio & Transcript Summary",
-  transcript:
-    '"Caller confirmed allergy: 1 GF penne substituted. Caller told estimated pickup is 25 minutes. SMS confirmation dispatched."',
-  actionsTitle: "Staff Actions",
-  actionsText:
-    "Review details and punch directly into POS or kitchen ticket when line clears.",
-  actions: [
-    {
-      label: "Punch to Kitchen",
-      done: "Order logged! Staff member marked as sent to kitchen.",
-    },
-    { label: "Text Customer", done: "SMS update sent to customer phone." },
-  ],
-};
-
-export const RESERVATION_TICKET = {
-  title: "Reservation Inquiry",
-  meta: ["Caller: Dave K.", "(917) 555-0187", "Requested: 8:00 PM Tonight"],
-  badge: "Table Requested",
-  paramsTitle: "Request Parameters",
-  params: [
-    ["Party Size", "4 Guests"],
-    ["Seating Preference", "Indoor / Quiet booth if possible"],
-    ["Special Occasion", "Anniversary Dinner"],
-  ],
-  noteTitle: "Brio Conversation Note",
-  note: '"Brio informed caller that 8:00 PM is high volume, logged party size, and explained a 10-15 min greeting window upon arrival."',
-  actionsTitle: "Actions",
-  action: {
-    label: "Confirm in Resy / Book",
-    done: "Confirmed on Host Stand book.",
-  },
-};
-
-export const ALERT_TICKET = {
-  title: "Guest Assistance Flag",
-  meta: ["Caller: Elena M.", "(212) 555-0163", "Dined at 6:15 PM"],
-  badge: "Needs Attention",
-  summaryTitle: "Summary of Call",
-  summary:
-    '"Guest states she left a pair of black prescription sunglasses at booth #4 during early dinner service. Requested host or manager check the booth."',
-  actions: [
-    {
-      label: "Reply via SMS",
-      done: "SMS drafted to guest with manager direct contact.",
-    },
-    { label: "Mark Resolved", done: "Marked resolved." },
-  ],
-};
-
-export const SPAM_TICKET = {
-  title: "Spam Intercepted",
-  meta: ["Automated Solicitor Dropped"],
-  badge: "Blocked",
-  text: "Brio identified an automated sales pitch attempting to solicit linen services and small business loans. Call was terminated in 1.8 seconds. Your host desk phone never made a sound.",
-};
-
 export const MOTTO = {
   eyebrow: "Our Core Motto",
   quote: "We deal with calls so your host can deal with actual customers.",
@@ -320,6 +186,7 @@ export const MOTTO = {
 };
 
 export const HOW = {
+  example: "See the example dashboard",
   eyebrow: "Zero Setup Pain",
   title: "Up and running in 15 minutes today",
   text: "No waiting on POS technicians, no expensive installation fees, and zero risk to your existing setup.",
