@@ -316,3 +316,7 @@
 /* the example dashboard's banner */
 .cd .d-banner.d-demo{background:var(--accent-soft);color:var(--accent-ink);height:auto;min-height:44px;padding-block:8px;flex-wrap:wrap}
 .cd .d-demo-link{margin-left:auto;font-weight:800;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+
+/* Screens taller than the window scroll inside the content area. Without this the
+   flex column squeezes a long list to fit and hides the rest. */
+.cd .d-content.d-col-flow>*{flex-shrink:0}
