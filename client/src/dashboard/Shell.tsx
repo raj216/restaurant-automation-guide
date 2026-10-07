@@ -13,7 +13,7 @@ import { formatNow, formatTime, relative } from "./lib/time";
 import { Button, Icon, useDismiss, type IconKey } from "./ui";
 import { ToastHost } from "./Toasts";
 
-import { BASE, hrefTo, IN_DEMO } from "./base";
+import { BASE, EMBED, hrefTo, IN_DEMO } from "./base";
 export { BASE };
 
 interface NavItem {
@@ -92,7 +92,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
       <div className="d-main">
         <TopBar />
-        {IN_DEMO ? (
+        {IN_DEMO && !EMBED ? (
           <div className="d-banner d-demo" role="note">
             <Icon name="info" />
             <span>
