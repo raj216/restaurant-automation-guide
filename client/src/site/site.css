@@ -468,3 +468,5 @@
   .event { opacity: 1; transform: none; }
   .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .role-icon.brio::before, .mini-orb, .ticker-row { animation: none; }
 }
+.dash-cta { display: grid; justify-items: center; gap: 10px; margin-top: 6px; }
+.dash-cta-note { color: var(--text-3); font-size: 13.5px; }

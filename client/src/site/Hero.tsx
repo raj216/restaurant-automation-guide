@@ -1,4 +1,4 @@
-import { ArrowRight, Check, MapPin, PhoneCall } from "lucide-react";
+import { ArrowRight, Check, LayoutDashboard, MapPin, PhoneCall } from "lucide-react";
 import { CAPABILITIES, DEMO_LINE, HERO } from "./content";
 import { HeroStage } from "./HeroStage";
 import { Reveal, Words, useFontsReady } from "./motion";
@@ -52,6 +52,10 @@ export function Hero() {
           <a className="btn btn-primary btn-lg" href="#pilot">
             {HERO.primary}
             <ArrowRight size={18} className="nudge" />
+          </a>
+          <a className="btn btn-ghost btn-lg" href="/demo">
+            <LayoutDashboard size={17} />
+            {HERO.example}
           </a>
           {DEMO_LINE && (
             <a className="btn btn-ghost btn-lg" href={`tel:${DEMO_LINE.tel}`}>

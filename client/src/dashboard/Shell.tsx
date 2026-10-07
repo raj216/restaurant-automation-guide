@@ -13,7 +13,7 @@ import { formatNow, formatTime, relative } from "./lib/time";
 import { Button, Icon, useDismiss, type IconKey } from "./ui";
 import { ToastHost } from "./Toasts";
 
-import { BASE, hrefTo } from "./base";
+import { BASE, hrefTo, IN_DEMO } from "./base";
 export { BASE };
 
 interface NavItem {
@@ -92,6 +92,17 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
       <div className="d-main">
         <TopBar />
+        {IN_DEMO ? (
+          <div className="d-banner d-demo" role="note">
+            <Icon name="info" />
+            <span>
+              This is an example with made-up customers. Try the buttons. Nothing here is real.
+            </span>
+            <a className="d-demo-link" href="/#pilot">
+              Start a free pilot
+            </a>
+          </div>
+        ) : null}
         {d.offline ? (
           <div className="d-banner d-offline" role="status">
             <Icon name="wifiOff" />
@@ -366,7 +377,7 @@ function UserMenu() {
           <div className="d-note">{plural(d.restaurants.length, "restaurant")}</div>
           <button type="button" className="d-mi" role="menuitem" onClick={() => void d.signOut()}>
             <Icon name="logout" />
-            Sign out
+            {IN_DEMO ? "Back to cohost.site" : "Sign out"}
           </button>
         </div>
       ) : null}

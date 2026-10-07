@@ -29,6 +29,7 @@ export const HERO = {
   ] as (string | { strong: string })[],
   primary: "Get Your 14-Day Free Pilot",
   demo: "Dial Live Demo",
+  example: "See an example dashboard",
   points: [
     "Zero complex hardware",
     "Keep your current phone number",
@@ -184,6 +185,8 @@ export const DASHBOARD = {
   titleHighlight: "phone rush",
   text: "Your team isn't trapped on the phone for four minutes. Calls are resolved, structured into summaries, and flagged for review when you have a free second.",
   windowTitle: "cohost-manager-portal / live-inbox",
+  example: "Open the example dashboard",
+  exampleNote: "Sample customers and orders. No sign-up needed.",
   online: "Online",
   live: "Live Activity (7:32 PM)",
   feed: [

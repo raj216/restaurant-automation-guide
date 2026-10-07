@@ -1,5 +1,6 @@
 import { AnimatePresence, m, useInView, useReducedMotion } from "framer-motion";
 import {
+  ArrowRight,
   AudioLines,
   Ban,
   BarChart3,
@@ -355,6 +356,13 @@ export function Dashboard() {
           </Reveal>
           <Reveal as="p" className="lede" delay={0.1}>
             {DASHBOARD.text}
+          </Reveal>
+          <Reveal className="dash-cta" delay={0.15}>
+            <a className="btn btn-primary btn-lg" href="/demo">
+              {DASHBOARD.example}
+              <ArrowRight size={18} className="nudge" />
+            </a>
+            <span className="dash-cta-note">{DASHBOARD.exampleNote}</span>
           </Reveal>
         </header>
 

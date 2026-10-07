@@ -31,7 +31,7 @@ import { prefs, type Theme } from "./lib/prefs";
 import { UndoStore, type PendingStep } from "./lib/undo";
 import type { LiveData, Order, OrderState, Restaurant, Role } from "./lib/types";
 import { callerLabel, orderCode } from "./lib/format";
-import { BASE } from "./base";
+import { BASE, IN_DEMO } from "./base";
 
 export const POLL_MS = 10_000;
 
@@ -100,6 +100,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // ---- Auth ----
   useEffect(() => {
+    if (IN_DEMO) {
+      // The example dashboard: a pretend owner, no sign-in, no database.
+      setSession({ user: { id: "demo-user", email: "demo@cohost.site" } } as unknown as Session);
+      setAuthState("signed_in");
+      return;
+    }
     let alive = true;
     void db()
       .auth.getSession()
@@ -301,6 +307,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
     async signOut() {
       await undo.flushAll();
+      if (IN_DEMO) {
+        window.location.assign("/");
+        return;
+      }
       await db().auth.signOut();
     },
     async resetPassword(email) {
