@@ -13,7 +13,8 @@ import { formatNow, formatTime, relative } from "./lib/time";
 import { Button, Icon, useDismiss, type IconKey } from "./ui";
 import { ToastHost } from "./Toasts";
 
-export const BASE = "/dashboard";
+import { BASE, hrefTo } from "./base";
+export { BASE };
 
 interface NavItem {
   path: string;
@@ -75,7 +76,7 @@ export function Shell({ children }: { children: ReactNode }) {
             const count = countFor(item.path);
             const on = isActive(location, item.path);
             return (
-              <Link key={item.path} href={`${BASE}${item.path}`} className={`d-ni${on ? " d-on" : ""}`} aria-current={on ? "page" : undefined}>
+              <Link key={item.path} href={hrefTo(item.path)} className={`d-ni${on ? " d-on" : ""}`} aria-current={on ? "page" : undefined}>
                 <Icon name={item.icon} />
                 {item.label}
                 {count > 0 ? <span className="d-count" aria-label={`${count} need action`}>{count}</span> : null}
@@ -103,7 +104,7 @@ export function Shell({ children }: { children: ReactNode }) {
             const count = countFor(item.path);
             const on = isActive(location, item.path);
             return (
-              <Link key={item.path} href={`${BASE}${item.path}`} className={on ? "d-on" : ""} aria-current={on ? "page" : undefined}>
+              <Link key={item.path} href={hrefTo(item.path)} className={on ? "d-on" : ""} aria-current={on ? "page" : undefined}>
                 <Icon name={item.icon} />
                 {item.short ?? item.label}
                 {count > 0 ? <span className="d-count" aria-label={`${count} need action`}>{count}</span> : null}
@@ -136,7 +137,7 @@ function MoreTab({ nav, location }: { nav: NavItem[]; location: string }) {
       {open ? (
         <div className="d-menu" style={{ top: "auto", bottom: 70, right: 0 }}>
           {nav.map(item => (
-            <Link key={item.path} href={`${BASE}${item.path}`} className="d-mi" onClick={close}>
+            <Link key={item.path} href={hrefTo(item.path)} className="d-mi" onClick={close}>
               <Icon name={item.icon} />
               {item.label}
             </Link>

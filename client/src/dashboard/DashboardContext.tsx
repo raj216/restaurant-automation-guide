@@ -31,6 +31,7 @@ import { prefs, type Theme } from "./lib/prefs";
 import { UndoStore, type PendingStep } from "./lib/undo";
 import type { LiveData, Order, OrderState, Restaurant, Role } from "./lib/types";
 import { callerLabel, orderCode } from "./lib/format";
+import { BASE } from "./base";
 
 export const POLL_MS = 10_000;
 
@@ -304,7 +305,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
     async resetPassword(email) {
       const { error } = await db().auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${BASE}`,
       });
       return error ? "Couldn't send the email. Check the address and try again." : null;
     },

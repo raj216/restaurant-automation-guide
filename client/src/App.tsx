@@ -6,6 +6,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import { ON_DASHBOARD_HOST } from "./dashboard/base";
 
 // The Leads page loads on its own, so visitors never download it.
 const Admin = lazy(() => import("./pages/Admin"));
@@ -15,16 +16,16 @@ const Dashboard = lazy(() => import("./dashboard/DashboardApp"));
 function Router() {
   return (
     <Switch>
+      {/* On dashboard.cohost.site every address is the dashboard; on cohost.site, every /dashboard address. It reads the rest of the address itself. */}
+      <Route path={ON_DASHBOARD_HOST ? /.*/ : /^\/dashboard(\/.*)?$/}>
+        <Suspense fallback={<div style={{ minHeight: "100svh", background: "#17161b" }} />}>
+          <Dashboard />
+        </Suspense>
+      </Route>
       <Route path={"/"} component={Home} />
       <Route path={"/admin"}>
         <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--ink-0)" }} />}>
           <Admin />
-        </Suspense>
-      </Route>
-      {/* Every /dashboard address opens the dashboard, which reads the rest of the address itself. */}
-      <Route path={/^\/dashboard(\/.*)?$/}>
-        <Suspense fallback={<div style={{ minHeight: "100svh", background: "#17161b" }} />}>
-          <Dashboard />
         </Suspense>
       </Route>
       <Route path={"/404"} component={NotFound} />
