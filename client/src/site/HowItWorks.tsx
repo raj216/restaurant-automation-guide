@@ -137,6 +137,13 @@ export function HowItWorks() {
           })}
         </ol>
 
+        <Reveal className="how-cta" y={20}>
+          <a className="btn btn-primary btn-lg" href="/demo">
+            {HOW.example}
+            <ArrowRight size={18} className="nudge" />
+          </a>
+        </Reveal>
+
         {/* The link target stays still while the card inside slides into place. */}
         <div id="roadmap" className="roadmap-anchor">
           <Reveal className="panel roadmap" y={32} data-spotlight>

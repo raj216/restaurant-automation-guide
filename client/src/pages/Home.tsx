@@ -1,6 +1,5 @@
 import { BrioCall } from "@/site/BrioCall";
 import { BRIO_CALL } from "@/site/content";
-import { Dashboard } from "@/site/Dashboard";
 import { Faq } from "@/site/Faq";
 import { Footer } from "@/site/Footer";
 import { Hero } from "@/site/Hero";
@@ -49,7 +48,6 @@ export default function Home() {
             <main id="main">
               <Hero />
               <Stats />
-              <Dashboard />
               <Motto />
               <HowItWorks />
               <Faq />
