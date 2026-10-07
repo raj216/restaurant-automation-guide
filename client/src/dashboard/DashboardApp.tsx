@@ -1,6 +1,6 @@
 // The manager dashboard: sign in, then the screens. Loaded only when someone visits /dashboard.
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useLocation } from "wouter";
 import "./dashboard.css";
 import { DashboardProvider, useDashboard } from "./DashboardContext";
@@ -52,6 +52,14 @@ function Gate() {
 }
 
 export default function DashboardApp() {
+  // Search engines should never list the dashboard, on either address.
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex, nofollow";
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
   return (
     <DashboardProvider>
       <Suspense fallback={null}>
