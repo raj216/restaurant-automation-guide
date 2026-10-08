@@ -21,6 +21,9 @@
 /* sidebar */
 .d-side{width:232px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px}
 .d-brand{display:flex;align-items:center;gap:10px;padding:2px 8px 20px}
+.cd a.d-brand{color:inherit;text-decoration:none;border-radius:12px;transition:opacity .15s}
+.cd a.d-brand:hover{opacity:.8}
+.cd .d-top-logo{display:none;flex:none;border-radius:9px;line-height:0}
 .d-brand b{display:block;font-size:19px;font-weight:800;letter-spacing:-.3px}
 .d-brand small{display:block;font-size:12px;color:var(--text-3);font-weight:500}
 .d-nav{display:flex;flex-direction:column;gap:2px}
@@ -292,12 +295,15 @@
 @media (max-width:860px){
   .cd{flex-direction:column}
   .cd .d-side{display:none}
+  .cd .d-top-logo{display:inline-flex}
   .cd .d-tabbar{display:flex;position:static}
   .cd .d-top{height:60px;padding:0 12px;gap:8px}
   .cd .d-top .d-clock,.cd .d-top .d-hide-sm{display:none}
   .cd .d-content{padding:14px;gap:12px}
   .cd .d-switch{font-size:15px;padding:0 10px;min-width:0}
   .cd .d-switch .d-name-text{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cd .d-switcher-wrap{min-width:0;flex:0 1 auto}
+  .cd .d-switch{max-width:100%}
   .cd .d-menu{right:-8px}
   .cd .d-bellmenu{width:min(340px,92vw)}
   .cd .d-switcher-menu{width:min(280px,86vw)}
@@ -316,6 +322,9 @@
 /* the example dashboard's banner */
 .cd .d-banner.d-demo{background:var(--accent-soft);color:var(--accent-ink);height:auto;min-height:44px;padding-block:8px;flex-wrap:wrap}
 .cd .d-demo-link{margin-left:auto;font-weight:800;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.cd .d-demo-links{margin-left:auto;display:flex;align-items:center;gap:20px}
+.cd .d-demo-links .d-demo-link{margin-left:0}
+.cd .d-demo-home{display:inline-flex;align-items:center;gap:2px}
 
 /* Screens taller than the window scroll inside the content area. Without this the
    flex column squeezes a long list to fit and hides the rest. */
@@ -331,3 +340,7 @@
 .cd.d-boot .d-card:nth-child(4){animation-delay:.27s}
 .cd.d-boot .d-card:nth-child(n+5){animation-delay:.36s}
 @media (prefers-reduced-motion:reduce){.cd.d-boot,.cd.d-boot .d-card{animation:none}}
+@media (max-width:520px){
+  .cd .d-top .d-chip{padding:0;width:36px;justify-content:center;flex:none}
+  .cd .d-top .d-chip-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}
