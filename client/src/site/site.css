@@ -150,7 +150,7 @@
 .poster-screen::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 3px; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); filter: blur(4px); opacity: .9; animation: turn 6s linear infinite; }
 .poster-island { position: absolute; top: 17px; left: 50%; width: 46px; height: 20px; margin-left: -23px; border-radius: 999px; background: #000; }
 .poster-top { position: absolute; top: 12px; left: 26px; right: 22px; display: flex; justify-content: space-between; color: var(--text); font-size: 10.5px; font-weight: 600; }
-.poster-orb { position: absolute; top: 88px; left: 50%; width: 118px; height: 118px; margin-left: -59px; border-radius: 50%; filter: blur(1px) saturate(1.2); box-shadow: 0 0 60px rgba(139, 92, 246, .55); }
+.poster-orb { position: absolute; top: 88px; left: 50%; width: 118px; height: 118px; margin-left: -59px; border-radius: 50%; filter: blur(1px) saturate(1.2); box-shadow: 0 0 24px rgba(139, 92, 246, .55); }
 .poster-orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); animation: spin 5s linear infinite; }
 .poster-orb::after { content: ""; position: absolute; inset: 18%; border-radius: 50%; background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 60%); }
 .poster-who { position: absolute; top: 228px; left: 0; right: 0; display: grid; gap: 2px; text-align: center; }
@@ -458,9 +458,9 @@
 .demo-veil { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(60% 45% at 50% 42%, rgba(139, 92, 246, .26), rgba(255, 79, 154, .08) 45%, transparent 100%), linear-gradient(#0c0f18, #05060a); opacity: 0; transition: opacity .65s var(--ease); }
 .demo-veil.is-on { opacity: 1; }
 .demo-veil-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.demo-veil-orb { position: relative; width: min(220px, 52vw); aspect-ratio: 1; margin-top: -6vh; }
-.demo-veil.no-gl .demo-veil-orb { border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .55), transparent 30%), radial-gradient(circle at 70% 62%, #ff4f9a, transparent 60%), radial-gradient(circle at 30% 70%, #8b5cf6, transparent 62%), radial-gradient(circle at 60% 20%, #38bdf8, transparent 55%), #8b5cf6; box-shadow: 0 0 60px rgba(139, 92, 246, .55); }
+.demo-veil-orb { position: relative; width: 64px; aspect-ratio: 1; margin-top: -3vh; }
+.demo-veil.no-gl .demo-veil-orb { border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .55), transparent 30%), radial-gradient(circle at 70% 62%, #ff4f9a, transparent 60%), radial-gradient(circle at 30% 70%, #8b5cf6, transparent 62%), radial-gradient(circle at 60% 20%, #38bdf8, transparent 55%), #8b5cf6; box-shadow: 0 0 24px rgba(139, 92, 246, .55); }
 .demo-veil p { position: relative; margin: 0; opacity: 0; transform: translateY(8px); transition: opacity .6s var(--ease) .25s, transform .6s var(--ease) .25s; }
 .demo-veil.is-on p { opacity: 1; transform: none; }
-.demo-veil .demo-veil-name { margin-top: min(60px, 14vw); color: #f4f5f8; font-size: clamp(30px, 8vw, 38px); font-weight: 600; letter-spacing: -.02em; line-height: 1; }
-.demo-veil .demo-veil-sub { margin-top: 14px; color: #a4abbb; font-family: var(--mono); font-size: clamp(13px, 3.6vw, 16px); }
+.demo-veil .demo-veil-name { margin-top: 24px; color: #f4f5f8; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1; }
+.demo-veil .demo-veil-sub { margin-top: 8px; color: #a4abbb; font-family: var(--mono); font-size: 12.5px; }

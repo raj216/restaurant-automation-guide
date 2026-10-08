@@ -8,6 +8,8 @@ import { BRIO_PALETTE, ORB_GLSL, RIM_GLSL } from "@/components/phone/scene/orbSh
 const SCENE_PER_SCREEN_PX = 0.7289 / 640;
 /** The orb's radius on the phone's screen texture, in its pixels. */
 const PHONE_ORB_R = 132;
+/** The edge glow keeps its own size, so it stays soft around a small orb. */
+const EDGE = 0.5;
 
 const VERTEX = `
   attribute vec2 aPos;
@@ -20,6 +22,7 @@ const FRAGMENT = `
   uniform vec2 uCenter;
   uniform float uRadius;
   uniform float uScale;
+  uniform float uEdge;
   uniform float uCorner;
   uniform float uIntro;
   uniform float uTime;
@@ -51,7 +54,7 @@ const FRAGMENT = `
     // The glow along the edge.
     vec2 p = f - uRes * 0.5;
     float d = roundedBox(p, uRes * 0.5, uCorner);
-    color += brioRim(p, d / uScale * ${SCENE_PER_SCREEN_PX.toFixed(8)}) * (0.34 + 0.34 * uLevel) * uIntro;
+    color += brioRim(p, d / uEdge * ${SCENE_PER_SCREEN_PX.toFixed(8)}) * (0.34 + 0.34 * uLevel) * uIntro;
 
     // Brio.
     float grow = 0.7 + 0.3 * uIntro;
@@ -107,6 +110,7 @@ export function startVeilOrb(canvas: HTMLCanvasElement, spot: HTMLElement): bool
     center: at("uCenter"),
     radius: at("uRadius"),
     scale: at("uScale"),
+    edge: at("uEdge"),
     corner: at("uCorner"),
     intro: at("uIntro"),
     time: at("uTime"),
@@ -150,6 +154,7 @@ export function startVeilOrb(canvas: HTMLCanvasElement, spot: HTMLElement): bool
     gl.uniform2f(u.center, (box.left + box.width / 2) * dpr, height - (box.top + box.height / 2) * dpr);
     gl.uniform1f(u.radius, radius);
     gl.uniform1f(u.scale, radius / PHONE_ORB_R);
+    gl.uniform1f(u.edge, EDGE * dpr);
     gl.uniform1f(u.corner, 28 * dpr);
     gl.uniform1f(u.intro, intro);
     gl.uniform1f(u.time, time + 2);
