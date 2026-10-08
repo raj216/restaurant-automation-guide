@@ -67,20 +67,20 @@ export default function Calls({ selectedId }: { selectedId: string | null }) {
                   href={`${BASE}/calls/${c.call_id}`}
                   className={`d-tr d-calls-grid d-rowlink${selectedId === c.call_id ? " d-sel" : ""}`}
                 >
-                  <span className="d-t2">
-                    {dayLabel(callTime(c), d.now, tz)}
+                  <span className="d-t2 d-c-time">
+                    {dayLabel(callTime(c), d.now, tz)}{" "}
                     <br />
                     {formatTime(callTime(c), tz)}
                   </span>
-                  <span style={{ minWidth: 0 }}>
-                    <span className="d-t1 d-ellip" style={{ display: "block" }}>
+                  <span className="d-c-mid" style={{ minWidth: 0 }}>
+                    <span className="d-t1 d-ellip d-c-name" style={{ display: "block" }}>
                       {callerLabel(c.caller_name, c.from_number)}
                     </span>
-                    <span className="d-t2 d-ellip" style={{ display: "block" }}>
+                    <span className="d-t2 d-ellip d-c-sum" style={{ display: "block" }}>
                       {c.summary ?? "No summary yet"}
                     </span>
                   </span>
-                  <span className="d-row" style={{ gap: 6 }}>
+                  <span className="d-row d-c-tags" style={{ gap: 6 }}>
                     {isTestCall(c) ? <Pill tone="gray" icon="flask">Test</Pill> : null}
                     {c.needs_follow_up ? <Pill tone="amber" icon="flag">Follow up</Pill> : null}
                     <Pill tone={c.category === "spam" ? "gray" : "accent"}>{CALL_CATEGORY_LABEL[c.category] ?? "Other"}</Pill>

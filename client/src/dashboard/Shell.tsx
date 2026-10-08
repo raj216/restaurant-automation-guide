@@ -60,6 +60,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const nav = NAV.filter(n => !n.ownerOnly || d.isOwner);
   // For the first moments the screen fades and rises in; later screens change quietly.
   const [booting, setBooting] = useState(true);
+  const [noteHidden, setNoteHidden] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setBooting(false), 1600);
     return () => clearTimeout(t);
@@ -98,10 +99,10 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
       <div className="d-main">
         <TopBar />
-        {IN_DEMO && !EMBED ? (
+        {IN_DEMO && !EMBED && !noteHidden ? (
           <div className="d-banner d-demo" role="note">
             <Icon name="info" />
-            <span>
+            <span className="d-banner-text">
               An example with made-up customers. Try the buttons, nothing here is real.
             </span>
             <span className="d-demo-links">
@@ -113,6 +114,9 @@ export function Shell({ children }: { children: ReactNode }) {
                 Start a free pilot
               </a>
             </span>
+            <button type="button" className="d-banner-x" aria-label="Hide this note" onClick={() => setNoteHidden(true)}>
+              <Icon name="x" size="s" />
+            </button>
           </div>
         ) : null}
         {d.offline ? (
@@ -149,7 +153,7 @@ function MoreTab({ nav, location }: { nav: NavItem[]; location: string }) {
   const on = nav.some(n => isActive(location, n.path));
   return (
     <div ref={ref} style={{ flex: 1, position: "relative", display: "flex" }}>
-      <button type="button" className={on ? "d-on" : ""} aria-expanded={open} onClick={() => setOpen(o => !o)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 11.5, fontWeight: 700, color: on ? "var(--accent-ink)" : "var(--text-3)", minHeight: 44 }}>
+      <button type="button" className={`d-more${on ? " d-on" : ""}`} aria-expanded={open} onClick={() => setOpen(o => !o)}>
         <svg className="d-i" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="5" cy="12" r="1.5" />
           <circle cx="12" cy="12" r="1.5" />
@@ -158,7 +162,7 @@ function MoreTab({ nav, location }: { nav: NavItem[]; location: string }) {
         More
       </button>
       {open ? (
-        <div className="d-menu" style={{ top: "auto", bottom: 70, right: 0 }}>
+        <div className="d-menu d-moremenu">
           {nav.map(item => (
             <Link key={item.path} href={hrefTo(item.path)} className="d-mi" onClick={close}>
               <Icon name={item.icon} />
@@ -281,7 +285,7 @@ function Bell() {
   const tz = d.restaurant?.timezone ?? "America/New_York";
 
   const items = useMemo(() => {
-    const list: { key: string; at: string; title: string; detail: string; href: string }[] = [];
+    const list: { key: string; at: string; title: string; detail: string; href: string; icon: IconKey }[] = [];
     for (const o of d.data.orders.filter(o => needsReview(o) || recentEscalated(o, d.now))) {
       list.push({
         key: `o${o.id}`,
@@ -289,6 +293,7 @@ function Bell() {
         title: o.state === "escalated" ? "A guest needs a call back" : "Order to review",
         detail: `${orderCode(o.id)} · ${callerLabel(o.customer_name, o.customer_phone)}`,
         href: `${BASE}/orders/${o.id}`,
+        icon: o.state === "escalated" ? "phone" : "orders",
       });
     }
     for (const r of d.data.requests.filter(r => r.status === "pending_staff_review")) {
@@ -298,6 +303,7 @@ function Bell() {
         title: r.kind === "reservation" ? "Reservation request" : "New message",
         detail: r.customer_name,
         href: r.kind === "reservation" ? `${BASE}/reservations` : `${BASE}/messages`,
+        icon: r.kind === "reservation" ? "calendar" : "message",
       });
     }
     return list.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime()).slice(0, 12);
@@ -322,7 +328,7 @@ function Bell() {
           {items.length === 0 ? <div className="d-note">All caught up.</div> : null}
           {items.map(i => (
             <Link key={i.key} href={i.href} className={`d-bellitem${new Date(i.at).getTime() > seen ? " d-new" : ""}`} onClick={close}>
-              <Icon name="alert" />
+              <Icon name={i.icon} />
               <span>
                 <b>{i.title}</b>
                 <br />

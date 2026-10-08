@@ -154,10 +154,10 @@ export function ReviewCard({ order }: { order: Order }) {
         ) : null}
         <span className={`d-sp d-pill ${tone === "red" ? "d-p-red" : tone === "amber" ? "d-p-amber" : "d-p-gray"}`}>
           <Icon name="clock" />
-          Waiting {waited < 1 ? "<1" : waited} min · {formatTime(order.created_at, tz)}
+          Waiting {waited < 1 ? "<1" : waited} min<span className="d-hide-phone"> · {formatTime(order.created_at, tz)}</span>
         </span>
       </div>
-      <div className="d-row">
+      <div className="d-row d-namerow">
         <h3 className="d-name">
           <Link href={`${BASE}/orders/${order.id}`}>{customerLabel(order)}</Link>
         </h3>
@@ -235,7 +235,7 @@ export function ReservationCard({ request }: { request: GuestRequest }) {
         <h3 className="d-name">{request.customer_name}</h3>
         <span className="d-sp d-name d-s">
           {request.party_size ? `${request.party_size} ${request.party_size === 1 ? "person" : "people"}` : "Party size not given"}
-          {request.requested_time ? ` · ${formatTime(request.requested_time, tz)}` : ""}
+          {request.requested_time ? <span className="d-hide-phone"> · {formatTime(request.requested_time, tz)}</span> : null}
         </span>
       </div>
       <div className="d-meta">
