@@ -454,11 +454,31 @@
 }
 
 .how-cta { display: flex; justify-content: center; margin: clamp(28px, 4vw, 44px) 0 clamp(36px, 5vw, 56px); }
-/* Opening the example dashboard: the page fades into the dashboard's dark ground. */
-.demo-veil { position: fixed; inset: 0; z-index: 300; display: grid; place-content: center; justify-items: center; gap: 22px; background: radial-gradient(60% 50% at 50% 45%, rgba(139, 92, 246, .22), transparent 70%), var(--ink-0); opacity: 0; transition: opacity .65s var(--ease); }
+/* Opening the example dashboard: the page fades into the dashboard's dark ground, with Brio as a glass orb. */
+.demo-veil { position: fixed; inset: 0; z-index: 300; display: grid; place-content: center; justify-items: center; gap: 26px; background: radial-gradient(55% 48% at 50% 44%, rgba(139, 92, 246, .24), rgba(255, 79, 154, .06) 55%, transparent 75%), var(--ink-0); opacity: 0; transition: opacity .65s var(--ease); }
 .demo-veil.is-on { opacity: 1; }
-.demo-veil-orb { width: 58px; height: 58px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #fff7, transparent 38%), var(--spectrum); box-shadow: 0 0 80px rgba(255, 79, 154, .45); transform: scale(.6); transition: transform .9s var(--ease); }
-.demo-veil.is-on .demo-veil-orb { transform: scale(1); }
-.demo-veil p { margin: 0; color: var(--text-2); font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: 0; transform: translateY(6px); transition: opacity .6s var(--ease) .15s, transform .6s var(--ease) .15s; }
+.demo-veil-stage { position: relative; display: grid; place-items: center; width: 230px; height: 230px; transform: scale(.72); opacity: 0; transition: transform 1s var(--ease), opacity .6s ease; }
+.demo-veil.is-on .demo-veil-stage { transform: none; opacity: 1; }
+.demo-veil-glow { position: absolute; width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#ffb547, #ff6a55, #ff4f9a, #8b5cf6, #38bdf8, #ffb547); filter: blur(40px); opacity: .7; animation: veil-spin 7s linear infinite; }
+.demo-veil-ring { position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .3); opacity: 0; animation: veil-ring 2.7s cubic-bezier(.22, 1, .36, 1) infinite; }
+.demo-veil-ring:nth-child(2) { animation-delay: .9s; }
+.demo-veil-ring:nth-child(3) { animation-delay: 1.8s; }
+.demo-veil-bars span { position: absolute; left: 50%; top: 50%; width: 2.5px; height: 20px; margin: -10px 0 0 -1.25px; border-radius: 2px; background: var(--c); box-shadow: 0 0 10px var(--c); transform: rotate(calc(var(--i) * 10deg)) translateY(-80px) scaleY(.3); animation: veil-bar 1.15s ease-in-out infinite; animation-delay: calc(var(--d) * -1.15s); }
+.demo-veil-sphere { position: relative; width: 104px; height: 104px; overflow: hidden; border-radius: 50%; background: #0e1119; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), inset -12px -16px 30px rgba(5, 6, 10, .6), inset 6px 8px 18px rgba(255, 255, 255, .16), 0 24px 70px -12px rgba(139, 92, 246, .7); }
+.demo-veil-sphere i { position: absolute; inset: -30%; border-radius: 50%; filter: blur(12px); opacity: .92; }
+.demo-veil-sphere i:nth-child(1) { background: radial-gradient(circle at 30% 30%, #ffb547, transparent 56%); animation: veil-a 5s ease-in-out infinite; }
+.demo-veil-sphere i:nth-child(2) { background: radial-gradient(circle at 72% 38%, #ff4f9a, transparent 56%); animation: veil-b 6.2s ease-in-out infinite; }
+.demo-veil-sphere i:nth-child(3) { background: radial-gradient(circle at 50% 82%, #8b5cf6, transparent 58%); animation: veil-a 7.4s ease-in-out infinite reverse; }
+.demo-veil-sphere i:nth-child(4) { background: radial-gradient(circle at 22% 72%, #38bdf8, transparent 54%); animation: veil-b 8.1s ease-in-out infinite reverse; }
+.demo-veil-sphere::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 18%, rgba(255, 255, 255, .5), transparent 26%); }
+.demo-veil p { margin: 0; color: var(--text-2); font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; opacity: 0; transform: translateY(6px); transition: opacity .6s var(--ease) .2s, transform .6s var(--ease) .2s; }
 .demo-veil.is-on p { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .demo-veil, .demo-veil-orb, .demo-veil p { transition: none; } }
+.demo-veil-line { width: 168px; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, .1); }
+.demo-veil-line i { display: block; width: 0; height: 100%; background: var(--spectrum); transition: width .85s cubic-bezier(.4, 0, .2, 1) .1s; }
+.demo-veil.is-on .demo-veil-line i { width: 100%; }
+@keyframes veil-spin { to { transform: rotate(360deg); } }
+@keyframes veil-ring { 0% { transform: scale(1); opacity: .5; } 100% { transform: scale(2.5); opacity: 0; } }
+@keyframes veil-bar { 0%, 100% { transform: rotate(calc(var(--i) * 10deg)) translateY(-80px) scaleY(.25); } 50% { transform: rotate(calc(var(--i) * 10deg)) translateY(-80px) scaleY(1.2); } }
+@keyframes veil-a { 0%, 100% { transform: translate(-14%, -8%) scale(1); } 50% { transform: translate(15%, 12%) scale(1.18); } }
+@keyframes veil-b { 0%, 100% { transform: translate(12%, -12%) scale(1.1); } 50% { transform: translate(-14%, 10%) scale(.92); } }
+@media (prefers-reduced-motion: reduce) { .demo-veil, .demo-veil-stage, .demo-veil p, .demo-veil-line i { transition: none; } .demo-veil-glow, .demo-veil-ring, .demo-veil-bars span, .demo-veil-sphere i { animation: none; } }

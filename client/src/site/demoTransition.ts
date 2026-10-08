@@ -14,12 +14,30 @@ function warmDashboard() {
   });
 }
 
+const SPECTRUM = ["#ffb547", "#ff6a55", "#ff4f9a", "#8b5cf6", "#38bdf8"];
+const BARS = 36;
+
+/** The loading screen: Brio as a glass orb with a voice ring around it. */
 function makeVeil(): HTMLDivElement {
   const veil = document.createElement("div");
   veil.className = "demo-veil";
   veil.setAttribute("role", "status");
+  // Each bar of the voice ring gets its own colour along the spectrum and its own beat.
+  const bars = Array.from({ length: BARS }, (_, i) => {
+    const stop = Math.abs(((i / BARS) * 2 * (SPECTRUM.length - 1)) % (2 * (SPECTRUM.length - 1)) - (SPECTRUM.length - 1));
+    const colour = SPECTRUM[Math.min(SPECTRUM.length - 1, Math.round(stop))];
+    const beat = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+    return `<span style="--i:${i};--c:${colour};--d:${Math.abs(beat).toFixed(2)}"></span>`;
+  }).join("");
   veil.innerHTML =
-    '<span class="demo-veil-orb" aria-hidden="true"></span><p>Opening the example dashboard</p>';
+    '<div class="demo-veil-stage" aria-hidden="true">' +
+    '<span class="demo-veil-ring"></span><span class="demo-veil-ring"></span><span class="demo-veil-ring"></span>' +
+    '<span class="demo-veil-glow"></span>' +
+    `<span class="demo-veil-bars">${bars}</span>` +
+    '<span class="demo-veil-sphere"><i></i><i></i><i></i><i></i></span>' +
+    "</div>" +
+    "<p>Opening the example dashboard</p>" +
+    '<span class="demo-veil-line" aria-hidden="true"><i></i></span>';
   document.body.appendChild(veil);
   return veil;
 }
