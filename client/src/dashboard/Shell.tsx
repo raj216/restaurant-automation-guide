@@ -58,11 +58,17 @@ export function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const badges = useBadges();
   const nav = NAV.filter(n => !n.ownerOnly || d.isOwner);
+  // For the first moments the screen fades and rises in; later screens change quietly.
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 1600);
+    return () => clearTimeout(t);
+  }, []);
   const countFor = (path: string) =>
     path === "" ? badges.now : path === "/orders" ? badges.orders : path === "/reservations" ? badges.reservations : path === "/messages" ? badges.messages : 0;
 
   return (
-    <div className={`cd${d.theme === "dark" ? " d-dark" : ""}`} onPointerDown={unlockSound}>
+    <div className={`cd${d.theme === "dark" ? " d-dark" : ""}${booting ? " d-boot" : ""}`} onPointerDown={unlockSound}>
       <aside className="d-side">
         <div className="d-brand">
           <LogoMark />

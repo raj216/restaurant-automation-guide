@@ -6,6 +6,7 @@ import { Hero } from "@/site/Hero";
 import { HowItWorks } from "@/site/HowItWorks";
 import { usePauseOffscreen, useSpotlight } from "@/site/motion";
 import { Motto } from "@/site/Motto";
+import { useDemoTransition } from "@/site/demoTransition";
 import { Nav } from "@/site/Nav";
 import { Pilot } from "@/site/Pilot";
 import { Stats } from "@/site/Stats";
@@ -35,6 +36,7 @@ function ScrollProgress() {
 export default function Home() {
   useSpotlight();
   usePauseOffscreen();
+  useDemoTransition();
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">

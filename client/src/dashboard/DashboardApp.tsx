@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react";
 import { useLocation } from "wouter";
 import "./dashboard.css";
+import { IN_DEMO } from "./base";
 import { DashboardProvider, useDashboard } from "./DashboardContext";
 import { BASE, Shell } from "./Shell";
 import Calls from "./screens/Calls";
@@ -41,7 +42,10 @@ function Screen() {
 
 function Gate() {
   const d = useDashboard();
-  if (d.authState === "loading") return <div className="cd" aria-busy="true" />;
+  if (d.authState === "loading") {
+    // Stay on the dark ground the visitor came from, so nothing flashes.
+    return <div className={`cd${d.theme === "dark" || IN_DEMO ? " d-dark" : ""}`} aria-busy="true" />;
+  }
   if (d.authState === "signed_out") return <SignIn />;
   if (d.noAccess) return <NoAccess />;
   return (
