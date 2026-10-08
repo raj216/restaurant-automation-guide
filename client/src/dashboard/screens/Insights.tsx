@@ -44,7 +44,7 @@ export default function Insights() {
       {!d.loaded && !d.offline ? <Skeletons count={3} /> : null}
       {d.loaded ? (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12, width: "100%" }}>
+          <div className="d-stat-grid">
             {stats.map(s => (
               <div className="d-stat" key={s.label}>
                 <span className="d-lbl">{s.label}</span>
@@ -54,15 +54,15 @@ export default function Insights() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, width: "100%" }}>
+          <div className="d-chart-grid">
             <section className="d-card">
               <h3 className="d-h3">Calls by hour</h3>
               {ins.callsAnswered === 0 ? (
                 <p className="d-small d-muted">No calls in this period.</p>
               ) : (
                 <div className="d-bars" role="img" aria-label="Calls by hour of day">
-                  {hours.map(h => (
-                    <div className="d-bar" key={h.hour}>
+                  {hours.map((h, n) => (
+                    <div className={`d-bar${n % 2 ? " d-odd" : ""}`} key={h.hour}>
                       <b>{h.count || ""}</b>
                       <i style={{ height: `${Math.max(2, (h.count / peak) * 100)}%`, opacity: h.count ? 1 : 0.2 }} />
                       <span>{clock12(`${String(h.hour).padStart(2, "0")}:00`).replace(":00", "")}</span>
@@ -94,8 +94,8 @@ export default function Insights() {
                 <Empty title="No orders in this period" />
               ) : (
                 <div className="d-bars" role="img" aria-label="Orders per day">
-                  {ins.ordersByDay.map(day => (
-                    <div className="d-bar" key={day.key}>
+                  {ins.ordersByDay.map((day, n) => (
+                    <div className={`d-bar${ins.ordersByDay.length > 12 && n % 3 ? " d-odd" : ""}`} key={day.key}>
                       <b>{day.count}</b>
                       <i style={{ height: `${Math.max(4, (day.count / maxDay) * 100)}%` }} />
                       <span>{day.key.slice(5)}</span>

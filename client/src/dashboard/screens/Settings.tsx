@@ -113,7 +113,7 @@ export default function Settings() {
                       <input type="time" aria-label={`${DAY_NAMES[day]} closes`} value={w.end} onChange={e => updateWindow(index, { end: e.target.value })} />
                       <Button kind="ghost" size="sm" aria-label={`Remove ${DAY_NAMES[day]} shift`} onClick={() => setWindows(list => list.filter((_, i) => i !== index))}>
                         <Icon name="x" />
-                        Remove
+                        <span className="d-hide-phone">Remove</span>
                       </Button>
                     </div>
                   ) : null,
@@ -134,10 +134,10 @@ export default function Settings() {
           <h3>Closed dates</h3>
           <p className="d-hint">Holidays or private events. Shifts that start on these days are removed.</p>
           {closed.map((c, index) => (
-            <div className="d-shift" key={index}>
+            <div className="d-shift d-wraps" key={index}>
               <input type="date" aria-label="Closed date" value={c.date} onChange={e => setClosed(list => list.map((x, i) => (i === index ? { ...x, date: e.target.value } : x)))} style={{ width: "auto" }} />
               <input type="text" aria-label="Reason" placeholder="Reason, for example Thanksgiving" maxLength={60} value={c.reason} onChange={e => setClosed(list => list.map((x, i) => (i === index ? { ...x, reason: e.target.value } : x)))} style={{ flex: 1, minWidth: 160 }} />
-              <Button kind="ghost" size="sm" onClick={() => setClosed(list => list.filter((_, i) => i !== index))}>
+              <Button kind="ghost" size="sm" aria-label="Remove this closed date" onClick={() => setClosed(list => list.filter((_, i) => i !== index))}>
                 <Icon name="x" />
                 Remove
               </Button>

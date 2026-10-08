@@ -10,7 +10,7 @@
 --gray-bg:#34323b;--gray-fg:#cfcac0;--red-bg:#451815;--red-fg:#ff9c92;--red-line:#ff6b5e;--purple-bg:#2a1f55;--purple-fg:#c5b5ff;
 --allergy-bg:#ff6b5e;--allergy-fg:#2a0a07;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);--scrim:rgba(0,0,0,.6)}
 
-.cd{display:flex;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);position:relative;overflow:hidden;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.cd{display:flex;font-family:var(--font,'Geist Variable',system-ui,-apple-system,'Segoe UI',sans-serif);background:var(--bg);color:var(--text);position:relative;overflow:hidden;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
 .cd *,.cd *::before,.cd *::after{box-sizing:border-box}
 .cd h1,.cd h2,.cd h3,.cd h4,.cd p,.cd ul{margin:0;padding:0}
 .cd a{color:inherit;text-decoration:none}
@@ -62,7 +62,7 @@
 .d-row{display:flex;align-items:center;gap:10px;min-width:0}
 .d-row.d-wrap{flex-wrap:wrap}
 .d-sp{margin-left:auto}
-.d-code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-weight:700;font-size:15px;letter-spacing:.02em}
+.d-code{font-family:var(--mono,ui-monospace,'SF Mono',Menlo,Consolas,monospace);font-weight:700;font-size:15px;letter-spacing:.02em}
 .d-name{font-size:21px;font-weight:700;letter-spacing:-.2px}
 .d-name.d-s{font-size:18px}
 .d-sum{font-size:15px;line-height:1.45}
@@ -343,4 +343,206 @@
 @media (max-width:520px){
   .cd .d-top .d-chip{padding:0;width:36px;justify-content:center;flex:none}
   .cd .d-top .d-chip-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}
+
+/* layouts moved out of inline styles so phones can change them */
+.cd .d-mrow{grid-template-columns:1fr auto auto}
+.cd .d-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
+.cd .d-chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;width:100%}
+.cd .d-banner-x{display:none}
+.cd .d-hide-phone{display:inline}
+.cd .d-tabbar .d-more{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11.5px;font-weight:700;color:var(--text-3);min-height:44px}
+.cd .d-tabbar .d-more.d-on{color:var(--accent-ink)}
+.cd .d-moremenu{top:auto;bottom:70px;right:0}
+
+/* ===== Phones and small tablets: the full-screen order and call views, menus, lists ===== */
+@media (max-width:1100px){
+  /* The side panel is hidden on narrow screens, but the same panel is the full-screen view
+     on a phone, so inside it the panel has to show. */
+  .cd .d-sheet .d-panel{display:flex;overflow:visible}
+}
+@media (max-width:860px){
+  /* Menus open as a card pinned inside the screen, never off its edge. */
+  .cd .d-menu,.cd .d-switcher-menu,.cd .d-bellmenu{position:fixed;left:10px;right:10px;top:60px;width:auto;max-width:none;max-height:calc(100dvh - 60px - 80px);overflow-y:auto}
+  .cd .d-moremenu{top:auto;bottom:74px;right:10px}
+  /* The bottom tabs' own link style must not leak into the menu that opens from "More". */
+  .cd .d-tabbar .d-menu a.d-mi{flex:none;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;min-height:48px;font-size:15.5px;font-weight:600;color:var(--text);position:static}
+
+  /* Orders: two short lines per order instead of two squeezed columns. */
+  .cd .d-orders-grid{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"c s" "g t" "i i";gap:3px 12px;align-items:center}
+  .cd .d-orders-grid.d-head{display:none}
+  .cd .d-orders-grid>:nth-child(1){grid-area:c}
+  .cd .d-orders-grid>:nth-child(3){grid-area:g;min-width:0}
+  .cd .d-orders-grid>:nth-child(4){grid-area:i;min-width:0}
+  .cd .d-orders-grid>:nth-child(5){grid-area:t;align-self:start;text-align:right}
+  .cd .d-orders-grid>:nth-child(6){grid-area:s;justify-self:end}
+
+  /* Calls: name and time, the summary, then the tags. */
+  .cd .d-calls-grid{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n t" "s s" "g g";gap:2px 12px;align-items:baseline}
+  .cd .d-c-mid{display:contents}
+  .cd .d-c-name{grid-area:n}
+  .cd .d-c-time{grid-area:t;white-space:nowrap;text-align:right}
+  .cd .d-c-time br{display:none}
+  .cd .d-c-sum{grid-area:s;white-space:normal;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .cd .d-c-tags{grid-area:g;flex-wrap:wrap;margin-top:4px}
+
+  /* Menu: the name and what it is on the left, the price and the switch on the right. */
+  .cd .d-mrow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m p" "m a";gap:6px 12px;align-items:start}
+  .cd .d-mrow-main{grid-area:m}
+  .cd .d-mrow-price{grid-area:p;text-align:right}
+  .cd .d-mrow-avail{grid-area:a;justify-self:end}
+  .cd .d-mrow-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .cd .d-mrow-state{display:none}
+  .cd .d-mrow.d-out .d-mrow-state{display:inline;min-width:0!important;color:var(--red-fg);font-weight:600}
+  .cd .d-mrow.d-out .d-mrow-main,.cd .d-mrow.d-out .d-mrow-price{opacity:.55}
+
+  /* Full-screen order and call: tidy header, actions that stay in reach. */
+  .cd .d-sheet .d-pf{position:sticky;bottom:0;z-index:2;padding:10px 14px;box-shadow:0 -6px 18px rgba(40,30,10,.08)}
+  .cd .d-sheet .d-pf{gap:8px}
+  .cd .d-sheet .d-pf .d-btn{flex:1 1 auto;padding:0 12px}
+  .cd .d-sheet .d-pf .d-btn.d-ghost{flex:none;width:46px;padding:0}
+  .cd .d-sheet .d-pf .d-btn.d-primary{flex:1 1 140px}
+}
+
+@media (max-width:640px){
+  .cd{font-size:14.5px;line-height:1.4}
+
+  /* top bar */
+  .cd .d-top{height:54px;padding:0 12px;gap:8px}
+  .cd .d-top-logo svg{width:30px;height:30px}
+  .cd .d-switch{height:38px;padding:0 10px;font-size:14px;font-weight:600;border-radius:10px}
+  .cd .d-top .d-chip{height:32px;width:32px}
+  .cd .d-iconbtn{width:38px;height:38px;border-radius:10px}
+  .cd .d-iconbtn .d-i{width:18px;height:18px}
+  .cd .d-iconbtn .d-badge{top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;font-size:11px;font-weight:700}
+  .cd .d-avatar{width:38px;height:38px;font-size:13px;font-weight:700}
+  .cd .d-topright>.d-menu,.cd .d-switcher-menu,.cd .d-bellmenu{top:58px}
+  .cd .d-menu{border-radius:14px}
+  .cd .d-menu .d-mi{min-height:46px;font-size:14.5px}
+  .cd .d-menu .d-mh{font-size:12px;padding:8px 10px}
+  .cd .d-bellitem{padding:10px;font-size:13px;gap:10px;line-height:1.4}
+  .cd .d-bellitem b{font-weight:600;font-size:13.5px}
+  .cd .d-bellitem .d-i{margin-top:2px;color:var(--accent-ink)}
+
+  /* the "this is an example" note: small, and it can be put away */
+  .cd .d-banner{padding:0 14px;font-size:12.5px;font-weight:500}
+  .cd .d-banner.d-demo{padding:9px 14px 10px;gap:4px 10px;align-items:flex-start;line-height:1.4}
+  .cd .d-banner.d-demo>.d-i{display:none}
+  .cd .d-banner-text{order:1;flex:1 1 0;min-width:0}
+  .cd .d-banner-x{display:grid;order:2;place-items:center;flex:none;width:30px;height:30px;margin:-6px -8px 0 0;border-radius:8px;color:var(--accent-ink)}
+  .cd .d-demo-links{order:3;flex:1 1 100%;margin-left:0;justify-content:flex-start;gap:18px;font-size:12.5px}
+  .cd .d-demo-link{font-weight:600}
+
+  /* page */
+  .cd .d-content{padding:14px 14px 22px;gap:10px}
+  .cd .d-col{gap:10px}
+  .cd .d-page-h{margin-bottom:0}
+  .cd .d-page-h h1{font-size:22px;font-weight:700;letter-spacing:-.4px}
+  .cd .d-page-h p,.cd .d-content>p.d-muted{font-size:13.5px;line-height:1.45}
+  .cd .d-sec-h,.cd .d-sec-h h2{font-size:11.5px;font-weight:700;letter-spacing:.08em}
+  .cd .d-sec-h .d-n{font-size:11px;padding:0 8px}
+  .cd .d-hide-phone{display:none}
+
+  /* cards */
+  .cd .d-card{padding:13px 14px;gap:7px;border-radius:14px}
+  .cd .d-row{gap:8px}
+  .cd .d-card .d-row.d-wrap{gap:6px}
+  .cd .d-card .d-pill.d-sp{margin-left:0}
+  .cd .d-namerow{flex-wrap:wrap;row-gap:7px}
+  .cd .d-namerow>.d-sp{margin-left:0;flex:1 1 100%}
+  .cd .d-code{font-size:12.5px;font-weight:600;color:var(--text-2)}
+  .cd .d-name{font-size:17px;font-weight:650;letter-spacing:-.2px}
+  .cd .d-name.d-s{font-size:15.5px;font-weight:600}
+  .cd .d-sum{font-size:14px;line-height:1.4}
+  .cd .d-meta{font-size:13px;gap:2px 14px}
+  .cd .d-meta b{font-weight:600}
+  .cd .d-small{font-size:12.5px}
+  .cd .d-big{font-size:24px;font-weight:700;letter-spacing:-.5px}
+  .cd .d-tel{font-size:13.5px;font-weight:600}
+  .cd .d-pill{height:24px;padding:0 9px 0 7px;font-size:12px;font-weight:600;gap:5px}
+  .cd .d-pill .d-i,.cd .d-allergy .d-i{width:13px;height:13px}
+  .cd .d-allergy{height:24px;padding:0 9px 0 7px;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.03em}
+  .cd .d-card .d-btn.d-sp{margin-left:0;flex:1 1 auto}
+  .cd .d-card a.d-btn.d-secondary{flex:1 1 100%}
+  .cd .d-card a.d-btn.d-ghost{border-color:var(--border);background:var(--surface)}
+  .cd .d-empty{padding:26px 16px}
+  .cd .d-empty h3{font-size:17px;font-weight:650}
+
+  /* buttons, tabs, search */
+  .cd .d-btn{height:46px;padding:0 16px;font-size:15px;font-weight:600;border-radius:11px}
+  .cd .d-btn.d-lg{height:48px}
+  .cd .d-btn.d-sm{height:42px;padding:0 12px;font-size:14px}
+  .cd .d-tabs{width:100%;padding:3px;border-radius:12px;overflow-x:auto;scrollbar-width:none}
+  .cd .d-tabs::-webkit-scrollbar{display:none}
+  .cd .d-tab{height:38px;padding:0 12px;border-radius:9px;font-size:13.5px;font-weight:600;flex:1 0 auto;justify-content:center}
+  .cd .d-tab .d-n{font-size:11px;min-width:20px;line-height:18px}
+  .cd .d-fchip{height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:600}
+  .cd .d-search{flex:1 1 100%;height:42px;border-radius:10px;font-size:16px}
+  .cd .d-field-inline{min-height:42px;flex:1 1 0}
+  /* 16px stops phones zooming the page when a box is tapped */
+  .cd input,.cd select,.cd textarea{font-size:16px}
+  .cd input,.cd select{min-height:44px;border-radius:10px}
+
+  /* lists */
+  .cd .d-list{border-radius:14px}
+  .cd .d-tr{padding:12px 14px;gap:4px 10px;min-height:0}
+  .cd .d-tr .d-t1{font-size:14.5px;font-weight:600}
+  .cd .d-tr .d-t2{font-size:13px}
+  .cd .d-orders-grid .d-code{font-size:12.5px}
+
+  /* insights */
+  .cd .d-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .cd .d-stat{padding:12px 14px;border-radius:14px;gap:3px}
+  .cd .d-stat .d-lbl{font-size:12px;font-weight:600}
+  .cd .d-stat .d-sub{font-size:11.5px;line-height:1.35}
+  .cd .d-stat-grid>:nth-child(1),.cd .d-stat-grid>:nth-child(3),.cd .d-stat-grid>:nth-child(7){grid-column:1 / -1}
+  .cd .d-stat-grid>:nth-child(2){order:2}.cd .d-stat-grid>:nth-child(4){order:3}
+  .cd .d-stat-grid>:nth-child(3){order:4}.cd .d-stat-grid>:nth-child(5){order:5}
+  .cd .d-stat-grid>:nth-child(6){order:6}.cd .d-stat-grid>:nth-child(7){order:7}
+  .cd .d-chart-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .cd .d-bars{gap:3px;height:128px}
+  .cd .d-bar{gap:4px;font-size:10px;white-space:nowrap;min-width:0}
+  .cd .d-bars{overflow:hidden}
+  .cd .d-stack>.d-row>.d-btn.d-primary.d-lg:only-child{flex:1 1 100%}
+  .cd .d-bar b{font-size:11px;font-weight:700}
+  .cd .d-bar.d-odd span{visibility:hidden}
+  .cd .d-hbar{grid-template-columns:104px minmax(0,1fr) 22px;gap:8px;font-size:13px;font-weight:500}
+  .cd .d-h3,.cd .d-sec-h{font-size:11.5px}
+  .cd .d-h3{font-weight:700}
+
+  /* settings */
+  .cd .d-set{padding:14px;gap:10px;border-radius:14px}
+  .cd .d-set h3{font-size:15.5px;font-weight:650}
+  .cd .d-set p.d-hint{font-size:13px;line-height:1.45}
+  .cd .d-daybox{grid-template-columns:38px minmax(0,1fr);gap:8px}
+  .cd .d-daybox>b{padding-top:12px;font-size:14px;font-weight:600}
+  .cd .d-shift{flex-wrap:nowrap;gap:6px}
+  .cd .d-shift.d-wraps{flex-wrap:wrap}
+  .cd .d-shift input[type="time"]{min-width:0;flex:1 1 0;width:auto;padding:0 10px}
+  .cd .d-shift .d-btn{padding:0;min-width:40px}
+  .cd .d-shift input[type="time"]{padding:0 8px}
+
+  /* the full-screen order and call */
+  .cd .d-sheet .d-sheet-top{padding:6px 8px}
+  .cd .d-sheet .d-ph{padding:14px 16px 12px;gap:6px}
+  .cd .d-sheet .d-pb{padding:14px 16px;gap:18px}
+  .cd .d-allergy-banner{padding:12px 14px;gap:12px;border-radius:12px}
+  .cd .d-allergy-banner strong{font-size:19px;font-weight:700}
+  .cd .d-allergy-banner span{font-size:13px}
+  .cd .d-item .d-nm{font-size:15px;font-weight:600}
+  .cd .d-item .d-md{font-size:13px}
+  .cd .d-said{font-size:13.5px;padding:11px 13px}
+  .cd .d-tl{font-size:13px}
+  .cd .d-tl div{grid-template-columns:68px 1fr}
+  .cd .d-tl time{white-space:nowrap}
+  .cd .d-bub{max-width:88%;font-size:14px;padding:9px 13px}
+  .cd .d-dialog{padding:18px;border-radius:18px}
+
+  /* bottom tabs */
+  .cd .d-tabbar{height:62px;padding:5px 2px 8px}
+  .cd .d-tabbar>a,.cd .d-tabbar .d-more{font-size:10.5px;font-weight:600;gap:3px}
+  .cd .d-tabbar>a .d-i,.cd .d-tabbar .d-more .d-i{width:21px;height:21px}
+  .cd .d-tabbar .d-count{top:1px;min-width:17px;height:17px;padding:0 4px;margin-left:5px;font-size:10px;font-weight:700}
+  .cd .d-toasts{bottom:74px}
+  .cd .d-toast{font-size:14px;padding:10px 12px 10px 14px}
 }

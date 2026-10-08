@@ -72,8 +72,8 @@ export default function Menu() {
       {items && rows.length === 0 ? <Empty title="No items found" /> : null}
       <div className="d-list" style={{ width: "100%", maxWidth: 820, display: rows.length ? undefined : "none" }}>
         {rows.map(i => (
-          <div className="d-tr" key={i.id} style={{ gridTemplateColumns: "1fr auto auto" }}>
-            <div style={{ minWidth: 0 }}>
+          <div className={`d-tr d-mrow${i.available ? "" : " d-out"}`} key={i.id}>
+            <div className="d-mrow-main" style={{ minWidth: 0 }}>
               <div className="d-row d-wrap" style={{ gap: 8 }}>
                 <span className="d-t1">{i.name}</span>
                 {i.popular ? <Pill tone="accent">Popular</Pill> : null}
@@ -83,11 +83,11 @@ export default function Menu() {
                   </Pill>
                 ))}
               </div>
-              {i.description ? <div className="d-t2 d-ellip">{i.description}</div> : null}
+              {i.description ? <div className="d-t2 d-ellip d-mrow-desc">{i.description}</div> : null}
             </div>
-            <span className="d-t1">{formatMoney(i.price_cents, restaurant?.currency)}</span>
-            <span className="d-row" style={{ gap: 8 }}>
-              <span className="d-small d-muted" style={{ minWidth: 64, textAlign: "right" }}>
+            <span className="d-t1 d-mrow-price">{formatMoney(i.price_cents, restaurant?.currency)}</span>
+            <span className="d-row d-mrow-avail" style={{ gap: 8 }}>
+              <span className="d-small d-muted d-mrow-state" style={{ minWidth: 64, textAlign: "right" }}>
                 {i.available ? "Available" : "Sold out"}
               </span>
               <Toggle on={i.available} green label={`${i.name} available`} disabled={saving === i.id} onChange={next => void toggle(i, next)} />

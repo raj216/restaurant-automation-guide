@@ -108,7 +108,7 @@ export default function Orders({ selectedId }: { selectedId: string | null }) {
             </div>
           </div>
           <div className="d-row d-wrap">
-            <SearchBox value={query} onChange={setQuery} placeholder="Search name, phone or order code" />
+            <SearchBox value={query} onChange={setQuery} placeholder="Search name, phone or code" />
             <select
               aria-label="Date"
               className="d-field-inline"
@@ -177,11 +177,11 @@ export default function Orders({ selectedId }: { selectedId: string | null }) {
                         {o.customer_phone ? formatPhone(o.customer_phone) : ""}
                       </span>
                     </span>
-                    <span className="d-t2 d-ellip d-hide-sm d-hide-compact">
+                    <span className="d-t2 d-ellip d-hide-compact">
                       {o.allergy_note ? <AllergyBadge note={o.allergy_note} short /> : null} {orderSummary(o)}
                     </span>
-                    <span className="d-t1 d-hide-sm d-hide-compact">{formatMoney(o.subtotal_cents, o.currency)}</span>
-                    <span className="d-hide-sm">
+                    <span className="d-t1 d-hide-compact">{formatMoney(o.subtotal_cents, o.currency)}</span>
+                    <span>
                       <OrderStatusPill state={o.state} />
                     </span>
                     <span className="d-t2 d-hide-sm d-hide-compact">
