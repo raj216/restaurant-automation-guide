@@ -70,13 +70,13 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className={`cd${d.theme === "dark" ? " d-dark" : ""}${booting ? " d-boot" : ""}`} onPointerDown={unlockSound}>
       <aside className="d-side">
-        <div className="d-brand">
+        <HomeLink className="d-brand">
           <LogoMark />
           <div>
             <b>CoHost AI</b>
             <small>Powered by Brio</small>
           </div>
-        </div>
+        </HomeLink>
         <nav className="d-nav" aria-label="Main">
           {nav.map(item => {
             const count = countFor(item.path);
@@ -102,11 +102,17 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="d-banner d-demo" role="note">
             <Icon name="info" />
             <span>
-              This is an example with made-up customers. Try the buttons. Nothing here is real.
+              An example with made-up customers. Try the buttons, nothing here is real.
             </span>
-            <a className="d-demo-link" href="/#pilot">
-              Start a free pilot
-            </a>
+            <span className="d-demo-links">
+              <a className="d-demo-link d-demo-home" href="/">
+                <Icon name="chevronLeft" size="s" />
+                Back to cohost.site
+              </a>
+              <a className="d-demo-link" href="/#pilot">
+                Start a free pilot
+              </a>
+            </span>
           </div>
         ) : null}
         {d.offline ? (
@@ -187,6 +193,24 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 const CHIP_TONE = { paused: "red", taking_orders: "green", last_call: "amber", closed: "gray" } as const;
 const CHIP_ICON = { paused: "pause", taking_orders: null, last_call: "clock", closed: "moon" } as const;
 
+/**
+ * The logo, as a way home: in the example dashboard it goes straight back to
+ * cohost.site's home page; in a restaurant's own dashboard, to Now.
+ */
+function HomeLink({ className, children }: { className: string; children: ReactNode }) {
+  if (IN_DEMO)
+    return (
+      <a href="/" className={className} target={EMBED ? "_top" : undefined} aria-label="CoHost AI home page" title="Back to cohost.site">
+        {children}
+      </a>
+    );
+  return (
+    <Link href={hrefTo("")} className={className} aria-label="CoHost AI, go to Now">
+      {children}
+    </Link>
+  );
+}
+
 function TopBar() {
   const d = useDashboard();
   const tz = d.restaurant?.timezone ?? "America/New_York";
@@ -195,11 +219,14 @@ function TopBar() {
   const icon = status ? CHIP_ICON[status.kind] : null;
   return (
     <header className="d-top">
+      <HomeLink className="d-top-logo">
+        <LogoMark size={32} />
+      </HomeLink>
       <RestaurantSwitcher />
       {status ? (
-        <span className={`d-chip d-p-${tone}`} role="status">
+        <span className={`d-chip d-p-${tone}`} role="status" title={status.label}>
           {icon ? <Icon name={icon} size="s" /> : <span className="d-dot" />}
-          {status.label}
+          <span className="d-chip-text">{status.label}</span>
         </span>
       ) : null}
       <span className="d-sp d-clock">{formatNow(d.now, tz)}</span>
