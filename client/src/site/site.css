@@ -454,3 +454,11 @@
 }
 
 .how-cta { display: flex; justify-content: center; margin: clamp(28px, 4vw, 44px) 0 clamp(36px, 5vw, 56px); }
+/* Opening the example dashboard: the page fades into the dashboard's dark ground. */
+.demo-veil { position: fixed; inset: 0; z-index: 300; display: grid; place-content: center; justify-items: center; gap: 22px; background: radial-gradient(60% 50% at 50% 45%, rgba(139, 92, 246, .22), transparent 70%), var(--ink-0); opacity: 0; transition: opacity .65s var(--ease); }
+.demo-veil.is-on { opacity: 1; }
+.demo-veil-orb { width: 58px; height: 58px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #fff7, transparent 38%), var(--spectrum); box-shadow: 0 0 80px rgba(255, 79, 154, .45); transform: scale(.6); transition: transform .9s var(--ease); }
+.demo-veil.is-on .demo-veil-orb { transform: scale(1); }
+.demo-veil p { margin: 0; color: var(--text-2); font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: 0; transform: translateY(6px); transition: opacity .6s var(--ease) .15s, transform .6s var(--ease) .15s; }
+.demo-veil.is-on p { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .demo-veil, .demo-veil-orb, .demo-veil p { transition: none; } }

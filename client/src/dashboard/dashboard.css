@@ -320,3 +320,14 @@
 /* Screens taller than the window scroll inside the content area. Without this the
    flex column squeezes a long list to fit and hides the rest. */
 .cd .d-content.d-col-flow>*{flex-shrink:0}
+
+/* Opening animation: the screen fades in and its cards rise one after another. */
+@keyframes d-enter{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes d-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.cd.d-boot{animation:d-enter .8s cubic-bezier(.22,1,.36,1) both}
+.cd.d-boot .d-card{animation:d-rise .7s cubic-bezier(.22,1,.36,1) both}
+.cd.d-boot .d-card:nth-child(2){animation-delay:.09s}
+.cd.d-boot .d-card:nth-child(3){animation-delay:.18s}
+.cd.d-boot .d-card:nth-child(4){animation-delay:.27s}
+.cd.d-boot .d-card:nth-child(n+5){animation-delay:.36s}
+@media (prefers-reduced-motion:reduce){.cd.d-boot,.cd.d-boot .d-card{animation:none}}

@@ -18,7 +18,7 @@ function Router() {
     <Switch>
       {/* On dashboard.cohost.site every address is the dashboard; on cohost.site, every /dashboard address (and /demo, the example with made-up data). It reads the rest of the address itself. */}
       <Route path={ON_DASHBOARD_HOST ? /.*/ : /^\/(dashboard|demo)(\/.*)?$/}>
-        <Suspense fallback={<div style={{ minHeight: "100svh", background: "#17161b" }} />}>
+        <Suspense fallback={<div style={{ minHeight: "100svh", background: "var(--ink-0)" }} />}>
           <Dashboard />
         </Suspense>
       </Route>
