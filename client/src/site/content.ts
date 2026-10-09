@@ -18,14 +18,14 @@ export const NAV = [
 export const PILOT_CTA = "Start 14-Day Pilot";
 
 export const HERO = {
-  badge: "Tested on New York City Dining Floors",
+  badge: "Built and Tested in New York City",
   titleStart: "We deal with calls so your host can deal with ",
   titleHighlight: "actual customers",
   titleEnd: ".",
   lead: [
     "Meet ",
     { strong: "Brio" },
-    "—the phone wingman for independent restaurants. Brio answers incoming calls instantly, takes to-go orders, and sends structured summaries straight to your manager dashboard so staff can handle them when they're free.",
+    "—the AI phone host for independent restaurants. Brio answers incoming calls instantly, takes to-go orders, and sends structured summaries straight to your manager dashboard so staff can handle them when they're free.",
   ] as (string | { strong: string })[],
   primary: "Get Your 14-Day Free Pilot",
   demo: "Dial Live Demo",
@@ -232,6 +232,10 @@ export const FAQ = {
         `Call our demo line right now at ${number} to test it yourself!`,
     },
     {
+      q: "Is Brio only for New York City restaurants?",
+      a: "No. Brio answers the phone, so it works for a restaurant in any city. We built and tested it on New York City dining floors first, which is where we learned how a busy host stand really runs. Start a free pilot from anywhere and we'll set up your menu.",
+    },
+    {
       q: "What if a customer has a complex catering or complaint call?",
       a: "Brio knows when to step aside. It captures the customer's name, phone number, and a detailed summary of their request, and immediately flags it on your dashboard with an SMS alert so a manager can call them back.",
     },
@@ -310,5 +314,5 @@ export const FOOTER = {
   company: "CoHost AI, Inc.",
   motto: '"We deal with calls so your host can deal with actual customers."',
   legal:
-    "© 2026 CoHost AI. All rights reserved. Built for independent dining establishments across New York City.",
+    "© 2026 CoHost AI. All rights reserved. Built in New York City for independent restaurants everywhere.",
 };
