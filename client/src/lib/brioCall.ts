@@ -9,7 +9,8 @@
 //      and hands back what the browser needs to join, so the key never
 //      reaches the page.
 //   3. The SDK joins the call over WebRTC and plays Brio's voice, and reports
-//      how loud Brio is on every frame, for the orb on screen.
+//      how loud Brio is on every frame, for the orb on screen. On iPhones and
+//      iPads it does not: see isApple below.
 
 import type { RetellClient } from "retell-client-js-sdk";
 import { SUPABASE_URL } from "./supabase";
@@ -115,6 +116,28 @@ function setupProblem(error: unknown): CallProblem {
   return "failed";
 }
 
+/**
+ * iPhones, iPads and the browsers on them (Chrome and the rest use Safari's
+ * engine there). Also iPads that report themselves as Macs.
+ *
+ * On these, measuring Brio's loudness (emitRawAudioSamples) adds a second Web
+ * Audio listener on the same voice, and the voice came out with a radio-static
+ * buzz while Brio spoke. So there we don't measure: the orb follows Brio's
+ * "started / stopped talking" signals with a smooth pulse instead.
+ */
+function isApple(): boolean {
+  const ua = navigator.userAgent;
+  return (
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+/** A soft, natural-looking level (0.3 to 0.7) for the orb while Brio talks. */
+function pulse(ms: number): number {
+  return 0.3 + 0.4 * Math.abs(Math.sin(ms / 130) * Math.cos(ms / 410 + 1));
+}
+
 /** Brio's loudness, 0 to 1, from one snapshot of the audio. */
 function loudness(samples: Float32Array): number {
   let sum = 0;
@@ -131,6 +154,7 @@ export function startBrioCall(events: CallEvents): BrioCall {
   let over = false;
   let setupError: unknown = null;
   let timer = 0;
+  let pulseTimer = 0;
 
   const releaseMic = () => {
     mic?.getTracks().forEach(track => track.stop());
@@ -140,6 +164,7 @@ export function startBrioCall(events: CallEvents): BrioCall {
     if (over) return;
     over = true;
     window.clearTimeout(timer);
+    window.clearInterval(pulseTimer);
     releaseMic();
     const current = session;
     session = null;
@@ -180,9 +205,10 @@ export function startBrioCall(events: CallEvents): BrioCall {
     if (over) return;
     // The key is never sent anywhere: every request goes through viaOurFunction.
     const client = new Client({ key: "website", fetch: viaOurFunction });
+    const apple = isApple();
     const current = client.createWebCall({
       agent_id: "website", // the function decides which agent answers
-      audio: { emitRawAudioSamples: true },
+      audio: { emitRawAudioSamples: !apple },
     });
     session = current;
     current.on("status", status => {
@@ -192,7 +218,21 @@ export function startBrioCall(events: CallEvents): BrioCall {
       releaseMic();
       events.onLive();
     });
-    current.on("audio", samples => events.onLevel(loudness(samples)));
+    if (apple) {
+      let talking = false;
+      current.on("agent_start_talking", () => {
+        talking = true;
+      });
+      current.on("agent_stop_talking", () => {
+        talking = false;
+      });
+      pulseTimer = window.setInterval(
+        () => events.onLevel(talking ? pulse(performance.now()) : 0),
+        50,
+      );
+    } else {
+      current.on("audio", samples => events.onLevel(loudness(samples)));
+    }
     current.on("error", error => {
       if (!live) setupError = error;
     });
@@ -204,7 +244,8 @@ export function startBrioCall(events: CallEvents): BrioCall {
     setMuted: muted => (muted ? session?.mute() : session?.unmute()),
     resumeAudio: () => {
       session?.startAudioPlayback().catch(() => {});
-      // The orb's level meter too, which iPhones may hold back without a tap.
+      // The orb's level meter too, which some browsers hold back without a tap
+      // (not there on iPhones and iPads: see isApple).
       const meter = session?.analyzerComponent?.analyser.context;
       if (meter && "resume" in meter)
         (meter as AudioContext).resume().catch(() => {});
