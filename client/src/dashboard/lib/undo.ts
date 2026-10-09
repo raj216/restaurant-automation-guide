@@ -29,7 +29,7 @@ export type StepEvent =
 type Listener = (event: StepEvent) => void;
 
 export class UndoStore {
-  private steps = new Map<string, { step: PendingStep; timer: ReturnType<typeof setTimeout>; commit: () => Promise<void> }>();
+  private steps = new Map<string, { step: PendingStep; timer: ReturnType<typeof setTimeout>; commit: () => Promise<void>; saving?: boolean }>();
   private listeners = new Set<Listener>();
   private snapshotListeners = new Set<() => void>();
   private isConflict: (error: unknown) => boolean;
@@ -60,7 +60,7 @@ export class UndoStore {
     return true;
   }
 
-  /** Saves everything waiting right now, for example when the tab is closing. */
+  /** Saves everything waiting right now, without the rest of the wait: used when the screen is being left. */
   async flushAll(): Promise<void> {
     await Promise.all([...this.steps.keys()].map(id => this.run(id)));
   }
@@ -90,7 +90,10 @@ export class UndoStore {
 
   private async run(orderId: string): Promise<void> {
     const entry = this.steps.get(orderId);
-    if (!entry) return;
+    // A step that is already being saved is never saved a second time, for example when the
+    // 5 seconds run out at the same moment the screen is being closed.
+    if (!entry || entry.saving) return;
+    entry.saving = true;
     clearTimeout(entry.timer);
     try {
       await entry.commit();

@@ -86,4 +86,40 @@ describe("UndoStore", () => {
     expect(commit).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
+
+  it("saves every waiting step at once when the screen is left, and never twice", async () => {
+    vi.useFakeTimers();
+    const store = new UndoStore(() => false, 5000);
+    const base = { restaurantId: "r1", code: "#A", from: "pending_staff_review" as const, to: "pos_entered" as const, reason: "x", label: "L" };
+    const first = vi.fn(async () => undefined);
+    const second = vi.fn(async () => undefined);
+    store.schedule({ ...base, orderId: "o1" }, first);
+    store.schedule({ ...base, orderId: "o2" }, second);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(first).not.toHaveBeenCalled();
+    await store.flushAll();
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(store.size).toBe(0);
+    // the timers that were waiting must not save them again
+    await vi.advanceTimersByTimeAsync(6000);
+    await store.flushAll();
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("does not save a step a second time while it is already being saved", async () => {
+    vi.useFakeTimers();
+    const store = new UndoStore(() => false, 5000);
+    let finish: () => void = () => undefined;
+    const commit = vi.fn(() => new Promise<void>(resolve => (finish = resolve)));
+    store.schedule({ restaurantId: "r1", code: "#A", from: "pending_staff_review", to: "pos_entered", reason: "x", label: "L", orderId: "o1" }, commit);
+    await vi.advanceTimersByTimeAsync(5000); // the wait is over and the save is on its way
+    void store.flushAll(); // ...and the screen is closed at the same moment
+    finish();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(commit).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
 });
