@@ -265,9 +265,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
     };
     window.addEventListener("beforeunload", warn);
+    // Leaving the screen (closing the tab, locking the phone, switching app) during the 5 second
+    // Undo wait must not lose the tap: save it right away instead of waiting for the timer.
+    const leave = () => {
+      if (document.visibilityState === "hidden") void undo.flushAll();
+    };
+    const gone = () => void undo.flushAll();
+    document.addEventListener("visibilitychange", leave);
+    window.addEventListener("pagehide", gone);
     return () => {
       off();
       window.removeEventListener("beforeunload", warn);
+      document.removeEventListener("visibilitychange", leave);
+      window.removeEventListener("pagehide", gone);
     };
   }, [undo, refresh]);
 

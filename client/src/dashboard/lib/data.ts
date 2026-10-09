@@ -35,6 +35,11 @@ export function db(): SupabaseClient {
         detectSessionInUrl: true,
         storageKey: "cohost.dashboard.auth",
       },
+      global: {
+        // A save that starts as the screen is being closed still goes through: the browser
+        // finishes "keepalive" requests after the page is gone. Reads are left alone.
+        fetch: (input, init) => fetch(input, init?.method && init.method !== "GET" && init.method !== "HEAD" ? { ...init, keepalive: true } : init),
+      },
     });
   }
   return client;
