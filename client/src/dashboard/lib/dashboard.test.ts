@@ -122,4 +122,18 @@ describe("UndoStore", () => {
     expect(commit).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
+
+  it("refuses to undo a step whose save has already started", async () => {
+    vi.useFakeTimers();
+    const store = new UndoStore(() => false, 5000);
+    let finish: () => void = () => undefined;
+    const commit = vi.fn(() => new Promise<void>(resolve => (finish = resolve)));
+    store.schedule({ restaurantId: "r1", code: "#A", from: "pending_staff_review", to: "pos_entered", reason: "x", label: "L", orderId: "o1" }, commit);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(store.undo("o1")).toBe(false);
+    finish();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(commit).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
 });

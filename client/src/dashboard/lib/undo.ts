@@ -53,7 +53,8 @@ export class UndoStore {
   /** Cancels a waiting step before it saves. */
   undo(orderId: string): boolean {
     const entry = this.steps.get(orderId);
-    if (!entry) return false;
+    // Once the save has started it can't be taken back, so never say it was.
+    if (!entry || entry.saving) return false;
     clearTimeout(entry.timer);
     this.steps.delete(orderId);
     this.emit({ type: "undone", step: entry.step });
