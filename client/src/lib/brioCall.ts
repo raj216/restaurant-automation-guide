@@ -191,8 +191,12 @@ export function startBrioCall(events: CallEvents): BrioCall {
     } catch (error) {
       return finish(micProblem(error));
     }
-    // Held until the call is live, so the browser doesn't ask twice.
+    // Held until the call is live, so the browser doesn't ask twice. Not on
+    // iPhones and iPads: the call opens its own microphone, and keeping this
+    // second one open beside it is what gave Brio's voice a radio-static
+    // buzz there (a call with it let go early sounded clean).
     if (over) return releaseMic();
+    if (isApple()) releaseMic();
     events.onConnecting();
     timer = window.setTimeout(() => finish("failed"), CONNECT_TIMEOUT_MS);
 
