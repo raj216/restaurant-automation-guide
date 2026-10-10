@@ -203,8 +203,41 @@ function vitePluginStorageProxy(): Plugin {
 
 // No Manus runtime or jsx-loc: they were for the Manus editor, and added a
 // 366 KB inline script and source paths to every page this site serves.
+/**
+ * Starts downloading the three fonts the first screen uses (Geist, Geist Mono
+ * and the italic serif, Latin letters only) as soon as the page's HTML
+ * arrives, instead of after the stylesheet and script have been read. Without
+ * it the text first shows in a stand-in font and then jumps when these arrive.
+ */
+function vitePluginPreloadFonts(): Plugin {
+  const first = /assets\/(geist-latin-wght-normal|geist-mono-latin-wght-normal|instrument-serif-latin-400-italic)-[\w-]+\.woff2$/;
+  return {
+    name: "preload-first-screen-fonts",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler(_html, ctx) {
+        return Object.keys(ctx.bundle ?? {})
+          .filter(file => first.test(file))
+          .map(file => ({
+            tag: "link",
+            attrs: {
+              rel: "preload",
+              as: "font",
+              type: "font/woff2",
+              crossorigin: "",
+              href: `/${file}`,
+            },
+            injectTo: "head" as const,
+          }));
+      },
+    },
+  };
+}
+
 const plugins = [
   react(),
+  vitePluginPreloadFonts(),
   tailwindcss(),
   vitePluginManusDebugCollector(),
   vitePluginStorageProxy(),

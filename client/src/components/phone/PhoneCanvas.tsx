@@ -11,6 +11,22 @@ export function hasWebGL() {
   }
 }
 
+/**
+ * True when the visitor asked their browser to save data, or is on a 2G or 3G
+ * connection. The 3D phone is about 150 KB of code plus the work of drawing
+ * it, so those visitors keep the lighter CSS phone (the same design, not spinnable).
+ */
+export function onSlowConnection() {
+  const link = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
+  ).connection;
+  return Boolean(
+    link?.saveData || /^(slow-2g|2g|3g)$/.test(link?.effectiveType ?? "")
+  );
+}
+
 export interface PhoneCanvasProps {
   /** Called once the 3D phone is drawn, with its controls. */
   onReady?: (scene: PhoneScene) => void;

@@ -1,4 +1,8 @@
-import { PhoneCanvas, hasWebGL } from "@/components/phone/PhoneCanvas";
+import {
+  PhoneCanvas,
+  hasWebGL,
+  onSlowConnection,
+} from "@/components/phone/PhoneCanvas";
 import { heroPhonePixels } from "@/components/phone/scene/fit";
 import type { PhoneScene } from "@/components/phone/scene/phoneScene";
 import { useReducedMotion } from "framer-motion";
@@ -51,7 +55,9 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
  */
 export function HeroStage() {
   const reduce = useReducedMotion() ?? false;
-  const [webgl] = useState(() => typeof window !== "undefined" && hasWebGL());
+  const [webgl] = useState(
+    () => typeof window !== "undefined" && hasWebGL() && !onSlowConnection()
+  );
   const [scene, setScene] = useState<PhoneScene | null>(null);
   const [failed, setFailed] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
