@@ -36,7 +36,7 @@ export function Hero() {
           as="p"
           onLoad
           ready={fonts}
-          delay={0.55}
+          delay={0.4}
           blur
           className="hero-lede"
         >
@@ -48,7 +48,7 @@ export function Hero() {
             )
           )}
         </Reveal>
-        <Reveal onLoad ready={fonts} delay={0.68} className="hero-actions">
+        <Reveal onLoad ready={fonts} delay={0.5} className="hero-actions">
           <a className="btn btn-primary btn-lg" href="#pilot">
             {HERO.primary}
             <ArrowRight size={18} className="nudge" />
@@ -68,7 +68,7 @@ export function Hero() {
           as="ul"
           onLoad
           ready={fonts}
-          delay={0.8}
+          delay={0.6}
           className="hero-points"
         >
           {HERO.points.map(point => (
