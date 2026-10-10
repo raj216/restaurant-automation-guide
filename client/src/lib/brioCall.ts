@@ -138,52 +138,6 @@ function pulse(ms: number): number {
   return 0.3 + 0.4 * Math.abs(Math.sin(ms / 130) * Math.cos(ms / 410 + 1));
 }
 
-/**
- * TEST SWITCHES for tracking down the iPhone buzz. They only work on preview
- * links ending in ?v=<letters> (and ?debug shows the test panel alone). Each
- * letter turns off or changes one suspect:
- *   b  let go of the page's own microphone before the call connects
- *   c  play Brio's voice through Web Audio instead of the plain audio player
- *   d  ask the phone for no noise reduction and no automatic volume
- *   e  ask the phone for no echo cancelling either
- * Visitors never use these. Remove them once the cause is known.
- */
-function testSwitches() {
-  const params = new URLSearchParams(window.location.search);
-  const letters = params.get("v") ?? "";
-  return {
-    letters,
-    on: (letter: string) => letters.includes(letter),
-    panel: params.has("debug") || letters !== "",
-  };
-}
-
-type Plumbing = { transport?: { audioEl?: HTMLAudioElement } };
-
-/** Switch c: Brio's voice out through Web Audio, with the plain player kept running but silent. */
-function playThroughWebAudio(session: unknown): () => void {
-  const el = (session as Plumbing).transport?.audioEl;
-  const stream = el?.srcObject;
-  if (!el || !(stream instanceof MediaStream)) return () => {};
-  const Context =
-    window.AudioContext ??
-    (window as unknown as { webkitAudioContext: typeof AudioContext })
-      .webkitAudioContext;
-  const context = new Context();
-  const source = context.createMediaStreamSource(stream);
-  source.connect(context.destination);
-  context.resume().catch(() => {});
-  el.muted = true;
-  return () => {
-    try {
-      source.disconnect();
-      void context.close();
-    } catch {
-      // already closed
-    }
-  };
-}
-
 /** Brio's loudness, 0 to 1, from one snapshot of the audio. */
 function loudness(samples: Float32Array): number {
   let sum = 0;
@@ -201,8 +155,6 @@ export function startBrioCall(events: CallEvents): BrioCall {
   let setupError: unknown = null;
   let timer = 0;
   let pulseTimer = 0;
-  const test = testSwitches();
-  const cleanups: Array<() => void> = [];
 
   const releaseMic = () => {
     mic?.getTracks().forEach(track => track.stop());
@@ -213,7 +165,6 @@ export function startBrioCall(events: CallEvents): BrioCall {
     over = true;
     window.clearTimeout(timer);
     window.clearInterval(pulseTimer);
-    cleanups.splice(0).forEach(run => run());
     releaseMic();
     const current = session;
     session = null;
@@ -242,28 +193,6 @@ export function startBrioCall(events: CallEvents): BrioCall {
     }
     // Held until the call is live, so the browser doesn't ask twice.
     if (over) return releaseMic();
-    if (test.on("b")) releaseMic();
-    if (test.on("d") || test.on("e")) {
-      // The SDK asks for the microphone itself; change what it asks for.
-      const original = devices.getUserMedia.bind(devices);
-      devices.getUserMedia = constraints => {
-        const audio = constraints?.audio;
-        if (audio && typeof audio === "object")
-          constraints = {
-            ...constraints,
-            audio: {
-              ...audio,
-              noiseSuppression: false,
-              autoGainControl: false,
-              ...(test.on("e") ? { echoCancellation: false } : {}),
-            },
-          };
-        return original(constraints);
-      };
-      cleanups.push(() => {
-        delete (devices as { getUserMedia?: unknown }).getUserMedia;
-      });
-    }
     events.onConnecting();
     timer = window.setTimeout(() => finish("failed"), CONNECT_TIMEOUT_MS);
 
@@ -282,19 +211,9 @@ export function startBrioCall(events: CallEvents): BrioCall {
       audio: { emitRawAudioSamples: !apple },
     });
     session = current;
-    if (test.panel)
-      void import("./callDebug").then(({ startCallDebug }) => {
-        if (over) return;
-        cleanups.push(
-          startCallDebug(current, test.letters || "plain", () =>
-            apple ? "iPhone/iPad" : "other",
-          ),
-        );
-      });
     current.on("status", status => {
       if (status !== "live" || live || over) return;
       live = true;
-      if (test.on("c")) cleanups.push(playThroughWebAudio(current));
       window.clearTimeout(timer);
       releaseMic();
       events.onLive();
