@@ -99,9 +99,8 @@ export const STAGE = {
 
 /** Facts from the copy, as numbers. */
 export const STATS = [
-  { value: 600, unit: "ms", label: "Brio's response time on a live call" },
   { value: 15, unit: "min", label: "To get up and running" },
-  { value: 3, unit: "rings", label: "Then Brio picks up, if your host can't" },
+  { value: 1, unit: "ring", label: "Then Brio picks up, if your host can't" },
   { value: 0, unit: "", label: "POS setup required today", display: "Zero" },
 ];
 
@@ -132,7 +131,7 @@ export const STEP_VISUALS = {
   forward: {
     line: "Your restaurant line",
     brio: "Brio",
-    note: "After 3 rings, or when the line is busy",
+    note: "After 1 ring, or when the line is busy",
   },
   alerts: [
     {
@@ -197,7 +196,7 @@ export const HOW = {
     },
     {
       title: "2. Set Conditional Forwarding",
-      text: "Keep your existing restaurant phone number. Set it to forward after 3 rings or when your line is busy. If your host is free, they can still pick up!",
+      text: "Keep your existing restaurant phone number. Set it to forward after 1 ring or when your line is busy. If your host is free, they can still pick up!",
     },
     {
       title: "3. Receive Organized Alerts",
@@ -224,12 +223,6 @@ export const FAQ = {
     {
       q: "How do we know what orders came in if it isn't hooked to our POS yet?",
       a: "Every time a caller places an order, Brio structures the items, modifiers, pickup time, and contact info onto your CoHost Manager Dashboard and sends an instant SMS alert to the manager's phone. Your staff can punch it into your register whenever they have a free second.",
-    },
-    {
-      q: "Does Brio sound like an annoying automated phone tree?",
-      a: 'No robotic "Press 1 for hours" menus. Brio uses conversational streaming voice technology that responds in 600 milliseconds, understands interruptions, and speaks naturally.',
-      demo: (number: string) =>
-        `Call our demo line right now at ${number} to test it yourself!`,
     },
     {
       q: "Is Brio only for New York City restaurants?",
