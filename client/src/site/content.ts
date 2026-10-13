@@ -99,9 +99,8 @@ export const STAGE = {
 
 /** Facts from the copy, as numbers. */
 export const STATS = [
-  { value: 600, unit: "ms", label: "Brio's response time on a live call" },
   { value: 15, unit: "min", label: "To get up and running" },
-  { value: 3, unit: "rings", label: "Then Brio picks up, if your host can't" },
+  { value: 1, unit: "ring", label: "Then Brio picks up, if your host can't" },
   { value: 0, unit: "", label: "POS setup required today", display: "Zero" },
 ];
 
