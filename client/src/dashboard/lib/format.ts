@@ -51,7 +51,7 @@ export function itemName(item: LineItem): string {
   return text;
 }
 
-/** "2 Rigatoni alla Vodka, 1 Tiramisu" */
+/** "2 Vanilla Latte, 1 Banana Bread" */
 export function orderSummary(order: Pick<Order, "line_items">): string {
   const items = Array.isArray(order.line_items) ? order.line_items : [];
   if (items.length === 0) return "No items";

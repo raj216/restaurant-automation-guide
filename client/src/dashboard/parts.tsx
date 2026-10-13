@@ -84,7 +84,7 @@ export function ReasonDialog({
           <label className="d-label" htmlFor="reason">
             Reason (required)
           </label>
-          <textarea id="reason" ref={field} value={reason} maxLength={200} placeholder="For example: out of the rigatoni tonight" onChange={e => setReason(e.target.value)} />
+          <textarea id="reason" ref={field} value={reason} maxLength={200} placeholder="For example: out of banana bread today" onChange={e => setReason(e.target.value)} />
           <div className={`d-counter${reason.length > 190 ? " d-over" : ""}`}>{reason.length} / 200</div>
         </div>
         {error ? <div className="d-error" role="alert">{error}</div> : null}

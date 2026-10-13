@@ -42,7 +42,7 @@ export const HERO = {
 // They restate facts from the copy above and below; the sample restaurant
 // is the one the pilot form uses as its example.
 
-export const RESTAURANT = "Norma Trattoria";
+export const RESTAURANT = "Demo Coffee House";
 
 export const STAGE = {
   label:
@@ -60,8 +60,8 @@ export const STAGE = {
     {
       title: "To-Go Order",
       time: "7:30 PM",
-      main: "2x Rigatoni Vodka + Salad",
-      sub: "1 GF penne • Pickup 7:55 PM",
+      main: "2x Vanilla Latte",
+      sub: "1 with oat milk • Pickup 7:55 PM",
     },
     {
       title: "SMS alert sent",
@@ -86,12 +86,12 @@ export const STAGE = {
     {
       brio: false,
       step: 1,
-      text: "Two rigatoni vodka for pickup, one gluten-free, and the fennel salad.",
+      text: "Two grande vanilla lattes for pickup, one with oat milk.",
     },
     {
       brio: true,
       step: 2,
-      text: "Done! GF penne for one, ready at 7:55 PM. I'm texting you a confirmation.",
+      text: "Done! One with oat milk. I've sent your order to the restaurant for review.",
     },
   ],
   sent: "Summary sent to manager",
@@ -123,10 +123,10 @@ export const STEP_VISUALS = {
   menu: {
     file: "menu.pdf → Brio",
     lines: [
-      "Rigatoni alla Vodka · $22",
-      "Gluten-free penne · +$2",
-      "Allergens · vodka sauce has dairy",
-      "Hours · 5–11 PM daily",
+      "Vanilla Latte · $4.95",
+      "Oat milk · +$0.70",
+      "Allergens · banana bread has walnuts",
+      "Hours · 5 AM–2 AM daily",
     ],
   },
   forward: {
@@ -138,17 +138,17 @@ export const STEP_VISUALS = {
     {
       kind: "order",
       title: "To-Go Order #1082",
-      sub: "2x Rigatoni Vodka + Salad • $60.00",
+      sub: "2x Vanilla Latte • $11.80",
     },
     {
       kind: "reservation",
-      title: "Reservation • Party of 4",
-      sub: "Tonight 8:00 PM • Anniversary",
+      title: "Catering • About 30 people",
+      sub: "Next Thursday • Quote request",
     },
     {
       kind: "alert",
-      title: "Guest Alert • Booth #4",
-      sub: "Left sunglasses • Call back",
+      title: "Guest Alert • Corner table",
+      sub: "Left an umbrella • Call back",
     },
   ],
 };
@@ -246,7 +246,7 @@ export const PILOT = {
   eyebrow: "Zero-Risk 14-Day Pilot",
   title: "Give your host stand a break this week.",
   text: "Test Brio during your weekend dinner rushes. If your front-of-house staff doesn’t immediately feel the relief, turn off call forwarding with a single click. No contracts. No setup fees.",
-  restaurant: "Restaurant Name (e.g. Norma Trattoria)",
+  restaurant: "Restaurant Name (e.g. Demo Coffee House)",
   phone: "Your Cell Phone Number",
   submit: "Start Free Pilot",
   done: "Demo request received! We will configure your menu profile and contact you within 2 hours.",
