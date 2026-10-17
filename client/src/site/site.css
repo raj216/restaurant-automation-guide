@@ -149,7 +149,7 @@
 .ringing .event-icon svg { animation: shake 1s ease-in-out infinite; }
 @keyframes shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(12deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(5deg); } }
 
-/* CSS phone: in place of the 3D one without WebGL, on slow connections, with reduced motion, or if it fails. */
+/* CSS phone: in place of the 3D one without WebGL, with reduced motion, or if it fails. */
 .poster { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .poster-phone { position: relative; width: 268px; height: 562px; border-radius: 46px; background: #030405; box-shadow: inset 0 0 0 2px #eef0f2, inset 0 0 0 3.5px #9aa0a5, 9px 6px 0 -3px #c6c9cc, 11px 8px 0 -3px #8b9094, 0 60px 90px -30px rgba(0, 0, 0, .9); transform: perspective(1400px) rotateY(-18deg) rotateX(6deg) rotateZ(2deg) scale(var(--poster-scale, 1)); }
 .poster-screen { position: absolute; inset: 9px; overflow: hidden; border-radius: 37px; background: radial-gradient(120% 60% at 50% 22%, #141a2a, #07090f 70%); }

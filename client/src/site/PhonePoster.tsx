@@ -34,7 +34,7 @@ export interface PhonePosterProps {
 
 /**
  * The phone drawn in CSS, showing Brio on a call like the 3D one: in its place
- * without WebGL, on slow connections, with reduced motion, or if it fails.
+ * without WebGL, with reduced motion, or if it fails.
  */
 export function PhonePoster({ step }: PhonePosterProps) {
   const ringing = step < 0;
