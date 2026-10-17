@@ -1,5 +1,6 @@
 import { AudioLines, ConciergeBell, Smartphone } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
+import { BrioBall } from "./BrioBall";
 import { MOTTO, WINGMAN_NOTE } from "./content";
 import { Reveal } from "./motion";
 
@@ -62,6 +63,7 @@ export function Motto() {
                     className={`role-icon${i === 1 ? " brio" : ""}`}
                     style={{ "--c": ROLE_COLORS[i] } as React.CSSProperties}
                   >
+                    {i === 1 && <BrioBall />}
                     <Icon size={19} />
                   </span>
                   <p>

@@ -1,5 +1,6 @@
 // The 3D phone: an iPhone 18 Pro Max with Brio on a call. Plain three.js,
-// loaded on demand: the page shows a CSS phone until this is ready.
+// loaded on demand: it fades in once ready (a CSS phone stands in only where
+// it can't run).
 //
 // The phone floats and sways; visitors can spin it by dragging. setStep()
 // moves the call along: it rings, Brio answers, takes the order, texts the

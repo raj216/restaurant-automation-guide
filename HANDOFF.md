@@ -10,7 +10,7 @@ Paste this into the new chat, or tell it to read `HANDOFF.md` on branch
   an AI phone agent for independent restaurants, starting in NYC. Brio answers
   calls, takes to-go orders and sends summaries to a manager dashboard and by
   SMS.
-- **Offer:** a free 14-day pilot, with no contracts and no setup fees.
+- **Offer:** a free 7-day pilot, with no contracts and no setup fees.
 
 ## Links
 
@@ -77,7 +77,7 @@ Paste this into the new chat, or tell it to read `HANDOFF.md` on branch
      - Once a week per visitor, a "Brio is calling" pop-up appears, with
        Answer and Not now.
      - A call window has the orb, a timer, Mute and End Call. After the call,
-       it shows "Start 14-Day Pilot".
+       it shows "Start 7-Day Pilot".
    - **How the call works:** the browser uses Retell's web SDK 3.x, which only
      downloads when the call window opens. The Supabase function
      `brio-web-call` starts each call with Retell's v3 API, so the key stays on

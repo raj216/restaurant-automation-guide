@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import "./brio-call.css";
+import { BrioBall } from "./BrioBall";
 import { BRIO_CALL, PILOT_CTA } from "./content";
 import { EASE } from "./motion";
 
@@ -85,6 +86,8 @@ export function BrioCall() {
   const launcher = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const voice = useRef({ smooth: 0, loudAt: -1e9, speaking: false });
+  /** How loud Brio is right now, for the ball. */
+  const liveLevel = () => voice.current.smooth;
   const still = useRef(false);
   const openNow = useRef(false);
   const wasOpen = useRef(false);
@@ -335,6 +338,7 @@ export function BrioCall() {
             <div className="bc-top">
               <span className="bc-avatar is-ringing" aria-hidden="true">
                 <i />
+                <BrioBall ringing />
               </span>
               <p className="bc-who">
                 <b>{BRIO_CALL.ring.name}</b>
@@ -387,6 +391,7 @@ export function BrioCall() {
             <header className="bc-top bc-head">
               <span className="bc-avatar" aria-hidden="true">
                 <i />
+                <BrioBall />
               </span>
               <div className="bc-who">
                 <h2 id="bc-title" tabIndex={-1}>
@@ -408,6 +413,7 @@ export function BrioCall() {
               <div className="bc-body">
                 <div className="bc-orb is-idle" aria-hidden="true">
                   <i />
+                  <BrioBall />
                 </div>
                 <p className="bc-text">{BRIO_CALL.intro}</p>
                 <button
@@ -434,6 +440,7 @@ export function BrioCall() {
                   aria-hidden="true"
                 >
                   <i />
+                  <BrioBall voice={phase === "live" ? liveLevel : undefined} />
                 </div>
                 <p className="bc-state">{stateText}</p>
                 <p className="bc-time">
@@ -564,6 +571,7 @@ export function BrioCall() {
             ) : (
               <>
                 <span className="bc-launch-orb" aria-hidden="true">
+                  <BrioBall />
                   <Phone size={18} />
                 </span>
                 <span className="bc-launch-label">

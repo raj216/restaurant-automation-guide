@@ -8,9 +8,16 @@
 .site::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .045; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
 .wrap { width: min(1200px, calc(100% - 2 * var(--gutter))); margin-inline: auto; }
 .site [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
-/* Looping animations stop while their section is off screen (usePauseOffscreen) and, once the 3D phone takes over, in the hidden CSS phone. */
-[data-paused] *, [data-paused] *::before, [data-paused] *::after,
-.poster.is-hidden *, .poster.is-hidden *::before, .poster.is-hidden *::after { animation-play-state: paused !important; }
+/* Looping animations stop while their section is off screen (usePauseOffscreen). */
+[data-paused] *, [data-paused] *::before, [data-paused] *::after { animation-play-state: paused !important; }
+/* Brio's ball. The canvas (BrioBall.tsx) runs the 3D phone's shader and is
+   1.5 balls across, for the halo. --ball and --ball-shine draw the CSS
+   stand-in without WebGL: lights that spin under a shine that holds still. */
+:root {
+  --ball: radial-gradient(circle at 56% 24%, rgba(236, 72, 220, .95), transparent 46%), radial-gradient(circle at 78% 52%, rgba(255, 79, 154, .9), transparent 38%), radial-gradient(circle at 26% 44%, rgba(139, 92, 246, .85), transparent 40%), radial-gradient(circle at 34% 72%, rgba(56, 189, 248, .9), transparent 38%), radial-gradient(circle at 50% 50%, rgba(226, 110, 240, .85), transparent 62%);
+  --ball-shine: radial-gradient(ellipse 34% 22% at 36% 28%, rgba(255, 255, 255, .5), transparent 70%), radial-gradient(circle at 40% 66%, rgba(255, 255, 255, .42), transparent 36%);
+}
+.brio-ball { position: absolute; left: -25%; top: -25%; z-index: -1; width: 150%; height: 150%; pointer-events: none; }
 .skip { position: fixed; left: 16px; top: -64px; z-index: 80; padding: 10px 16px; border-radius: 10px; background: #fff; color: var(--ink-0); font-weight: 600; transition: top .2s ease; }
 .skip:focus { top: 12px; }
 .word { display: inline-block; }
@@ -142,9 +149,8 @@
 .ringing .event-icon svg { animation: shake 1s ease-in-out infinite; }
 @keyframes shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(12deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(5deg); } }
 
-/* CSS phone: shown while the 3D one loads, and in its place without WebGL or with reduced motion. */
-.poster { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; transition: opacity .6s var(--ease); }
-.poster.is-hidden { opacity: 0; }
+/* CSS phone: in place of the 3D one without WebGL, with reduced motion, or if it fails. */
+.poster { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .poster-phone { position: relative; width: 268px; height: 562px; border-radius: 46px; background: #030405; box-shadow: inset 0 0 0 2px #eef0f2, inset 0 0 0 3.5px #9aa0a5, 9px 6px 0 -3px #c6c9cc, 11px 8px 0 -3px #8b9094, 0 60px 90px -30px rgba(0, 0, 0, .9); transform: perspective(1400px) rotateY(-18deg) rotateX(6deg) rotateZ(2deg) scale(var(--poster-scale, 1)); }
 .poster-screen { position: absolute; inset: 9px; overflow: hidden; border-radius: 37px; background: radial-gradient(120% 60% at 50% 22%, #141a2a, #07090f 70%); }
 .poster-screen::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 3px; background: conic-gradient(from var(--angle), var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); filter: blur(4px); opacity: .9; animation: turn 6s linear infinite; }
@@ -267,8 +273,13 @@
 @keyframes travel { from { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } to { transform: translateY(var(--travel, 200px)); opacity: 0; } }
 .role { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; }
 .role-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--c); }
-.role-icon.brio { overflow: hidden; background: none; color: #fff; }
-.role-icon.brio::before { content: ""; position: absolute; inset: -25%; z-index: -1; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); animation: spin 6s linear infinite; }
+/* Brio's role: the shader ball (BrioBall), or without WebGL the CSS ball, under its icon. */
+.role-icon.brio { overflow: hidden; border-radius: 50%; background: #1a0b2a; box-shadow: inset 0 0 4px 1px rgba(255, 110, 200, .75), 0 0 16px rgba(255, 79, 154, .4); color: #fff; }
+.role-icon.brio::before { content: ""; position: absolute; inset: -20%; z-index: -1; background: var(--ball); background-blend-mode: screen; filter: blur(2.5px); animation: spin 9s linear infinite; }
+.role-icon.brio::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--ball-shine); }
+.role-icon.brio svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45)); }
+.role-icon.brio.is-gl { overflow: visible; background: none; box-shadow: none; }
+.role-icon.brio.is-gl::before, .role-icon.brio.is-gl::after { display: none; }
 .role p { color: var(--text-2); font-size: 15px; line-height: 1.55; }
 .role p strong { display: block; margin-bottom: 2px; color: var(--text); font-size: 15.5px; font-weight: 600; }
 
@@ -303,7 +314,12 @@
 @keyframes ring { 0%, 10% { background: var(--line-3); box-shadow: none; } 18%, 60% { background: var(--amber); box-shadow: 0 0 10px var(--amber); } 70%, 100% { background: var(--line-3); box-shadow: none; } }
 .chip-brio { gap: 8px; padding-left: 6px; }
 .chip-brio .mini-orb { width: 22px; height: 22px; }
-.mini-orb { width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); box-shadow: 0 0 22px rgba(139, 92, 246, .55); animation: spin 4s linear infinite; }
+/* The small ball: the shader ball (BrioBall), or without WebGL the CSS ball. */
+.mini-orb { position: relative; flex: none; width: 34px; height: 34px; overflow: hidden; border-radius: 50%; isolation: isolate; background: #1a0b2a; box-shadow: inset 0 0 3px 1px rgba(255, 110, 200, .75), 0 0 14px rgba(255, 79, 154, .4); }
+.mini-orb::before { content: ""; position: absolute; inset: -20%; z-index: -1; background: var(--ball); background-blend-mode: screen; filter: blur(2px); animation: spin 9s linear infinite; }
+.mini-orb::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--ball-shine); }
+.mini-orb.is-gl { overflow: visible; background: none; box-shadow: none; }
+.mini-orb.is-gl::before, .mini-orb.is-gl::after { display: none; }
 .forward-note { color: var(--text-3); font-family: var(--mono); font-size: 11px; }
 /* 3: alerts arriving */
 .alerts { position: absolute; left: 50%; top: 22px; width: min(276px, calc(100% - 24px)); height: 170px; transform: translateX(-50%); }
@@ -451,7 +467,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .event { opacity: 1; transform: none; }
-  .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .role-icon.brio::before, .mini-orb, .ticker-row { animation: none; }
+  .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .role-icon.brio::before, .mini-orb::before, .ticker-row { animation: none; }
 }
 
 .how-cta { display: flex; justify-content: center; margin: clamp(28px, 4vw, 44px) 0 clamp(36px, 5vw, 56px); }

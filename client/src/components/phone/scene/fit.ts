@@ -1,5 +1,5 @@
 // How the hero's camera frames the phone. Shared with the CSS phone, which
-// sizes itself to match so the hand-over to 3D doesn't jump. No three.js here.
+// sizes itself to match when it stands in for the 3D one. No three.js here.
 
 export const CAMERA_FOV = 28;
 export const PHONE_HEIGHT = 1.634;

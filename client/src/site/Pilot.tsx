@@ -14,7 +14,7 @@ import { EASE, Reveal } from "./motion";
 
 type Problem = { message: string; field?: PilotField };
 
-/** The 14-day pilot sign-up. Sign-ups land on the Leads page (/admin). */
+/** The 7-day pilot sign-up. Sign-ups land on the Leads page (/admin). */
 export function Pilot() {
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [problem, setProblem] = useState<Problem | null>(null);

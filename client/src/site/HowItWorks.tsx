@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   TriangleAlert,
 } from "lucide-react";
+import { BrioBall } from "./BrioBall";
 import { HOW, PIPELINE, ROADMAP, STEP_VISUALS } from "./content";
 import { Reveal } from "./motion";
 
@@ -50,7 +51,10 @@ function ForwardVisual() {
             <i />
           </span>
           <span className="chip chip-brio">
-            <span className="mini-orb" /> {brio}
+            <span className="mini-orb">
+              <BrioBall />
+            </span>{" "}
+            {brio}
           </span>
         </div>
         <span className="forward-note">{note}</span>
@@ -158,7 +162,10 @@ export function HowItWorks() {
             </div>
             <div className="pipeline" aria-hidden="true">
               <span className="pipe-node">
-                <span className="mini-orb" /> {PIPELINE.from}
+                <span className="mini-orb">
+                  <BrioBall />
+                </span>{" "}
+                {PIPELINE.from}
               </span>
               <span className="pipe-link" />
               <span className="pipe-node pos">
