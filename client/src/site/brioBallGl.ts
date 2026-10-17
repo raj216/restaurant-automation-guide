@@ -1,7 +1,8 @@
-// Brio's ball for Talk to Brio, drawn by the very shader the 3D phone uses
-// (orbShader.ts), in plain WebGL so three.js stays off the page until the
-// phone needs it. One hidden WebGL canvas draws every ball in turn and copies
-// it onto that ball's own canvas. Without WebGL, the CSS ball shows instead.
+// Brio's ball around the site (Talk to Brio, How It Works), drawn by the very
+// shader the 3D phone uses (orbShader.ts), in plain WebGL so three.js stays
+// off the page until the phone needs it. One hidden WebGL canvas draws every
+// ball on screen in turn and copies it onto that ball's own canvas. Without
+// WebGL, the CSS ball shows instead.
 
 import { ORB_FRAGMENT, PALETTE } from "@/components/phone/scene/orbShader";
 
@@ -18,6 +19,7 @@ interface Ball {
   read: () => BallState;
   level: number;
   ring: number;
+  onScreen: boolean;
 }
 
 const VERTEX = /* glsl */ `
@@ -166,7 +168,7 @@ function tick(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   time += dt;
-  balls.forEach(ball => draw(ball, dt));
+  balls.forEach(ball => ball.onScreen && draw(ball, dt));
   frame = balls.size && !document.hidden ? requestAnimationFrame(tick) : 0;
 }
 
@@ -179,6 +181,22 @@ function run() {
 if (typeof document !== "undefined")
   document.addEventListener("visibilitychange", run);
 
+// Balls scrolled out of view aren't drawn.
+let watcher: IntersectionObserver | undefined;
+const watched = new Map<Element, Ball>();
+function watch(ball: Ball) {
+  watcher ??= new IntersectionObserver(
+    entries =>
+      entries.forEach(entry => {
+        const seen = watched.get(entry.target);
+        if (seen) seen.onScreen = entry.isIntersecting;
+      }),
+    { rootMargin: "60px" }
+  );
+  watched.set(ball.canvas, ball);
+  watcher.observe(ball.canvas);
+}
+
 /**
  * Draws Brio's ball on `canvas`, whose parent gets the class "is-gl" (so its
  * CSS ball can step aside). Returns the clean-up, or nothing without WebGL.
@@ -189,17 +207,27 @@ export function mountBrioBall(
 ): (() => void) | undefined {
   const context = canvas.getContext("2d");
   if (!context || !setUp()) return;
-  const ball: Ball = { canvas, context, read, level: 0, ring: 0 };
+  const ball: Ball = {
+    canvas,
+    context,
+    read,
+    level: 0,
+    ring: 0,
+    onScreen: true,
+  };
   // Start where it would be, so the first frame already looks right.
   if (!time) time = 2;
   ball.level = read().voice ?? hum(time);
   ball.ring = read().ringing ? 1 : 0;
   balls.add(ball);
+  watch(ball);
   draw(ball, 0);
   canvas.parentElement?.classList.add("is-gl");
   run();
   return () => {
     balls.delete(ball);
+    watched.delete(canvas);
+    watcher?.unobserve(canvas);
     canvas.parentElement?.classList.remove("is-gl");
     if (!balls.size) {
       cancelAnimationFrame(frame);

@@ -1,5 +1,5 @@
 // Brio's ball: the shader that draws it, shared by the 3D phone (effects.ts,
-// through three.js) and the Talk to Brio balls (site/brioBall.ts, plain
+// through three.js) and the balls around the site (site/brioBallGl.ts, plain
 // WebGL), so Brio looks the same everywhere. No three.js here.
 
 export const PALETTE = ["#ffb547", "#ff6a55", "#ff4f9a", "#8b5cf6", "#38bdf8"];
