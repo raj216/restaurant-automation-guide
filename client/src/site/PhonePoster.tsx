@@ -30,18 +30,16 @@ function StatusIcons() {
 export interface PhonePosterProps {
   /** The call's step: -1 ringing, then 0–3 as in the cards around the phone. */
   step: number;
-  /** Fades out once the 3D phone has taken over. */
-  hidden?: boolean;
 }
 
 /**
- * The phone drawn in CSS, showing Brio on a call like the 3D one: seen while
- * the 3D phone loads, and in its place without WebGL or with reduced motion.
+ * The phone drawn in CSS, showing Brio on a call like the 3D one: in its place
+ * without WebGL, on slow connections, with reduced motion, or if it fails.
  */
-export function PhonePoster({ step, hidden = false }: PhonePosterProps) {
+export function PhonePoster({ step }: PhonePosterProps) {
   const ringing = step < 0;
   return (
-    <div className={`poster${hidden ? " is-hidden" : ""}`} aria-hidden="true">
+    <div className="poster" aria-hidden="true">
       <div className="poster-phone">
         <div className="poster-screen">
           <div className="poster-top">

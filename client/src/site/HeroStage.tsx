@@ -23,6 +23,8 @@ const REST_MS = 1100;
 const LAST_STEP = STAGE.events.length - 1;
 const ICONS = [PhoneIncoming, ShoppingBag, MessageSquareText, ShieldBan];
 const PLACES = ["event-a", "event-b", "event-c", "event-d"];
+// If the 3D phone isn't up by then, show the CSS phone instead.
+const GIVE_UP_MS = 12000;
 
 /** True while the element is on screen and the tab is in front. */
 function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
@@ -65,23 +67,33 @@ export function HeroStage() {
   const running = useOnScreen(stage) && !reduce;
   const [step, setStep] = useState(-1);
   const live = Boolean(scene) && !failed;
+  // The 3D phone fades in on its own once it's built; the CSS phone is only
+  // for browsers that won't get it, so the two never swap in front of anyone.
+  const threeD = webgl && !reduce && !failed;
   // With reduced motion, everything shows at once and holds still.
   const shownStep = reduce ? LAST_STEP : step;
 
   useEffect(() => {
-    if (!running) return;
+    if (!threeD || scene) return;
+    const timer = window.setTimeout(() => setFailed(true), GIVE_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [threeD, scene]);
+
+  useEffect(() => {
+    // The call starts with the phone it plays on.
+    if (!running || (threeD && !scene)) return;
     const timer = window.setTimeout(
       () => setStep(value => (value >= LAST_STEP ? -1 : value + 1)),
       step < 0 ? REST_MS : STEP_MS
     );
     return () => window.clearTimeout(timer);
-  }, [running, step]);
+  }, [running, step, threeD, scene]);
 
   useEffect(() => {
     scene?.setStep(shownStep);
   }, [scene, shownStep]);
 
-  // Size the CSS phone like the 3D one, so the hand-over doesn't jump.
+  // Size the CSS phone like the 3D one, so it stands in at the same size.
   useLayoutEffect(() => {
     const el = phoneBox.current;
     if (!el) return;
@@ -167,8 +179,8 @@ export function HeroStage() {
       </div>
       <div className="stage-floor" />
       <div ref={phoneBox} className="stage-phone">
-        <PhonePoster step={shownStep} hidden={live} />
-        {webgl && !reduce && !failed && (
+        {!threeD && <PhonePoster step={shownStep} />}
+        {threeD && (
           <PhoneCanvas onReady={setScene} onFail={() => setFailed(true)} />
         )}
       </div>

@@ -87,8 +87,9 @@ export function PhoneCanvas({ onReady, onFail }: PhoneCanvasProps) {
 
     // Building the scene is heavy, so wait until the hero's headline has
     // arrived (about 2.4 s in) and the browser has a moment: doing it during
-    // the entrance would stutter it on slower devices. The CSS phone shows
-    // until then.
+    // the entrance would stutter it on slower devices. Its code downloads
+    // meanwhile, so the phone is up as soon as it can be.
+    void import("./scene/phoneScene").catch(() => {});
     let idle = 0;
     const later = window.setTimeout(
       () => {
