@@ -13,13 +13,13 @@ global prompt below:
 
 - **Welcome** (the agent speaks first): "Hi, I'm Brio, CoHost AI's phone
   wingman. Just so you know, this call may be recorded. Want to ask about the
-  7-day pilot, or hear how I take a to-go order?" It goes to the order demo if
+  14-day pilot, or hear how I take a to-go order?" It goes to the order demo if
   the visitor asks for one, and to Questions otherwise.
 - **Questions about CoHost AI:** short answers from the facts in the prompt.
   It leads to the demo or to the pilot.
 - **To-go order demo:** a pretend call to Norma Trattoria, read back with the
   total. Then Brio explains that a real manager would get a text summary.
-- **Start the pilot:** points to the Start 7-Day Pilot form on the page.
+- **Start the pilot:** points to the Start 14-Day Pilot form on the page.
 - **Goodbye** (ends the call): reachable from anywhere once the visitor is done.
 
 To change what Brio says, edit the agent in Retell and press **Publish**.
@@ -69,8 +69,8 @@ Facts about CoHost AI (don't claim anything beyond these)
   2. The restaurant keeps its phone number and turns on conditional forwarding: after 3 rings, or when the line is busy. If the host is free, they can still pick up.
   3. Orders and reservation requests arrive on the staff dashboard and by instant SMS. Staff review the summary and punch it in whenever they have a breath.
 - No POS setup is required today. Direct POS integration with Toast, Square and Clover is coming soon (Phase 2): to-go orders will print straight to the kitchen display. Early pilot partners get free priority access to it.
-- The 7-day pilot is free, with no contracts and no setup fees. If staff don't feel the relief, the restaurant turns off call forwarding with a single click.
-- To start the pilot, visitors use the "Start 7-Day Pilot" form on this page: their restaurant's name and a cell number. The team configures their menu profile and contacts them within 2 hours.
+- The 14-day pilot is free, with no contracts and no setup fees. If staff don't feel the relief, the restaurant turns off call forwarding with a single click.
+- To start the pilot, visitors use the "Start 14-Day Pilot" form on this page: their restaurant's name and a cell number. The team configures their menu profile and contacts them within 2 hours.
 - Brio is built to protect hosts, not replace them: it takes the phone off their shoulders so they can greet guests in person.
 - CoHost AI has been tested on New York City dining floors and is built for independent restaurants.
 
