@@ -851,7 +851,7 @@ function LeadDetail({
           )}
         </Fact>
         <Fact label="Signed up with">
-          {lead.form === "pilot" ? "The 14-day pilot form" : "The contact form"}
+          {lead.form === "pilot" ? "The 7-day pilot form" : "The contact form"}
         </Fact>
         {lead.name && <Fact label="Name">{lead.name}</Fact>}
         {lead.email && (

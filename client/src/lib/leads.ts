@@ -1,6 +1,6 @@
 import { RpcError, rpc } from "./supabase";
 
-// The 14-day pilot sign-up form on the home page. The database checks the
+// The 7-day pilot sign-up form on the home page. The database checks the
 // same rules (supabase/migrations/*_website_leads*.sql), so change both together.
 
 /** The longest value the database accepts for each field. */

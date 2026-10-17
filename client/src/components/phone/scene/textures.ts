@@ -390,7 +390,7 @@ export function drawScreen(
     icon(ctx, "phone", 470, by, 40, "#fff", 2.2, (Math.PI * 3) / 4);
   }
 
-  // The robocall, dropped: a notification slides down over the call.
+  // The scam call, blocked: a notification slides down over the call.
   if (step >= 3) {
     const k = ease(enter);
     const top = 84 - (1 - k) * 150;
