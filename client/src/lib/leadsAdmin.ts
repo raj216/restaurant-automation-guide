@@ -41,11 +41,11 @@ export interface LeadSource {
   seconds_to_send?: number;
 }
 
-/** Which form sent it: the 14-day pilot sign-up, or the earlier contact form. */
+/** Which form sent it: the 7-day pilot sign-up, or the earlier contact form. */
 export type LeadForm = "pilot" | "review";
 
 export const formLabel = (form: LeadForm) =>
-  form === "pilot" ? "14-day pilot" : "Contact form";
+  form === "pilot" ? "7-day pilot" : "Contact form";
 
 export interface Lead {
   id: string;

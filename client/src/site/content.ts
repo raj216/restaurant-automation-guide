@@ -15,7 +15,7 @@ export const NAV = [
   { label: "FAQ", href: "#faq" },
 ];
 
-export const PILOT_CTA = "Start 14-Day Pilot";
+export const PILOT_CTA = "Start 7-Day Pilot";
 
 export const HERO = {
   badge: "Built and Tested in New York City",
@@ -27,7 +27,7 @@ export const HERO = {
     { strong: "Brio" },
     "—the AI phone host for independent restaurants. Brio answers incoming calls instantly, takes to-go orders, and sends structured summaries straight to your manager dashboard so staff can handle them when they're free.",
   ] as (string | { strong: string })[],
-  primary: "Get Your 14-Day Free Pilot",
+  primary: "Get Your 7-Day Free Pilot",
   demo: "Dial Live Demo",
   example: "See an example dashboard",
   points: [
@@ -46,7 +46,7 @@ export const RESTAURANT = "Demo Coffee House";
 
 export const STAGE = {
   label:
-    "Brio answering a call on an iPhone: it takes a to-go order, sends the manager an SMS summary, and drops a robocall.",
+    "Brio answering a call on an iPhone: it takes a to-go order, adds a reservation request to the manager dashboard, and blocks a scam call.",
   hint: "Drag to spin",
   clock: "7:30",
   caller: "(646) 555-0142",
@@ -64,13 +64,13 @@ export const STAGE = {
       sub: "1 with oat milk • Pickup 7:55 PM",
     },
     {
-      title: "SMS alert sent",
+      title: "Reservation request",
       time: "7:31 PM",
       main: "Summary sent to manager",
       sub: "Order #1082 • Ready for review",
     },
     {
-      title: "Robocall Dropped",
+      title: "Scam Calls Blocked",
       time: "7:31 PM",
       main: '"Working Capital Loan Offer"',
       sub: "Terminated in 2s",
@@ -236,7 +236,7 @@ export const FAQ = {
 };
 
 export const PILOT = {
-  eyebrow: "Zero-Risk 14-Day Pilot",
+  eyebrow: "Zero-Risk 7-Day Pilot",
   title: "Give your host stand a break this week.",
   text: "Test Brio during your weekend dinner rushes. If your front-of-house staff doesn’t immediately feel the relief, turn off call forwarding with a single click. No contracts. No setup fees.",
   restaurant: "Restaurant Name (e.g. Demo Coffee House)",
@@ -266,7 +266,7 @@ export const BRIO_CALL = {
   title: "Talk to Brio",
   subtitle: "CoHost AI's phone wingman",
   intro:
-    "Ask anything about CoHost AI: the 14-day pilot, setup, or how Brio handles your calls. You can also place a pretend to-go order and hear exactly what your callers would.",
+    "Ask anything about CoHost AI: the 7-day pilot, setup, or how Brio handles your calls. You can also place a pretend to-go order and hear exactly what your callers would.",
   start: "Start Call",
   consent: "Uses your microphone. Calls may be recorded and transcribed.",
   status: {
