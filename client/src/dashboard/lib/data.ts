@@ -201,6 +201,58 @@ export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
   return { orders: [...byId.values()], requests, calls };
 }
 
+const PAGE = 1000;
+
+/** Every row a query returns, a page at a time (the live board above keeps only the newest few hundred). */
+async function allPages<T>(query: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: PostgrestLike | null }>): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await query(from, from + PAGE - 1);
+    if (error) fail(error);
+    rows.push(...((data ?? []) as T[]));
+    if (!data || data.length < PAGE) return rows;
+  }
+}
+
+/**
+ * Everything Insights counts between two moments: every call, every order that
+ * reached the restaurant, every request. Not capped, so "Last 30 days" is exact
+ * even for a busy restaurant. The screen trims to the exact range itself.
+ */
+export async function fetchInsightsData(restaurantId: string, start: Date, end: Date): Promise<LiveData> {
+  if (IN_DEMO) return demo.demoLiveData();
+  // A day of slack each side: a call's start time or an order's creation can sit just
+  // outside the moment its row was saved.
+  const from = new Date(start.getTime() - 86_400_000).toISOString();
+  const to = new Date(end.getTime() + 86_400_000).toISOString();
+  const [calls, events, requests] = await Promise.all([
+    allPages<CallLog>((a, b) =>
+      db().from("call_logs").select(CALL_LIST_COLS).eq("restaurant_id", restaurantId).gte("created_at", from).lt("created_at", to).order("created_at").order("id").range(a, b),
+    ),
+    allPages<{ orders: Order | Order[] | null }>((a, b) =>
+      db()
+        .from("order_events")
+        .select(`order_id, orders!inner(${ORDER_COLS})`)
+        .eq("restaurant_id", restaurantId)
+        .eq("to_state", "pending_staff_review")
+        .gte("created_at", from)
+        .lt("created_at", to)
+        .order("created_at")
+        .order("id")
+        .range(a, b),
+    ),
+    allPages<GuestRequest>((a, b) =>
+      db().from("guest_requests").select(REQUEST_COLS).eq("restaurant_id", restaurantId).gte("created_at", from).lt("created_at", to).order("created_at").order("id").range(a, b),
+    ),
+  ]);
+  const byId = new Map<string, Order>();
+  for (const row of events) {
+    const order = Array.isArray(row.orders) ? row.orders[0] : row.orders;
+    if (order) byId.set(order.id, order);
+  }
+  return { orders: [...byId.values()], requests, calls };
+}
+
 /**
  * Brio's own phone drafts: orders that never reached the restaurant (drafts, versions
  * the caller changed or didn't confirm, mid-call corrections). Owners can look at them.

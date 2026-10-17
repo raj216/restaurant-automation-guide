@@ -90,7 +90,10 @@ export default function Settings() {
           <div className="d-row">
             <div>
               <h3>Brio is {accepting ? "answering calls" : "paused"}</h3>
-              <p className="d-hint">Turn this off to pause Brio. Callers will be told the restaurant can't take calls right now.</p>
+              <p className="d-hint">
+                Turn this off to pause Brio. Every call is then connected straight to your transfer number below, at any hour.
+                {transfer.trim() === "" ? " No transfer number is set, so callers would only hear that nobody can take the call right now." : ""}
+              </p>
             </div>
             <span className="d-sp">
               <Toggle on={accepting} green label="Brio is answering calls" onChange={setAccepting} />
@@ -181,7 +184,10 @@ export default function Settings() {
 
         <section className="d-set">
           <h3>Transfer number</h3>
-          <p className="d-hint">When a caller needs a person, Brio can transfer to this number. Leave blank for none.</p>
+          <p className="d-hint">
+            When a caller needs a person, Brio can transfer to this number during your hours, and every call goes here while Brio is paused. Use a line that
+            doesn't forward back to Brio. Leave blank for none.
+          </p>
           <input type="tel" inputMode="tel" aria-label="Transfer number" placeholder="+16305551122" value={transfer} onChange={e => setTransfer(e.target.value)} />
         </section>
 
