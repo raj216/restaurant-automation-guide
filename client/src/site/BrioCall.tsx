@@ -16,8 +16,15 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import "./brio-call.css";
+import { mountBrioBall } from "./brioBall";
 import { BRIO_CALL, PILOT_CTA } from "./content";
 import { EASE } from "./motion";
 
@@ -32,6 +39,32 @@ const RANG_KEY = "cohost.brio.rang";
 
 // Calling again right away won't help with these.
 const NO_RETRY: CallProblem[] = ["unsupported", "busy", "try_later", "closed"];
+
+/**
+ * Brio's ball, drawn by the same shader as on the 3D phone. It hums softly on
+ * its own, or follows `voice` (0–1) during a call. Without WebGL it draws
+ * nothing and the CSS ball beside it shows.
+ */
+function Ball({
+  ringing = false,
+  voice,
+}: {
+  ringing?: boolean;
+  voice?: () => number;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const props = useRef({ ringing, voice });
+  props.current = { ringing, voice };
+  useLayoutEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    return mountBrioBall(canvas, () => ({
+      voice: props.current.voice?.() ?? null,
+      ringing: props.current.ringing,
+    }));
+  }, []);
+  return <canvas ref={ref} className="bc-ball" aria-hidden="true" />;
+}
 
 function rangLately() {
   try {
@@ -85,6 +118,8 @@ export function BrioCall() {
   const launcher = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const voice = useRef({ smooth: 0, loudAt: -1e9, speaking: false });
+  /** How loud Brio is right now, for the ball. */
+  const liveLevel = () => voice.current.smooth;
   const still = useRef(false);
   const openNow = useRef(false);
   const wasOpen = useRef(false);
@@ -335,6 +370,7 @@ export function BrioCall() {
             <div className="bc-top">
               <span className="bc-avatar is-ringing" aria-hidden="true">
                 <i />
+                <Ball ringing />
               </span>
               <p className="bc-who">
                 <b>{BRIO_CALL.ring.name}</b>
@@ -387,6 +423,7 @@ export function BrioCall() {
             <header className="bc-top bc-head">
               <span className="bc-avatar" aria-hidden="true">
                 <i />
+                <Ball />
               </span>
               <div className="bc-who">
                 <h2 id="bc-title" tabIndex={-1}>
@@ -408,6 +445,7 @@ export function BrioCall() {
               <div className="bc-body">
                 <div className="bc-orb is-idle" aria-hidden="true">
                   <i />
+                  <Ball />
                 </div>
                 <p className="bc-text">{BRIO_CALL.intro}</p>
                 <button
@@ -434,6 +472,7 @@ export function BrioCall() {
                   aria-hidden="true"
                 >
                   <i />
+                  <Ball voice={phase === "live" ? liveLevel : undefined} />
                 </div>
                 <p className="bc-state">{stateText}</p>
                 <p className="bc-time">
@@ -564,6 +603,7 @@ export function BrioCall() {
             ) : (
               <>
                 <span className="bc-launch-orb" aria-hidden="true">
+                  <Ball />
                   <Phone size={18} />
                 </span>
                 <span className="bc-launch-label">
