@@ -273,8 +273,13 @@
 @keyframes travel { from { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } to { transform: translateY(var(--travel, 200px)); opacity: 0; } }
 .role { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; }
 .role-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--c); }
-.role-icon.brio { overflow: hidden; background: none; color: #fff; }
-.role-icon.brio::before { content: ""; position: absolute; inset: -25%; z-index: -1; background: conic-gradient(var(--amber), var(--coral), var(--rose), var(--violet), var(--sky), var(--amber)); animation: spin 6s linear infinite; }
+/* Brio's role: the shader ball (BrioBall), or without WebGL the CSS ball, under its icon. */
+.role-icon.brio { overflow: hidden; border-radius: 50%; background: #1a0b2a; box-shadow: inset 0 0 4px 1px rgba(255, 110, 200, .75), 0 0 16px rgba(255, 79, 154, .4); color: #fff; }
+.role-icon.brio::before { content: ""; position: absolute; inset: -20%; z-index: -1; background: var(--ball); background-blend-mode: screen; filter: blur(2.5px); animation: spin 9s linear infinite; }
+.role-icon.brio::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--ball-shine); }
+.role-icon.brio svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45)); }
+.role-icon.brio.is-gl { overflow: visible; background: none; box-shadow: none; }
+.role-icon.brio.is-gl::before, .role-icon.brio.is-gl::after { display: none; }
 .role p { color: var(--text-2); font-size: 15px; line-height: 1.55; }
 .role p strong { display: block; margin-bottom: 2px; color: var(--text); font-size: 15.5px; font-weight: 600; }
 

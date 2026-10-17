@@ -1,8 +1,8 @@
-// Brio's ball around the site (Talk to Brio, How It Works), drawn by the very
-// shader the 3D phone uses (orbShader.ts), in plain WebGL so three.js stays
-// off the page until the phone needs it. One hidden WebGL canvas draws every
-// ball on screen in turn and copies it onto that ball's own canvas. Without
-// WebGL, the CSS ball shows instead.
+// Brio's ball around the site (Talk to Brio, How It Works, the wingman
+// roles), drawn by the very shader the 3D phone uses (orbShader.ts), in plain
+// WebGL so three.js stays off the page until the phone needs it. One hidden
+// WebGL canvas draws every ball on screen in turn and copies it onto that
+// ball's own canvas. Without WebGL, the CSS ball shows instead.
 
 import { ORB_FRAGMENT, PALETTE } from "@/components/phone/scene/orbShader";
 
