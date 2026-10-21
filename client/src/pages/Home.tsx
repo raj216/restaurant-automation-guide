@@ -9,6 +9,7 @@ import { Motto } from "@/site/Motto";
 import { useDemoTransition } from "@/site/demoTransition";
 import { Nav } from "@/site/Nav";
 import { Pilot } from "@/site/Pilot";
+import { Pricing } from "@/site/Pricing";
 import { Stats } from "@/site/Stats";
 import { ToastProvider } from "@/site/Toasts";
 import "@/site/site.css";
@@ -52,6 +53,7 @@ export default function Home() {
               <Stats />
               <Motto />
               <HowItWorks />
+              <Pricing />
               <Faq />
               <Pilot />
             </main>
