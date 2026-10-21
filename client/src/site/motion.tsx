@@ -211,3 +211,69 @@ export function useSpotlight() {
     };
   }, []);
 }
+
+/**
+ * Links to a section of this page (#pricing, #faq…) scroll to it without
+ * loading the page again, so in-app browsers (a chat or social app) keep the
+ * page instead of handing the link to another browser. And an address that
+ * arrives with a section in it (cohost.site/#pricing) lands on that section:
+ * the browser looks for it before the page has drawn, so it can't.
+ */
+export function useSectionLinks() {
+  useEffect(() => {
+    const find = (hash: string) => {
+      if (hash.length < 2) return null;
+      try {
+        return document.getElementById(decodeURIComponent(hash.slice(1)));
+      } catch {
+        return null;
+      }
+    };
+
+    // Arriving with a section in the address: land on it once the page has
+    // drawn, and again as fonts and pictures settle, until the visitor scrolls.
+    const arrived = find(window.location.hash);
+    let moved = false;
+    const stop = () => (moved = true);
+    const land = () => {
+      if (arrived && !moved)
+        arrived.scrollIntoView({ block: "start", behavior: "instant" });
+    };
+    if (arrived) {
+      requestAnimationFrame(land);
+      void document.fonts?.ready.then(() => requestAnimationFrame(land));
+      window.addEventListener("load", land, { once: true });
+      window.addEventListener("wheel", stop, { passive: true, once: true });
+      window.addEventListener("touchstart", stop, {
+        passive: true,
+        once: true,
+      });
+      window.addEventListener("keydown", stop, { once: true });
+    }
+
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+        return;
+      const link = (
+        event.target as Element | null
+      )?.closest?.<HTMLAnchorElement>('a[href^="#"]:not(.skip)');
+      const hash = link?.getAttribute("href") ?? "";
+      const section = find(hash);
+      if (!section) return;
+      event.preventDefault();
+      if (window.location.hash !== hash)
+        window.history.pushState(null, "", hash);
+      // After the phone menu has closed (it holds the page still while open).
+      requestAnimationFrame(() => section.scrollIntoView({ block: "start" }));
+    };
+    document.addEventListener("click", onClick);
+    return () => {
+      document.removeEventListener("click", onClick);
+      window.removeEventListener("load", land);
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("touchstart", stop);
+      window.removeEventListener("keydown", stop);
+    };
+  }, []);
+}

@@ -4,7 +4,11 @@ import { Faq } from "@/site/Faq";
 import { Footer } from "@/site/Footer";
 import { Hero } from "@/site/Hero";
 import { HowItWorks } from "@/site/HowItWorks";
-import { usePauseOffscreen, useSpotlight } from "@/site/motion";
+import {
+  usePauseOffscreen,
+  useSectionLinks,
+  useSpotlight,
+} from "@/site/motion";
 import { Motto } from "@/site/Motto";
 import { useDemoTransition } from "@/site/demoTransition";
 import { Nav } from "@/site/Nav";
@@ -37,6 +41,7 @@ function ScrollProgress() {
 export default function Home() {
   useSpotlight();
   usePauseOffscreen();
+  useSectionLinks();
   useDemoTransition();
   return (
     <LazyMotion features={domAnimation} strict>
