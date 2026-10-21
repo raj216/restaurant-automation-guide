@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { brioStatus } from "./brioStatus";
-import { actionsFor, inTab, waitTone } from "./orders";
+import { actionsFor, inTab, recentInProgress, waitTone } from "./orders";
 import { orderCode, looksLikeCardNumber } from "./format";
 import { parseTranscript } from "./transcript";
 import { UndoStore } from "./undo";
@@ -51,6 +51,15 @@ describe("orders", () => {
     const o = { state: "rejected" } as Order;
     expect(inTab(o, "problems")).toBe(true);
     expect(inTab(o, "done")).toBe(false);
+  });
+  it("keeps orders staff are working on from the last 12 hours on the live board", () => {
+    const now = new Date("2026-10-21T18:00:00Z");
+    const at = (state: Order["state"], created_at: string) => ({ state, created_at }) as Order;
+    expect(recentInProgress(at("pos_entered", "2026-10-21T17:17:00Z"), now)).toBe(true);
+    expect(recentInProgress(at("pos_accepted", "2026-10-21T06:00:00Z"), now)).toBe(true); // exactly 12 hours
+    expect(recentInProgress(at("pos_entered", "2026-10-21T05:59:00Z"), now)).toBe(false); // older: Orders tab only
+    expect(recentInProgress(at("fulfilled", "2026-10-21T17:17:00Z"), now)).toBe(false); // picked up
+    expect(recentInProgress(at("pending_staff_review", "2026-10-21T17:17:00Z"), now)).toBe(false); // still in review
   });
   it("colors the wait", () => {
     expect([waitTone(1), waitTone(3), waitTone(7)]).toEqual(["normal", "amber", "red"]);

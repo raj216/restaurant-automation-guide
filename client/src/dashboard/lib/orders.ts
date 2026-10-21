@@ -76,7 +76,18 @@ export function recentEscalated(order: Order, now: Date): boolean {
   return order.state === "escalated" && now.getTime() - new Date(order.created_at).getTime() <= TWO_HOURS;
 }
 
-export type OrderTab = "needs_review" | "in_progress" | "done" | "problems" | "all";
+const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+/**
+ * Orders staff are working on (entered in the POS, or accepted) from the last 12 hours,
+ * one shift: they stay on the live board until they're picked up. Older unfinished
+ * ones stay under Orders → In progress.
+ */
+export function recentInProgress(order: Order, now: Date): boolean {
+  return (order.state === "pos_entered" || order.state === "pos_accepted") && now.getTime() - new Date(order.created_at).getTime() <= TWELVE_HOURS;
+}
+
+export type OrderTab ="needs_review" | "in_progress" | "done" | "problems" | "all";
 
 export const ORDER_TABS: { id: OrderTab; label: string }[] = [
   { id: "needs_review", label: "Needs review" },

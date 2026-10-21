@@ -5,7 +5,7 @@ import { useDashboard } from "../DashboardContext";
 import { callTime } from "../lib/labels";
 import { isLowPriorityTopic, TOPIC_LABEL, TOPIC_ORDER, topicOf } from "../lib/labels";
 import { computeInsights } from "../lib/insights";
-import { needsReview, recentEscalated, sortNewestFirst, sortOldestFirst } from "../lib/orders";
+import { needsReview, recentEscalated, recentInProgress, sortNewestFirst, sortOldestFirst } from "../lib/orders";
 import { prefs } from "../lib/prefs";
 import { orderCode, telHref } from "../lib/format";
 import { formatTime, relativeAndTime, relative } from "../lib/time";
@@ -19,6 +19,8 @@ export default function Now() {
   const [dismissed, setDismissed] = useState(() => prefs.getDismissed());
 
   const review = useMemo(() => sortOldestFirst(d.data.orders.filter(needsReview)), [d.data.orders]);
+  // Orders staff are working on stay here until they're picked up (last 12 hours).
+  const inProgress = useMemo(() => sortOldestFirst(d.data.orders.filter(o => recentInProgress(o, d.now))), [d.data.orders, d.now]);
   const escalated = useMemo(
     () => sortNewestFirst(d.data.orders.filter(o => recentEscalated(o, d.now) && !dismissed.has(o.id))),
     [d.data.orders, d.now, dismissed],
@@ -41,7 +43,7 @@ export default function Now() {
   }, [messages]);
 
   const today = useMemo(() => computeInsights(d.data, "today", d.now, tz), [d.data, d.now, tz]);
-  const everythingClear = review.length + escalated.length + reservations.length + messages.length === 0;
+  const everythingClear = review.length + inProgress.length + escalated.length + reservations.length + messages.length === 0;
   const lastCall = useMemo(() => [...d.data.calls].filter(c => c.call_type !== "web_call").sort((a, b) => new Date(callTime(b)).getTime() - new Date(callTime(a)).getTime())[0], [d.data.calls]);
 
   if (!d.loaded && !d.offline) {
@@ -64,6 +66,15 @@ export default function Now() {
           {review.map(o => (
             <ReviewCard key={o.id} order={o} />
           ))}
+
+          {inProgress.length > 0 ? (
+            <>
+              <SectionHeader title="In progress" count={inProgress.length} />
+              {inProgress.map(o => (
+                <ReviewCard key={o.id} order={o} inProgress />
+              ))}
+            </>
+          ) : null}
 
           {escalated.length > 0 ? (
             <>
