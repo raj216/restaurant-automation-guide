@@ -260,6 +260,7 @@ export const PRICING = {
   ],
   features: [
     "Picks up instantly, day or night",
+    "Works 365 days a year, holidays included",
     "Emotional, human-sounding voice",
     "To-go orders and reservation requests",
     "Menu, hours and allergen questions",
@@ -269,8 +270,27 @@ export const PRICING = {
   custom: {
     name: "Custom",
     title: "More minutes, or more than one location?",
-    text: "We'll build a plan around your restaurant: the minutes you need, every location on one dashboard, and anything extra you'd like Brio to handle.",
+    text: "We'll build a plan around your restaurant: the minutes you need and anything extra you'd like Brio to handle.",
     button: "Build My Plan",
+    /** The box Build My Plan opens. Requests land on the Leads page (/admin). */
+    form: {
+      title: "Build your plan",
+      text: "Tell us about your restaurant, and we'll put together a plan that fits.",
+      restaurant: "Restaurant name",
+      restaurantHint: "e.g. Demo Coffee House",
+      phone: "Best phone number",
+      email: "Email",
+      locations: "How many restaurants?",
+      minutes: "Minutes of calls a month",
+      minutesPick: "Choose one",
+      need: "What else should Brio handle?",
+      needHint: "Optional. Catering calls, private events, anything special.",
+      submit: "Send My Plan Request",
+      sending: "Sending…",
+      close: "Close",
+      done: "Thank you! We've got your request and will reach out soon with a plan built around your restaurant.",
+      doneButton: "Done",
+    },
   },
   promisesTitle: "Every plan includes",
   promises: [

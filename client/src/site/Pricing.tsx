@@ -7,6 +7,7 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { BrioBall } from "./BrioBall";
+import { CustomPlan } from "./CustomPlan";
 import { PILOT_CTA, PRICING } from "./content";
 import { Reveal } from "./motion";
 
@@ -14,7 +15,7 @@ const PROMISE_ICONS = [HeartHandshake, Headset, BadgeDollarSign, Handshake];
 
 /**
  * The plans: the same Brio in each, priced by the minutes of calls a month.
- * Every button leads to the pilot form.
+ * The plans' buttons lead to the pilot form; Custom opens its own box.
  */
 export function Pricing() {
   return (
@@ -90,10 +91,7 @@ export function Pricing() {
             <h3>{PRICING.custom.title}</h3>
             <p>{PRICING.custom.text}</p>
           </div>
-          <a className="btn btn-ghost btn-lg" href="#pilot">
-            {PRICING.custom.button}
-            <ArrowRight size={17} className="nudge" />
-          </a>
+          <CustomPlan />
         </Reveal>
 
         <Reveal className="promises" y={20}>

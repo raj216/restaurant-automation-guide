@@ -376,6 +376,37 @@
 .plan-custom-name { color: var(--text-3); font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; }
 .plan-custom h3 { margin-top: 8px; font-size: clamp(19px, 16px + .6vw, 23px); font-weight: 600; letter-spacing: -.02em; }
 .plan-custom p:last-child { max-width: 640px; margin-top: 8px; color: var(--text-2); font-size: 15.5px; line-height: 1.55; }
+/* The Build My Plan box: over the page, which blurs behind it, in the pilot card's colors. */
+.plan-box { width: min(560px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 0; overflow: visible; border: 0; border-radius: 28px; background: none; color: var(--text); }
+.plan-box::backdrop { background: rgba(5, 6, 10, .55); -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2); }
+.plan-box[open] { animation: box-in .45s var(--ease); }
+.plan-box[open]::backdrop { animation: veil-in .35s ease; }
+@keyframes box-in { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+@keyframes veil-in { from { opacity: 0; } }
+.plan-box-inner { position: relative; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; padding: clamp(28px, 4vw, 40px); border-radius: inherit; background: radial-gradient(70% 45% at 50% 0%, rgba(139, 92, 246, .2), transparent 70%), radial-gradient(50% 40% at 100% 100%, rgba(255, 106, 85, .1), transparent 70%), #0a0c13; box-shadow: inset 0 0 0 1px var(--line-2), 0 40px 120px -30px rgba(0, 0, 0, .95), 0 0 90px -30px rgba(139, 92, 246, .5); }
+.plan-box-close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--text-2); transition: background-color .2s ease, color .2s ease; }
+@media (hover: hover) { .plan-box-close:hover { background: rgba(255, 255, 255, .1); color: var(--text); } }
+.plan-box h2 { margin-top: 12px; font-size: clamp(26px, 20px + 1.2vw, 32px); font-weight: 600; line-height: 1.1; letter-spacing: -.03em; }
+.plan-box-text { margin-top: 10px; color: var(--text-2); font-size: 15.5px; line-height: 1.55; }
+.plan-box-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; margin-top: 24px; }
+.box-wide { grid-column: 1 / -1; }
+.box-field { display: grid; gap: 7px; }
+.box-field > span { color: var(--text-2); font-size: 13.5px; font-weight: 550; }
+.box-field input, .box-field select, .box-field textarea { width: 100%; height: 50px; padding: 0 16px; border: 0; border-radius: 14px; background: rgba(21, 25, 38, .9); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--text); font: inherit; font-size: 16px; transition: box-shadow .2s ease; }
+.box-field select { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237c8497' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; }
+.box-field select:invalid { color: var(--text-3); }
+.box-field option { background: var(--ink-3); color: var(--text); }
+.box-field input[type="number"] { -moz-appearance: textfield; }
+.box-field input::-webkit-inner-spin-button, .box-field input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
+.box-field textarea { height: auto; min-height: 96px; padding: 13px 16px; line-height: 1.5; resize: vertical; }
+.box-field input::placeholder, .box-field textarea::placeholder { color: var(--text-3); }
+.box-field input:focus, .box-field select:focus, .box-field textarea:focus { outline: none; box-shadow: inset 0 0 0 1px var(--sky), 0 0 0 4px rgba(56, 189, 248, .18); }
+.box-field [aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--alert), 0 0 0 4px rgba(248, 113, 113, .15); }
+.plan-box-form .btn { margin-top: 6px; }
+.plan-box-form .form-note { min-height: 20px; }
+.plan-box-done { display: grid; justify-items: center; gap: 16px; margin-top: 22px; text-align: center; }
+.plan-box-done > svg { color: var(--order); }
+.plan-box-done p { max-width: 400px; color: var(--text-2); font-size: 16px; line-height: 1.6; }
 .promises { margin-top: clamp(56px, 6vw, 80px); text-align: center; }
 .promises h3 { color: var(--text-3); font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
 .promises ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 28px 0 0; padding: 0; list-style: none; }
@@ -483,6 +514,7 @@
   .plan { padding: 26px 20px 28px; }
   .plan-badge { top: 22px; right: 18px; }
   .plan-custom .btn { width: 100%; }
+  .plan-box-form { grid-template-columns: minmax(0, 1fr); }
   .field input { padding: 0 14px; }
   .field input::placeholder { font-size: 14.5px; }
   .faq-a p { padding-right: 0; }
@@ -512,6 +544,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .event { opacity: 1; transform: none; }
+  .plan-box[open], .plan-box[open]::backdrop { animation: none; }
   .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .plan.is-popular::after, .role-icon.brio::before, .mini-orb::before, .ticker-row { animation: none; }
 }
 
