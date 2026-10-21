@@ -130,12 +130,13 @@ export function OrderActions({ order, big }: { order: Order; big?: boolean }) {
 }
 
 /** An order waiting for review, as it appears on the live board. */
-export function ReviewCard({ order }: { order: Order }) {
+/** An order card with its next step. `inProgress`: already with staff, so no waiting timer or alert colors. */
+export function ReviewCard({ order, inProgress = false }: { order: Order; inProgress?: boolean }) {
   const d = useDashboard();
   const tz = d.restaurant?.timezone ?? "America/New_York";
   const state = d.displayState(order);
   const waited = minutesSince(order.created_at, d.now);
-  const tone = waitTone(waited);
+  const tone = inProgress ? "normal" : waitTone(waited);
   const after = order.intake_mode === "after_hours_request";
   const deadline = order.staff_review_deadline ? countdown(order.staff_review_deadline, d.now) : null;
   const pulse = state === "pending_staff_review" && !after && shouldPulse(waited);
@@ -152,10 +153,14 @@ export function ReviewCard({ order }: { order: Order }) {
             After-hours request
           </Pill>
         ) : null}
-        <span className={`d-sp d-pill ${tone === "red" ? "d-p-red" : tone === "amber" ? "d-p-amber" : "d-p-gray"}`}>
-          <Icon name="clock" />
-          Waiting {waited < 1 ? "<1" : waited} min<span className="d-hide-phone"> · {formatTime(order.created_at, tz)}</span>
-        </span>
+        {inProgress ? (
+          <span className="d-sp d-small d-muted">Ordered {formatTime(order.created_at, tz)}</span>
+        ) : (
+          <span className={`d-sp d-pill ${tone === "red" ? "d-p-red" : tone === "amber" ? "d-p-amber" : "d-p-gray"}`}>
+            <Icon name="clock" />
+            Waiting {waited < 1 ? "<1" : waited} min<span className="d-hide-phone"> · {formatTime(order.created_at, tz)}</span>
+          </span>
+        )}
       </div>
       <div className="d-row d-namerow">
         <h3 className="d-name">
