@@ -121,6 +121,17 @@ Paste this into the new chat, or tell it to read `HANDOFF.md` on branch
      - `inbox.css`;
      - the `/inbox` route;
      - tests.
+6. **Pricing section (PR #24):** between How It Works and the FAQ, with a
+   "Pricing" link in the menu.
+   - Prices show per week, billed monthly: $37 ($149/month, 400 minutes),
+     $62 ($249/month, 800 minutes, "Most popular") and $112 ($449/month,
+     1,500 minutes). The copy is `PRICING` in `content.ts`.
+   - **Build My Plan** (the Custom plan) opens a box (`CustomPlan.tsx`) that
+     saves a custom-plan request: restaurant, phone, email, how many
+     restaurants, minutes a month, and what else Brio should handle.
+   - Those requests land on the Leads page with a "Custom plan" tag. They use
+     the migration `website_leads_custom_plan` (already applied), which adds
+     the `custom` form and the `locations` and `minutes` columns.
 
 ## Still to do / waiting on Raj
 
