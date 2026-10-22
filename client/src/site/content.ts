@@ -347,7 +347,10 @@ export const PILOT = {
       { id: "reservations", label: "Reservations" },
       { id: "questions", label: "Menu, hours & allergy questions" },
       { id: "spam", label: "Scam & robocalls" },
+      { id: "other", label: "Other" },
     ],
+    /** Opens when "Other" is picked. */
+    other: "Tell us what else Brio should handle",
   },
   submit: "Start Free Pilot",
   done: "Demo request received! We will configure your menu profile and contact you within 2 hours.",

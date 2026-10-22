@@ -9,6 +9,7 @@ export const PILOT_LIMITS = {
   restaurant: 160,
   phone: 40,
   email: 254,
+  need: 500,
 } as const;
 
 export interface PilotFields {
@@ -17,6 +18,8 @@ export interface PilotFields {
   email: string;
   /** What Brio should take off their plate: option ids from PILOT.wants. */
   wants: string[];
+  /** With "other" picked: what else, in their own words. */
+  need: string;
   /** The hidden bot trap. People leave it empty. */
   website: string;
 }
@@ -32,6 +35,7 @@ const FIELD_PROBLEMS: Record<PilotField, string> = {
   phone: "Please check your cell phone number.",
   email: "Please check your email address.",
   wants: "Please pick from the choices shown.",
+  need: "Please keep this under 500 characters.",
 };
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
@@ -52,6 +56,7 @@ export function readPilotFields(form: HTMLFormElement): PilotFields {
     phone: value("phone"),
     email: value("email"),
     wants: data.getAll("wants").map(String),
+    need: data.getAll("wants").includes("other") ? value("need") : "",
     website: value("website"),
   };
 }
@@ -76,6 +81,7 @@ export function findPilotProblem(
     !EMAIL.test(fields.email)
   )
     field = "email";
+  else if (fields.need.length > PILOT_LIMITS.need) field = "need";
   return field ? { field, message: FIELD_PROBLEMS[field] } : null;
 }
 
@@ -215,7 +221,7 @@ export async function submitPilot(
   if (problem) return { ok: false, ...problem };
 
   return sendLead(
-    { form: "pilot", ...fields },
+    { form: "pilot", ...fields, need: fields.need || undefined },
     clientId,
     startedAt,
     FIELD_PROBLEMS

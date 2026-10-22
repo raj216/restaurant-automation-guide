@@ -177,3 +177,4 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-skeleton, .admin-empty-ring { animation: none; }
 }
+.admin-wants + .admin-quote { margin-top: 12px; }

@@ -461,6 +461,11 @@
 @media (hover: hover) { .want span:hover { box-shadow: inset 0 0 0 1px var(--line-3); color: var(--text); } }
 .want input:checked + span { background: rgba(139, 92, 246, .16); box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .6); color: var(--text); }
 .want input:checked + span svg { display: block; }
+/* "Other" opens a line for their own words. */
+.want-other { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s var(--ease), opacity .35s ease; }
+.want-other.is-open { grid-template-rows: 1fr; opacity: 1; }
+.want-other > .field { min-height: 0; overflow: hidden; max-width: 520px; width: 100%; margin: 0 auto; padding: 4px; }
+.want-other.is-open > .field { margin-top: 8px; }
 .want input:focus-visible + span { box-shadow: inset 0 0 0 1px var(--sky), 0 0 0 4px rgba(56, 189, 248, .18); }
 .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .form-note { flex: 1 0 100%; min-height: 22px; margin: 0; color: var(--alert); font-size: 14px; text-align: center; }
@@ -563,7 +568,7 @@
 @media (prefers-reduced-motion: reduce) {
   .event { opacity: 1; transform: none; }
   .plan-box[open], .plan-box[open]::backdrop { animation: none; }
-  .pilot-wants { transition: none; }
+  .pilot-wants, .want-other { transition: none; }
   .aurora i, .stage-glow, .ripples i, .hl, .poster-orb::before, .poster-orb.is-ringing, .poster-screen::before, .pilot-card::before, .plan.is-popular::after, .role-icon.brio::before, .mini-orb::before, .ticker-row { animation: none; }
 }
 

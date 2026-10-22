@@ -896,10 +896,13 @@ function LeadDetail({
               </span>
             ))}
           </p>
+          {lead.form === "pilot" && lead.need && (
+            <blockquote className="admin-quote">{lead.need}</blockquote>
+          )}
         </section>
       )}
 
-      {lead.need && (
+      {lead.need && lead.form !== "pilot" && (
         <section className="admin-block">
           <h3>
             {lead.form === "custom"

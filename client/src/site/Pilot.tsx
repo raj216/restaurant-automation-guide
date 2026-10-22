@@ -24,6 +24,7 @@ export function Pilot() {
   // The "take off your plate" choices open once the visitor starts the
   // form, so the resting section stays one quiet row.
   const [engaged, setEngaged] = useState(false);
+  const [other, setOther] = useState(false);
   const [start, end] = PILOT.title.split("a break");
   // The thank-you note takes focus as it appears (after the form has faded
   // out), so screen readers announce it and keyboard users aren't lost.
@@ -162,6 +163,10 @@ export function Pilot() {
                             type="checkbox"
                             name="wants"
                             value={option.id}
+                            onChange={event =>
+                              option.id === "other" &&
+                              setOther(event.currentTarget.checked)
+                            }
                           />
                           <span>
                             <Check size={14} strokeWidth={2.5} />
@@ -169,6 +174,20 @@ export function Pilot() {
                           </span>
                         </label>
                       ))}
+                    </div>
+                    <div
+                      className={`want-other${other ? " is-open" : ""}`}
+                      inert={!other}
+                    >
+                      <label className="field">
+                        <span className="sr-only">{PILOT.wants.other}</span>
+                        <input
+                          {...fieldProps("need")}
+                          type="text"
+                          placeholder={PILOT.wants.other}
+                          maxLength={PILOT_LIMITS.need}
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
