@@ -334,6 +334,21 @@ export const PILOT = {
   text: "Test Brio during your weekend dinner rushes. If your front-of-house staff doesn’t immediately feel the relief, turn off call forwarding with a single click. No contracts. No setup fees.",
   restaurant: "Restaurant Name (e.g. Demo Coffee House)",
   phone: "Your Cell Phone Number",
+  email: "Your Email",
+  /** Shown once the visitor starts the form. Optional; several can be picked. */
+  wants: {
+    question: "What should Brio take off your plate?",
+    hint: "Optional · tap all that apply",
+    options: [
+      { id: "every_call", label: "Every call, all day" },
+      { id: "rush", label: "Calls during the rush" },
+      { id: "after_hours", label: "Late nights & holidays" },
+      { id: "to_go", label: "To-go orders" },
+      { id: "reservations", label: "Reservations" },
+      { id: "questions", label: "Menu, hours & allergy questions" },
+      { id: "spam", label: "Scam & robocalls" },
+    ],
+  },
   submit: "Start Free Pilot",
   done: "Demo request received! We will configure your menu profile and contact you within 2 hours.",
 };
