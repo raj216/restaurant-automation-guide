@@ -7,7 +7,7 @@ import {
 } from "@/lib/leads";
 import { randomId } from "@/lib/supabase";
 import { AnimatePresence, m } from "framer-motion";
-import { ArrowRight, CircleCheck } from "lucide-react";
+import { ArrowRight, Check, CircleCheck } from "lucide-react";
 import { useCallback, useRef, useState, type FormEvent } from "react";
 import { PILOT } from "./content";
 import { EASE, Reveal } from "./motion";
@@ -21,6 +21,10 @@ export function Pilot() {
   // Names this form fill, so a retry or a double click can't save it twice.
   const clientId = useRef(randomId());
   const startedAt = useRef<number | null>(null);
+  // The "take off your plate" choices open once the visitor starts the
+  // form, so the resting section stays one quiet row.
+  const [engaged, setEngaged] = useState(false);
+  const [other, setOther] = useState(false);
   const [start, end] = PILOT.title.split("a break");
   // The thank-you note takes focus as it appears (after the form has faded
   // out), so screen readers announce it and keyboard users aren't lost.
@@ -103,6 +107,7 @@ export function Pilot() {
                 onSubmit={onSubmit}
                 onFocus={() => {
                   startedAt.current ??= Date.now();
+                  setEngaged(true);
                 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: EASE }}
@@ -130,6 +135,62 @@ export function Pilot() {
                     required
                   />
                 </label>
+                <label className="field">
+                  <span className="sr-only">{PILOT.email}</span>
+                  <input
+                    {...fieldProps("email")}
+                    type="email"
+                    inputMode="email"
+                    placeholder={PILOT.email}
+                    autoComplete="email"
+                    maxLength={PILOT_LIMITS.email}
+                    required
+                  />
+                </label>
+                <div
+                  className={`pilot-wants${engaged ? " is-open" : ""}`}
+                  inert={!engaged}
+                >
+                  <div role="group" aria-labelledby="wants-label">
+                    <p className="wants-label" id="wants-label">
+                      {PILOT.wants.question}
+                      <span>{PILOT.wants.hint}</span>
+                    </p>
+                    <div className="wants">
+                      {PILOT.wants.options.map(option => (
+                        <label className="want" key={option.id}>
+                          <input
+                            type="checkbox"
+                            name="wants"
+                            value={option.id}
+                            onChange={event =>
+                              option.id === "other" &&
+                              setOther(event.currentTarget.checked)
+                            }
+                          />
+                          <span>
+                            <Check size={14} strokeWidth={2.5} />
+                            {option.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <div
+                      className={`want-other${other ? " is-open" : ""}`}
+                      inert={!other}
+                    >
+                      <label className="field">
+                        <span className="sr-only">{PILOT.wants.other}</span>
+                        <input
+                          {...fieldProps("need")}
+                          type="text"
+                          placeholder={PILOT.wants.other}
+                          maxLength={PILOT_LIMITS.need}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 {/* People never see this box; bots fill it in. */}
                 <div className="trap" aria-hidden="true">
                   <label>

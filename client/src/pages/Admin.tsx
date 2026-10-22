@@ -12,6 +12,7 @@ import {
   type Lead,
   type LeadStatus,
   type LeadsError,
+  wantsText,
 } from "@/lib/leadsAdmin";
 import { RpcError } from "@/lib/supabase";
 import { LogoMark } from "@/site/Logo";
@@ -329,6 +330,7 @@ function LeadsBoard({
         lead.location,
         lead.pos,
         lead.minutes,
+        wantsText(lead.wants),
         lead.need,
         lead.notes,
       ]
@@ -884,7 +886,23 @@ function LeadDetail({
         {lead.minutes && <Fact label="Minutes a month">{lead.minutes}</Fact>}
       </dl>
 
-      {lead.need && (
+      {lead.wants && lead.wants.length > 0 && (
+        <section className="admin-block">
+          <h3>What should Brio take off their plate?</h3>
+          <p className="admin-wants">
+            {lead.wants.map(id => (
+              <span className="admin-tag" key={id}>
+                {wantsText([id])}
+              </span>
+            ))}
+          </p>
+          {lead.form === "pilot" && lead.need && (
+            <blockquote className="admin-quote">{lead.need}</blockquote>
+          )}
+        </section>
+      )}
+
+      {lead.need && lead.form !== "pilot" && (
         <section className="admin-block">
           <h3>
             {lead.form === "custom"

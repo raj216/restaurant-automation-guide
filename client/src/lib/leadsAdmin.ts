@@ -1,3 +1,4 @@
+import { PILOT } from "@/site/content";
 import { rpc } from "./supabase";
 
 // The Leads page's side of the database: sign in with the passcode, then
@@ -68,6 +69,8 @@ export interface Lead {
   // Custom-plan requests: how many restaurants, and the minutes a month.
   locations?: number | null;
   minutes?: string | null;
+  // Pilot sign-ups: what Brio should take off their plate (ids from PILOT.wants).
+  wants?: string[] | null;
   status: LeadStatus;
   notes: string;
   source: LeadSource;
@@ -221,6 +224,7 @@ const CSV_COLUMNS: [string, (lead: Lead) => string][] = [
   ["Best way to respond", l => l.contact_preference ?? ""],
   ["Restaurants", l => (l.locations ? String(l.locations) : "")],
   ["Minutes a month", l => l.minutes ?? ""],
+  ["Brio should take on", l => wantsText(l.wants)],
   [
     "What happens when the phone gets busy? / What else should Brio handle?",
     l => l.need ?? "",
@@ -232,6 +236,15 @@ const CSV_COLUMNS: [string, (lead: Lead) => string][] = [
   ["Campaign medium", l => l.source.utm?.utm_medium ?? ""],
   ["Campaign name", l => l.source.utm?.utm_campaign ?? ""],
 ];
+
+/** The plain-English answers for a pilot sign-up's picks. */
+export function wantsText(wants: string[] | null | undefined): string {
+  return (wants ?? [])
+    .map(
+      id => PILOT.wants.options.find(option => option.id === id)?.label ?? id
+    )
+    .join(" · ");
+}
 
 /** The sign-ups as a CSV file that Excel, Numbers and Google Sheets open directly. */
 export function leadsCsv(leads: Lead[]): string {

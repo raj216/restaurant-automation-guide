@@ -8,11 +8,18 @@ import { RpcError, rpc } from "./supabase";
 export const PILOT_LIMITS = {
   restaurant: 160,
   phone: 40,
+  email: 254,
+  need: 500,
 } as const;
 
 export interface PilotFields {
   restaurant: string;
   phone: string;
+  email: string;
+  /** What Brio should take off their plate: option ids from PILOT.wants. */
+  wants: string[];
+  /** With "other" picked: what else, in their own words. */
+  need: string;
   /** The hidden bot trap. People leave it empty. */
   website: string;
 }
@@ -26,7 +33,12 @@ export type SubmitPilotResult =
 const FIELD_PROBLEMS: Record<PilotField, string> = {
   restaurant: "Please add your restaurant's name.",
   phone: "Please check your cell phone number.",
+  email: "Please check your email address.",
+  wants: "Please pick from the choices shown.",
+  need: "Please keep this under 500 characters.",
 };
+
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
 const TRY_AGAIN =
   "Something went wrong on our side. Please try again in a minute. Your answers are still here.";
@@ -42,6 +54,9 @@ export function readPilotFields(form: HTMLFormElement): PilotFields {
   return {
     restaurant: value("restaurant"),
     phone: value("phone"),
+    email: value("email"),
+    wants: data.getAll("wants").map(String),
+    need: data.getAll("wants").includes("other") ? value("need") : "",
     website: value("website"),
   };
 }
@@ -60,6 +75,13 @@ export function findPilotProblem(
     digits > 20
   )
     field = "phone";
+  else if (
+    fields.email.length < 3 ||
+    fields.email.length > PILOT_LIMITS.email ||
+    !EMAIL.test(fields.email)
+  )
+    field = "email";
+  else if (fields.need.length > PILOT_LIMITS.need) field = "need";
   return field ? { field, message: FIELD_PROBLEMS[field] } : null;
 }
 
@@ -145,7 +167,7 @@ export function findCustomPlanProblem(
   else if (
     fields.email.length < 3 ||
     fields.email.length > CUSTOM_LIMITS.email ||
-    !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(fields.email)
+    !EMAIL.test(fields.email)
   )
     field = "email";
   else if (locations < 1 || locations > CUSTOM_LIMITS.locations)
@@ -199,7 +221,7 @@ export async function submitPilot(
   if (problem) return { ok: false, ...problem };
 
   return sendLead(
-    { form: "pilot", ...fields },
+    { form: "pilot", ...fields, need: fields.need || undefined },
     clientId,
     startedAt,
     FIELD_PROBLEMS
