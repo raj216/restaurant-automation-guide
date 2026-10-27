@@ -93,7 +93,7 @@ export interface OrderEvent {
   order_id: string;
   from_state: OrderState | null;
   to_state: OrderState;
-  actor_kind: "agent" | "staff" | "admin";
+  actor_kind: "agent" | "staff" | "admin" | "pos_integration";
   actor_user_id: string | null;
   reason: string;
   created_at: string;
@@ -195,10 +195,45 @@ export interface MenuItem {
   optional_modifiers: ModifierGroup[];
 }
 
+export type PosProvider = "fake" | "clover" | "toast";
+
+/** The restaurant's link to its POS (Toast, Clover...). Tokens are never sent to the browser. */
+export interface PosConnection {
+  restaurant_id: string;
+  provider: PosProvider;
+  status: "connected" | "broken" | "disconnected";
+  last_error: string | null;
+  last_checked_at: string | null;
+  menu_synced_at: string | null;
+  menu_sync_issues: {
+    price_mismatches?: { sku: string; our_price_cents: number; pos_price_cents: number }[];
+    missing_in_pos?: string[];
+    not_linked?: string[];
+  };
+  /** Option B "auto-send simple orders". Off unless the owner of CoHost approves it. */
+  auto_send: boolean;
+}
+
+export type PosJobStatus = "sending" | "sent" | "failed" | "cancel_pending" | "cancelled" | "cancel_failed";
+
+/** One order's trip to the POS (at most one per order). */
+export interface PosJob {
+  order_id: string;
+  status: PosJobStatus;
+  attempts: number;
+  last_error: string | null;
+  external_order_id: string | null;
+  sent_at: string | null;
+  updated_at: string;
+}
+
 /** What the live board polls for. */
 export interface LiveData {
   /** Orders that reached the restaurant, plus orders that need a person. */
   orders: Order[];
   requests: GuestRequest[];
   calls: CallLog[];
+  /** The POS link, or null when the restaurant has none (staff enter orders by hand). */
+  pos?: PosConnection | null;
+  posJobs?: PosJob[];
 }

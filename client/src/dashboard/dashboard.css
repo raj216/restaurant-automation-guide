@@ -238,6 +238,16 @@
 .cd .d-bellitem.d-new{background:var(--accent-soft)}
 .cd .d-banner{border-radius:0}
 .cd .d-banner.d-offline{background:var(--amber-bg);color:var(--amber-fg)}
+/* the POS link is broken: red, on every screen */
+.cd .d-banner.d-posbroken{background:var(--red-line);color:#fff;height:auto;min-height:44px;padding-block:8px;flex-wrap:wrap}
+.cd .d-banner.d-posbroken .d-banner-text{flex:1;min-width:0}
+.cd .d-banner.d-posbroken .d-poslink{order:2;color:#fff;text-decoration:underline;font-weight:700;white-space:nowrap}
+.d-posline{display:flex;gap:8px;align-items:flex-start;border-radius:10px;padding:8px 10px;font-size:14px;margin:6px 0}
+.d-posline .d-i{flex:none;margin-top:2px}
+.d-pos-blue{background:var(--blue-bg,#e3ecff);color:var(--blue-fg,#1d3f8f)}
+.d-pos-red{background:var(--red-bg);color:var(--red-fg);border:1px solid var(--red-line)}
+.d-pos-gray{background:var(--gray-bg);color:var(--gray-fg)}
+.d-pos-amber{background:var(--amber-bg);color:var(--amber-fg)}
 
 /* two-column live board and list + detail screens */
 .cd .d-now-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;width:100%;align-items:start}

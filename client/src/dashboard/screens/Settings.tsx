@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useDashboard } from "../DashboardContext";
 import { validateClosedDates, validateTransferNumber, validateWindows } from "../lib/brioStatus";
+import { PROVIDER_NAME, cleanError } from "../lib/pos";
+import { relative } from "../lib/time";
 import type { ClosedDate, DayKey, ShiftWindow } from "../lib/types";
-import { Button, Icon, Toggle } from "../ui";
+import { Button, Icon, Pill, Toggle } from "../ui";
 import { showMessage } from "../Toasts";
 import { PageHeader } from "./shared";
 
@@ -100,6 +102,8 @@ export default function Settings() {
             </span>
           </div>
         </section>
+
+        <ConnectedPos />
 
         <section className="d-set">
           <h3>When staff are watching orders</h3>
@@ -199,5 +203,89 @@ export default function Settings() {
         </div>
       </div>
     </main>
+  );
+}
+
+/** The restaurant's POS link: which POS, whether it works, the menu sync, and auto-send (off). */
+function ConnectedPos() {
+  const d = useDashboard();
+  const pos = d.data.pos;
+  const [busy, setBusy] = useState<"check" | "sync" | null>(null);
+  const run = async (action: "check" | "sync") => {
+    setBusy(action);
+    try {
+      const reply = await d.posAction(action);
+      if (action === "check") {
+        showMessage(reply.body.status === "connected" ? "The POS connection works." : "The POS didn't answer. Orders stay in Needs review.", reply.body.status === "connected" ? "info" : "warn");
+      } else {
+        const changes = Array.isArray(reply.body.availability_changes) ? reply.body.availability_changes.length : 0;
+        showMessage(reply.body.status === "synced" ? `Menu checked against the POS. ${changes} sold-out change${changes === 1 ? "" : "s"}.` : "Couldn't read the POS menu.", reply.body.status === "synced" ? "info" : "warn");
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (!pos) {
+    return (
+      <section className="d-set">
+        <h3>Connected POS</h3>
+        <p className="d-hint">No POS is connected. Staff enter each order in your POS and tap "Entered in POS". Ask CoHost to connect Toast or Clover.</p>
+      </section>
+    );
+  }
+  const issues = pos.menu_sync_issues ?? {};
+  const prices = issues.price_mismatches ?? [];
+  const missing = issues.missing_in_pos ?? [];
+  const tone = pos.status === "connected" ? "green" : pos.status === "broken" ? "red" : "gray";
+  const label = pos.status === "connected" ? "Connected" : pos.status === "broken" ? "Broken" : "Disconnected";
+  return (
+    <section className="d-set">
+      <div className="d-row d-wrap">
+        <h3>Connected POS: {PROVIDER_NAME[pos.provider]}</h3>
+        <span className="d-sp">
+          <Pill tone={tone}>{label}</Pill>
+        </span>
+      </div>
+      <p className="d-hint">
+        Staff tap "Send to POS" on an order in Needs review; the ticket prints in the kitchen with the caller's name, number and any allergy note. If the POS
+        doesn't answer, the order stays in Needs review: enter it by hand.
+      </p>
+      {pos.status === "broken" && pos.last_error ? <div className="d-error" role="alert">{cleanError(pos.last_error)}</div> : null}
+      <p className="d-small d-muted">
+        {pos.last_checked_at ? `Last checked ${relative(pos.last_checked_at, d.now)}. ` : ""}
+        {pos.menu_synced_at ? `Menu checked ${relative(pos.menu_synced_at, d.now)}.` : "Menu not checked against the POS yet."}
+      </p>
+      {prices.length > 0 ? (
+        <p className="d-small">
+          <b>Prices differ in the POS:</b> {prices.map(p => p.sku).join(", ")}. Orders with these items won't go to the POS until the menu is updated.
+        </p>
+      ) : null}
+      {missing.length > 0 ? (
+        <p className="d-small">
+          <b>Not in the POS:</b> {missing.join(", ")}. Brio treats them as sold out.
+        </p>
+      ) : null}
+      <div className="d-row d-wrap">
+        <Button kind="secondary" size="sm" onClick={() => void run("check")} disabled={busy !== null}>
+          {busy === "check" ? "Checking…" : "Check connection"}
+        </Button>
+        <Button kind="secondary" size="sm" onClick={() => void run("sync")} disabled={busy !== null}>
+          {busy === "sync" ? "Checking menu…" : "Check menu against POS"}
+        </Button>
+      </div>
+      <div className="d-row" style={{ marginTop: 12 }}>
+        <div>
+          <b>Auto-send simple orders: {pos.auto_send ? "On" : "Off"}</b>
+          <p className="d-hint">
+            When on, a simple order (no allergy note, during staffed hours, POS working) goes to the POS the moment the caller says yes, without a staff tap.
+            Everything else still waits for "Send to POS". This changes a safety rule, so only CoHost can switch it on, after approval.
+          </p>
+        </div>
+        <span className="d-sp">
+          <Toggle on={pos.auto_send} label="Auto-send simple orders" onChange={() => undefined} disabled />
+        </span>
+      </div>
+    </section>
   );
 }

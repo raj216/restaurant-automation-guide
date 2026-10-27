@@ -10,7 +10,7 @@ import { actorLabel, readableReason, statusOf } from "../lib/orders";
 import { dayAndTime, formatDuration, formatTime, relative } from "../lib/time";
 import { parseTranscript } from "../lib/transcript";
 import type { CallLog, Order, OrderEvent } from "../lib/types";
-import { OrderActions, PhoneLink } from "../parts";
+import { OrderActions, PhoneLink, PosStatus } from "../parts";
 import { AllergyBadge, Icon, OrderStatusPill, Pill } from "../ui";
 
 const TOLD_REVIEW = "I've sent your order to the restaurant for review — it is not accepted or in the kitchen yet.";
@@ -130,6 +130,7 @@ export function OrderPanel({ orderId, onClose, sheet }: { orderId: string; onClo
       </div>
 
       <div className="d-pb">
+        <PosStatus order={order} />
         {order.allergy_note ? (
           <div className="d-allergy-banner" role="alert">
             <Icon name="alert" size="l" />

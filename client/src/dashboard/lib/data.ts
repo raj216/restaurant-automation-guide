@@ -4,7 +4,8 @@
 // restaurants and role. This file uses the public key and the user's own login only,
 // and writes only what the database allows: order status through the
 // transition_order function, request status, a menu item's "sold out" switch, and
-// (for owners) the restaurant's settings. Nothing is ever deleted.
+// (for owners) the restaurant's settings. Nothing is ever deleted. POS steps ("Send to
+// POS", voiding, checking the link) go through the pos-send function with the same login.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase";
@@ -19,6 +20,8 @@ import type {
   Order,
   OrderEvent,
   OrderState,
+  PosConnection,
+  PosJob,
   Restaurant,
   RequestStatus,
 } from "./types";
@@ -187,18 +190,45 @@ async function fetchCalls(restaurantId: string): Promise<CallLog[]> {
   return (data ?? []) as CallLog[];
 }
 
+const POS_COLS = "restaurant_id,provider,status,last_error,last_checked_at,menu_synced_at,menu_sync_issues";
+const POS_JOB_COLS = "order_id,status,attempts,last_error,external_order_id,sent_at,updated_at";
+
+/**
+ * The restaurant's POS link and its recent POS jobs. If any of it can't be read (no POS
+ * set up, or the database doesn't have the POS tables yet), the answer is "no POS": the
+ * Send to POS button stays hidden and staff enter orders by hand, as before.
+ */
+async function fetchPos(restaurantId: string): Promise<{ pos: PosConnection | null; posJobs: PosJob[] }> {
+  try {
+    const [conn, jobs, auto] = await Promise.all([
+      db().from("pos_connections").select(POS_COLS).eq("restaurant_id", restaurantId).maybeSingle(),
+      db().from("pos_sync_jobs").select(POS_JOB_COLS).eq("restaurant_id", restaurantId).order("updated_at", { ascending: false }).limit(300),
+      db().from("restaurants").select("pos_auto_send").eq("id", restaurantId).maybeSingle(),
+    ]);
+    if (conn.error || !conn.data) return { pos: null, posJobs: [] };
+    const autoSend = !auto.error && (auto.data as { pos_auto_send?: boolean } | null)?.pos_auto_send === true;
+    return {
+      pos: { ...(conn.data as Omit<PosConnection, "auto_send">), auto_send: autoSend },
+      posJobs: jobs.error ? [] : ((jobs.data ?? []) as PosJob[]),
+    };
+  } catch {
+    return { pos: null, posJobs: [] };
+  }
+}
+
 /** Everything the live board polls for, in one go. */
 export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
   if (IN_DEMO) return demo.demoLiveData();
-  const [reached, escalated, requests, calls] = await Promise.all([
+  const [reached, escalated, requests, calls, pos] = await Promise.all([
     fetchReachedOrders(restaurantId),
     fetchEscalatedOrders(restaurantId),
     fetchRequests(restaurantId),
     fetchCalls(restaurantId),
+    fetchPos(restaurantId),
   ]);
   const byId = new Map<string, Order>();
   for (const o of [...reached, ...escalated]) byId.set(o.id, o);
-  return { orders: [...byId.values()], requests, calls };
+  return { orders: [...byId.values()], requests, calls, ...pos };
 }
 
 const PAGE = 1000;
@@ -350,6 +380,39 @@ export async function transitionOrder(args: {
     p_details: {},
   });
   if (error) fail(error);
+}
+
+/** What the pos-send function answered. `body.note` is the line to show staff when it didn't work. */
+export interface PosReply {
+  ok: boolean;
+  httpStatus: number;
+  body: { status?: string; error?: string; note?: string; reason?: string; message?: string; pos?: string; [key: string]: unknown };
+}
+
+export const POS_SEND_URL = `${SUPABASE_URL}/functions/v1/pos-send`;
+
+/**
+ * One POS step, as the signed-in person: "send" (Send to POS), "void" (void the ticket of
+ * an order already cancelled here), "check" (test the link) or "sync" (menu sync).
+ * Never throws: no answer at all comes back as { ok: false } with the hand-entry note.
+ */
+export async function posRequest(action: "send" | "void" | "check" | "sync", restaurantId: string, orderId?: string): Promise<PosReply> {
+  const fallback = "Didn't reach the POS, enter it by hand";
+  try {
+    const { data } = await db().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, httpStatus: 401, body: { error: "signed_out", note: fallback } };
+    const response = await fetch(POS_SEND_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ action, restaurant_id: restaurantId, ...(orderId ? { order_id: orderId } : {}) }),
+    });
+    const body = (await response.json().catch(() => ({}))) as PosReply["body"];
+    const failed = !response.ok || body.status === "failed" || body.pos === "cancel_failed";
+    return { ok: !failed, httpStatus: response.status, body: failed && !body.note && action === "send" ? { ...body, note: fallback } : body };
+  } catch {
+    return { ok: false, httpStatus: 0, body: { error: "network", note: fallback } };
+  }
 }
 
 export async function setRequestStatus(restaurantId: string, requestId: string, status: RequestStatus): Promise<void> {

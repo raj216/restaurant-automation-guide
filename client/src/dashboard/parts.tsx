@@ -8,6 +8,7 @@ import { isStateConflict, setRequestStatus } from "./lib/data";
 import { callerLabel, customerLabel, formatMoney, formatPhone, looksLikeCardNumber, orderCode, orderSummary, telHref } from "./lib/format";
 import { MESSAGE_STATUS, REQUEST_STATUS, TOPIC_LABEL, topicOf } from "./lib/labels";
 import { actionsFor, shouldPulse, waitTone, type OrderAction } from "./lib/orders";
+import { CANCEL_FAILED_NOTE, canSendToPos, posJobFor, posStatusLine, sendResultMessage } from "./lib/pos";
 import { countdown, dayAndTime, formatTime, longDay, minutesSince, relativeAndTime } from "./lib/time";
 import type { GuestRequest, MessageTopic, Order, RequestStatus } from "./lib/types";
 import { AllergyBadge, Button, Icon, OrderStatusPill, Pill, type IconKey } from "./ui";
@@ -58,6 +59,14 @@ export function ReasonDialog({
       await d.moveOrderNow(order, action.to, text);
       showMessage(`${orderCode(order.id)} ${action.kind === "reject" ? "rejected" : "cancelled"}.`);
       onClose();
+      // If it went to the POS, void the ticket there too, so the kitchen doesn't make it. Asked
+      // whenever the restaurant has a POS (the list on screen may be a few seconds old).
+      const job = posJobFor(order, d.data.posJobs);
+      if (d.data.pos && job?.status !== "cancelled") {
+        const voided = await d.voidInPos(order);
+        if (!voided.ok) showMessage(`${orderCode(order.id)}: ${voided.body.note ?? CANCEL_FAILED_NOTE}`, "warn");
+        else if (voided.body.pos === "cancelled") showMessage(`${orderCode(order.id)} was also cancelled in the POS.`);
+      }
     } catch (e) {
       setBusy(false);
       if (isStateConflict(e)) {
@@ -101,22 +110,67 @@ export function ReasonDialog({
   );
 }
 
+/** "Send to POS": one tap, no retyping. The order moves to In POS only if the POS has it. */
+export function SendToPosButton({ order, size, spaced }: { order: Order; size?: "lg"; spaced?: boolean }) {
+  const d = useDashboard();
+  const [busy, setBusy] = useState(false);
+  const send = async () => {
+    if (busy) return; // a second tap while sending does nothing (and the server makes one ticket anyway)
+    setBusy(true);
+    try {
+      const { text, tone } = sendResultMessage(await d.sendToPos(order));
+      showMessage(`${orderCode(order.id)}: ${text}`, tone);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button kind="primary" size={size} className={spaced ? "d-sp" : ""} onClick={() => void send()} disabled={busy}>
+      <Icon name="clipboard" />
+      {busy ? "Sending…" : "Send to POS"}
+    </Button>
+  );
+}
+
+/** The order's POS status: sent, or didn't reach the POS (enter it by hand), and why. */
+export function PosStatus({ order }: { order: Order }) {
+  const d = useDashboard();
+  const line = posStatusLine(posJobFor(order, d.data.posJobs), d.data.pos?.provider);
+  if (!line) return null;
+  return (
+    <div className={`d-posline d-pos-${line.tone}`} role={line.tone === "red" ? "alert" : undefined}>
+      <Icon name={line.tone === "red" ? "alert" : "clipboard"} size="s" />
+      <span>
+        <b>{line.text}</b>
+        {line.detail ? <> · {line.detail}</> : null}
+      </span>
+    </div>
+  );
+}
+
 /** The buttons for an order, by state. Forward steps wait 5 seconds so staff can Undo. */
 export function OrderActions({ order, big }: { order: Order; big?: boolean }) {
   const d = useDashboard();
   const [dialog, setDialog] = useState<OrderAction | null>(null);
   const waiting = d.undo.pending(order.id);
   const actions = actionsFor(order.state);
+  const posSend = canSendToPos(order.state, d.data.pos, posJobFor(order, d.data.posJobs));
   if (actions.length === 0) return null;
   if (waiting) {
     return <span className="d-small d-muted">Saving {waiting.label.toLowerCase()}… tap Undo below to stop it.</span>;
   }
   return (
     <>
+      {posSend ? <SendToPosButton order={order} size={big ? "lg" : undefined} /> : null}
       {actions.map(a =>
         a.kind === "forward" ? (
-          <Button key={a.to} kind="primary" size={big ? "lg" : undefined} onClick={() => d.startStep(order, a.to, a.reason ?? "staff_update", a.label)}>
-            {a.label}
+          <Button
+            key={a.to}
+            kind={posSend ? "secondary" : "primary"}
+            size={big ? "lg" : undefined}
+            onClick={() => d.startStep(order, a.to, a.reason ?? "staff_update", a.label)}
+          >
+            {posSend && a.to === "pos_entered" ? "Entered by hand" : a.label}
           </Button>
         ) : (
           <Button key={a.to} kind={a.kind === "reject" ? "danger" : "secondary"} size={big ? "lg" : undefined} onClick={() => setDialog(a)}>
@@ -142,6 +196,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
   const pulse = state === "pending_staff_review" && !after && shouldPulse(waited);
   const first = actionsFor(order.state).find(a => a.kind === "forward");
   const waiting = d.undo.pending(order.id);
+  const posSend = canSendToPos(state, d.data.pos, posJobFor(order, d.data.posJobs));
 
   return (
     <article className={`d-card${tone !== "normal" ? " d-attn" : ""}${pulse ? " d-pulse" : ""}`}>
@@ -173,6 +228,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
         ) : null}
       </div>
       <p className="d-sum">{orderSummary(order)}</p>
+      <PosStatus order={order} />
       <div className="d-meta">
         <span>
           <b>{formatMoney(order.subtotal_cents, order.currency)}</b> before tax
@@ -199,7 +255,9 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
             Call guest to confirm
           </a>
         ) : null}
-        {first && !waiting ? (
+        {posSend && !waiting ? (
+          <SendToPosButton order={order} size={after ? undefined : "lg"} spaced />
+        ) : first && !waiting ? (
           <Button kind="primary" size={after ? undefined : "lg"} className="d-sp" onClick={() => d.startStep(order, first.to, first.reason ?? "staff_update", first.label)}>
             {first.label}
           </Button>

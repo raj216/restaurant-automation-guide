@@ -21,7 +21,9 @@ import {
   fetchMemberships,
   fetchRestaurants,
   isStateConflict,
+  posRequest,
   transitionOrder,
+  type PosReply,
   updateRestaurant,
   type RestaurantPatch,
 } from "./lib/data";
@@ -72,6 +74,13 @@ interface Dashboard {
   /** Saves right away (Reject, Cancel). */
   moveOrderNow(order: Order, to: OrderState, reason: string): Promise<void>;
   displayState(order: Order): OrderState;
+
+  /** Sends the order to the restaurant's POS as the signed-in person; on success it is "In POS". */
+  sendToPos(order: Order): Promise<PosReply>;
+  /** Voids the POS ticket of an order already cancelled or rejected here. */
+  voidInPos(order: Order): Promise<PosReply>;
+  /** Tests the POS link (and retries voids that failed), or syncs the menu (sold-out items). */
+  posAction(action: "check" | "sync"): Promise<PosReply>;
 }
 
 const Ctx = createContext<Dashboard | null>(null);
@@ -170,6 +179,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const restaurantRef = useRef<Restaurant | null>(null);
   restaurantRef.current = restaurant;
 
+  // An order cancelled or rejected after it went to the POS (by any screen or person) is
+  // voided there automatically, once per order per visit; failures show the red banner.
+  const voidAsked = useRef<Set<string>>(new Set());
+  const voidLeftovers = useCallback((restaurantId: string, next: LiveData) => {
+    if (IN_DEMO || !next.pos) return;
+    for (const job of next.posJobs ?? []) {
+      if (job.status !== "cancel_pending" || voidAsked.current.has(job.order_id)) continue;
+      voidAsked.current.add(job.order_id);
+      void posRequest("void", restaurantId, job.order_id);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     const current = restaurantRef.current;
     if (!current || busy.current) return;
@@ -179,6 +200,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (restaurantRef.current?.id !== current.id) return;
       setData(next);
       setLoaded(true);
+      voidLeftovers(current.id, next);
       setLastUpdated(new Date());
       setOffline(false);
 
@@ -299,6 +321,35 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const sendToPos = useCallback(
+    async (order: Order) => {
+      const reply = await posRequest("send", order.restaurant_id, order.id);
+      await refresh();
+      return reply;
+    },
+    [refresh],
+  );
+
+  const voidInPos = useCallback(
+    async (order: Order) => {
+      const reply = await posRequest("void", order.restaurant_id, order.id);
+      await refresh();
+      return reply;
+    },
+    [refresh],
+  );
+
+  const posAction = useCallback(
+    async (action: "check" | "sync") => {
+      const current = restaurantRef.current;
+      if (!current) return { ok: false, httpStatus: 0, body: { error: "no_restaurant" } };
+      const reply = await posRequest(action, current.id);
+      await refresh();
+      return reply;
+    },
+    [refresh],
+  );
+
   const displayState = useCallback(
     (order: Order): OrderState => undo.pending(order.id)?.to ?? order.state,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -365,6 +416,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     startStep,
     moveOrderNow,
     displayState,
+    sendToPos,
+    voidInPos,
+    posAction,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

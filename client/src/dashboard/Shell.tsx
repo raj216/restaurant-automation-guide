@@ -8,6 +8,7 @@ import { brioStatus } from "./lib/brioStatus";
 import { enableNotifications, notificationsSupported, unlockSound } from "./lib/alerts";
 import { callerLabel, initials, orderCode, plural } from "./lib/format";
 import { needsReview, recentEscalated } from "./lib/orders";
+import { posBanner } from "./lib/pos";
 import { prefs } from "./lib/prefs";
 import { formatNow, formatTime, relative } from "./lib/time";
 import { Button, Icon, useDismiss, type IconKey } from "./ui";
@@ -117,6 +118,17 @@ export function Shell({ children }: { children: ReactNode }) {
             <button type="button" className="d-banner-x" aria-label="Hide this note" onClick={() => setNoteHidden(true)}>
               <Icon name="x" size="s" />
             </button>
+          </div>
+        ) : null}
+        {posBanner(d.data.pos, d.data.posJobs) ? (
+          <div className="d-banner d-posbroken" role="alert">
+            <Icon name="alert" />
+            <span className="d-banner-text">{posBanner(d.data.pos, d.data.posJobs)}</span>
+            {d.isOwner ? (
+              <Link className="d-poslink" href={hrefTo("/settings")}>
+                Check the POS
+              </Link>
+            ) : null}
           </div>
         ) : null}
         {d.offline ? (

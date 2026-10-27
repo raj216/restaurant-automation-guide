@@ -129,6 +129,7 @@ export function countsTowardValue(order: Order): boolean {
 /** Who made a change, in the words staff use. Names aren't stored, so staff are just "Staff". */
 export function actorLabel(event: Pick<OrderEvent, "actor_kind" | "actor_user_id">, currentUserId: string | undefined): string {
   if (event.actor_kind === "agent") return "Brio";
+  if (event.actor_kind === "pos_integration") return "Auto-send";
   if (event.actor_user_id && event.actor_user_id === currentUserId) return "You";
   return "Staff";
 }
