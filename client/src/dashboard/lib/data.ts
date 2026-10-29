@@ -20,6 +20,7 @@ import type {
   Order,
   OrderEvent,
   OrderState,
+  KitchenScreen,
   PosConnection,
   PosJob,
   Restaurant,
@@ -198,22 +199,55 @@ const POS_JOB_COLS = "order_id,status,attempts,last_error,external_order_id,sent
  * set up, or the database doesn't have the POS tables yet), the answer is "no POS": the
  * Send to POS button stays hidden and staff enter orders by hand, as before.
  */
-async function fetchPos(restaurantId: string): Promise<{ pos: PosConnection | null; posJobs: PosJob[] }> {
+async function fetchPos(restaurantId: string): Promise<{ pos: PosConnection | null; posJobs: PosJob[]; kitchenScreens: KitchenScreen[] }> {
+  const none = { pos: null, posJobs: [], kitchenScreens: [] };
   try {
-    const [conn, jobs, auto] = await Promise.all([
+    const [conn, jobs, auto, screens] = await Promise.all([
       db().from("pos_connections").select(POS_COLS).eq("restaurant_id", restaurantId).maybeSingle(),
       db().from("pos_sync_jobs").select(POS_JOB_COLS).eq("restaurant_id", restaurantId).order("updated_at", { ascending: false }).limit(300),
       db().from("restaurants").select("pos_auto_send").eq("id", restaurantId).maybeSingle(),
+      db().from("kitchen_screens").select("screen_id,label,last_seen_at").eq("restaurant_id", restaurantId).order("last_seen_at", { ascending: false }).limit(20),
     ]);
-    if (conn.error || !conn.data) return { pos: null, posJobs: [] };
+    if (conn.error || !conn.data) return none;
     const autoSend = !auto.error && (auto.data as { pos_auto_send?: boolean } | null)?.pos_auto_send === true;
     return {
       pos: { ...(conn.data as Omit<PosConnection, "auto_send">), auto_send: autoSend },
       posJobs: jobs.error ? [] : ((jobs.data ?? []) as PosJob[]),
+      kitchenScreens: screens.error ? [] : ((screens.data ?? []) as KitchenScreen[]),
     };
   } catch {
-    return { pos: null, posJobs: [] };
+    return none;
   }
+}
+
+/**
+ * What the Kitchen screen shows: orders sent to the kitchen or that it has, from the last
+ * 12 hours, and orders cancelled in the last 30 minutes (so a cancel is shown, never silent).
+ */
+export async function fetchKitchenBoard(restaurantId: string): Promise<{ orders: Order[]; jobs: PosJob[] }> {
+  if (IN_DEMO) {
+    const live = demo.demoLiveData();
+    return { orders: live.orders, jobs: live.posJobs ?? [] };
+  }
+  const since = new Date(Date.now() - 12 * 3600_000).toISOString();
+  const recent = new Date(Date.now() - 30 * 60_000).toISOString();
+  const [active, cancelled, jobs] = await Promise.all([
+    db().from("orders").select(ORDER_COLS).eq("restaurant_id", restaurantId).in("state", ["pos_entered", "pos_accepted"]).gte("updated_at", since).limit(200),
+    db().from("orders").select(ORDER_COLS).eq("restaurant_id", restaurantId).in("state", ["cancelled", "rejected"]).gte("updated_at", recent).limit(100),
+    db().from("pos_sync_jobs").select(POS_JOB_COLS).eq("restaurant_id", restaurantId).gte("updated_at", since).limit(300),
+  ]);
+  for (const r of [active, cancelled, jobs]) if (r.error) fail(r.error);
+  return {
+    orders: [...((active.data ?? []) as unknown as Order[]), ...((cancelled.data ?? []) as unknown as Order[])],
+    jobs: (jobs.data ?? []) as PosJob[],
+  };
+}
+
+/** The Kitchen tablet checks in (every 30 seconds while open). */
+export async function pingKitchenScreen(restaurantId: string, screenId: string, label: string | null): Promise<void> {
+  if (IN_DEMO) return;
+  const { error } = await db().rpc("kitchen_screen_ping", { p_restaurant_id: restaurantId, p_screen_id: screenId, p_label: label });
+  if (error) fail(error);
 }
 
 /** Everything the live board polls for, in one go. */

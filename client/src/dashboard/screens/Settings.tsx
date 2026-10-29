@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useDashboard } from "../DashboardContext";
 import { validateClosedDates, validateTransferNumber, validateWindows } from "../lib/brioStatus";
 import { PROVIDER_NAME, cleanError } from "../lib/pos";
+import { screenOnline } from "../lib/kitchen";
+import { Link } from "wouter";
+import { hrefTo } from "../base";
 import { relative } from "../lib/time";
 import type { ClosedDate, DayKey, ShiftWindow } from "../lib/types";
 import { Button, Icon, Pill, Toggle } from "../ui";
@@ -226,6 +229,43 @@ function ConnectedPos() {
     }
   };
 
+  if (pos?.provider === "kitchen_screen") {
+    const screens = d.data.kitchenScreens ?? [];
+    const on = screenOnline(screens, d.now);
+    return (
+      <section className="d-set">
+        <div className="d-row d-wrap">
+          <h3>Kitchen: Kitchen screen</h3>
+          <span className="d-sp">
+            <Pill tone={on ? "green" : "red"}>{on ? "A tablet is on" : "No tablet on"}</Pill>
+          </span>
+        </div>
+        <p className="d-hint">
+          Staff tap "Send to kitchen" on an order in Needs review; it appears on the kitchen tablet with a sound, and the cook taps "Got it". If no tablet is on,
+          orders stay in Needs review and a red banner shows.
+        </p>
+        <p className="d-small d-muted">
+          On the kitchen tablet, sign in with a staff login and open{" "}
+          <Link href={hrefTo("/kitchen")}>
+            <b>Kitchen screen</b>
+          </Link>
+          .
+        </p>
+        {screens.length > 0 ? (
+          <ul className="d-small d-muted" style={{ margin: 0, paddingLeft: 18 }}>
+            {screens.map(s => (
+              <li key={s.screen_id}>
+                {s.label ?? "Kitchen tablet"}: last seen {relative(s.last_seen_at, d.now)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="d-small d-muted">No tablet has opened the Kitchen screen yet.</p>
+        )}
+      </section>
+    );
+  }
+
   if (!pos) {
     return (
       <section className="d-set">
@@ -248,7 +288,7 @@ function ConnectedPos() {
         </span>
       </div>
       <p className="d-hint">
-        Staff tap "Send to POS" on an order in Needs review; the ticket prints in the kitchen with the caller's name, number and any allergy note. If the POS
+        Staff tap "Send to kitchen" on an order in Needs review; the ticket prints in the kitchen with the caller's name, number and any allergy note. If the POS
         doesn't answer, the order stays in Needs review: enter it by hand.
       </p>
       {pos.status === "broken" && pos.last_error ? <div className="d-error" role="alert">{cleanError(pos.last_error)}</div> : null}
@@ -279,7 +319,7 @@ function ConnectedPos() {
           <b>Auto-send simple orders: {pos.auto_send ? "On" : "Off"}</b>
           <p className="d-hint">
             When on, a simple order (no allergy note, during staffed hours, POS working) goes to the POS the moment the caller says yes, without a staff tap.
-            Everything else still waits for "Send to POS". This changes a safety rule, so only CoHost can switch it on, after approval.
+            Everything else still waits for "Send to kitchen". This changes a safety rule, so only CoHost can switch it on, after approval.
           </p>
         </div>
         <span className="d-sp">

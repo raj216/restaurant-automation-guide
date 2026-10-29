@@ -19,8 +19,8 @@ export interface StatusStyle {
 /** The labels from the spec. Nothing says "accepted" before pos_accepted. */
 export const ORDER_STATUS: Partial<Record<OrderState, StatusStyle>> = {
   pending_staff_review: { label: "Needs review", tone: "amber", icon: "clock" },
-  pos_entered: { label: "In POS", tone: "blue", icon: "clipboard" },
-  pos_accepted: { label: "Accepted · in kitchen", tone: "green", icon: "check" },
+  pos_entered: { label: "Sent to kitchen", tone: "blue", icon: "clipboard" },
+  pos_accepted: { label: "Kitchen has it", tone: "green", icon: "check" },
   fulfilled: { label: "Picked up", tone: "gray", icon: "check" },
   rejected: { label: "Rejected", tone: "red", icon: "x" },
   cancelled: { label: "Cancelled", tone: "gray", icon: "x" },
@@ -50,7 +50,7 @@ export function actionsFor(state: OrderState): OrderAction[] {
       ];
     case "pos_entered":
       return [
-        { to: "pos_accepted", label: "Accepted in POS", reason: "staff_accepted_in_pos", kind: "forward" },
+        { to: "pos_accepted", label: "Kitchen has it", reason: "staff_accepted_in_pos", kind: "forward" },
         { to: "rejected", label: "Reject", reason: null, kind: "reject" },
         { to: "cancelled", label: "Cancel", reason: null, kind: "cancel" },
       ];

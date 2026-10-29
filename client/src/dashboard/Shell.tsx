@@ -58,7 +58,13 @@ export function Shell({ children }: { children: ReactNode }) {
   const d = useDashboard();
   const [location] = useLocation();
   const badges = useBadges();
-  const nav = NAV.filter(n => !n.ownerOnly || d.isOwner);
+  const usesKitchenScreen = d.data.pos?.provider === "kitchen_screen" || IN_DEMO;
+  // Last, so the phone's bottom bar keeps its four usual tabs.
+  const nav = [
+    ...NAV.filter(n => !n.ownerOnly || d.isOwner),
+    ...(usesKitchenScreen ? [{ path: "/kitchen", label: "Kitchen screen", short: "Kitchen", icon: "clipboard" as IconKey }] : []),
+  ];
+  const banner = posBanner(d.data.pos, d.data.posJobs, d.data.kitchenScreens, d.now);
   // For the first moments the screen fades and rises in; later screens change quietly.
   const [booting, setBooting] = useState(true);
   const [noteHidden, setNoteHidden] = useState(false);
@@ -120,10 +126,10 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
           </div>
         ) : null}
-        {posBanner(d.data.pos, d.data.posJobs) ? (
+        {banner ? (
           <div className="d-banner d-posbroken" role="alert">
             <Icon name="alert" />
-            <span className="d-banner-text">{posBanner(d.data.pos, d.data.posJobs)}</span>
+            <span className="d-banner-text">{banner}</span>
             {d.isOwner ? (
               <Link className="d-poslink" href={hrefTo("/settings")}>
                 Check the POS

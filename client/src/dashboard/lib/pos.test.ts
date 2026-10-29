@@ -61,7 +61,7 @@ describe("POS status words", () => {
     expect(cleanError("weird")).toBe("Something went wrong with the POS.");
   });
   it("send results become short messages", () => {
-    expect(sendResultMessage({ ok: true, body: { status: "sent" } }).text).toMatch(/In POS/);
+    expect(sendResultMessage({ ok: true, body: { status: "sent" } }).text).toBe("Sent to the kitchen.");
     expect(sendResultMessage({ ok: false, body: { status: "failed", note: SEND_FAILED_NOTE } })).toEqual({ text: SEND_FAILED_NOTE, tone: "warn" });
     expect(sendResultMessage({ ok: false, body: { error: "connection_broken" } }).text).toBe(SEND_FAILED_NOTE);
   });
@@ -73,5 +73,27 @@ describe("the red banner", () => {
     expect(posBanner(conn("connected"), [job("sent")])).toBeNull();
     expect(posBanner(conn("broken"), [])).toMatch(/Clover connection is broken.*enter them in the POS by hand/);
     expect(posBanner(conn("connected"), [job("cancel_failed"), job("cancel_failed", { order_id: "o2" })])).toMatch(/2 cancelled orders/);
+  });
+});
+
+describe("the Kitchen screen on the counter's dashboard", () => {
+  const kds = (status: PosConnection["status"]): PosConnection => ({ ...conn(status), provider: "kitchen_screen" });
+  const now = new Date("2026-10-29T20:16:00Z");
+  const seen = (minsAgo: number) => [{ screen_id: "screen-1", label: null, last_seen_at: new Date(now.getTime() - minsAgo * 60000).toISOString() }];
+  it("shows the red banner when no kitchen tablet is on, even before a send fails", () => {
+    expect(posBanner(kds("connected"), [], seen(1), now)).toBeNull();
+    expect(posBanner(kds("connected"), [], seen(7), now)).toMatch(/No kitchen screen is on/);
+    expect(posBanner(kds("broken"), [], seen(1), now)).toMatch(/No kitchen screen is on/);
+    expect(posBanner(kds("disconnected"), [], [], now)).toBeNull();
+  });
+  it("says 'On the kitchen screen', then reminds the counter if nobody tapped Got it", () => {
+    const sentAt = (m: number) => job("sent", { sent_at: new Date(now.getTime() - m * 60000).toISOString(), external_order_id: "KDS-1" });
+    expect(posStatusLine(sentAt(1), "kitchen_screen", "pos_entered", now)?.text).toBe("On the kitchen screen");
+    expect(posStatusLine(sentAt(4), "kitchen_screen", "pos_entered", now)).toEqual({
+      tone: "amber",
+      text: "Kitchen hasn't tapped Got it · 4 min",
+      detail: "Check the kitchen tablet.",
+    });
+    expect(posStatusLine(job("cancelled", { external_order_id: "KDS-1" }), "kitchen_screen")?.text).toMatch(/CANCELLED on the kitchen screen/);
   });
 });

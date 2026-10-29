@@ -75,7 +75,7 @@ interface Dashboard {
   moveOrderNow(order: Order, to: OrderState, reason: string): Promise<void>;
   displayState(order: Order): OrderState;
 
-  /** Sends the order to the restaurant's POS as the signed-in person; on success it is "In POS". */
+  /** Sends the order to the restaurant's kitchen (POS or Kitchen screen) as the signed-in person. */
   sendToPos(order: Order): Promise<PosReply>;
   /** Voids the POS ticket of an order already cancelled or rejected here. */
   voidInPos(order: Order): Promise<PosReply>;

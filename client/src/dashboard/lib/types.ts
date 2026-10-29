@@ -195,7 +195,7 @@ export interface MenuItem {
   optional_modifiers: ModifierGroup[];
 }
 
-export type PosProvider = "fake" | "clover" | "toast";
+export type PosProvider = "fake" | "clover" | "toast" | "kitchen_screen";
 
 /** The restaurant's link to its POS (Toast, Clover...). Tokens are never sent to the browser. */
 export interface PosConnection {
@@ -236,4 +236,12 @@ export interface LiveData {
   /** The POS link, or null when the restaurant has none (staff enter orders by hand). */
   pos?: PosConnection | null;
   posJobs?: PosJob[];
+  /** Kitchen tablets and when they last checked in (restaurants using the Kitchen screen). */
+  kitchenScreens?: KitchenScreen[];
+}
+
+export interface KitchenScreen {
+  screen_id: string;
+  label: string | null;
+  last_seen_at: string;
 }

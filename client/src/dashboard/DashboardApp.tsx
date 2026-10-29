@@ -8,6 +8,7 @@ import { DashboardProvider, useDashboard } from "./DashboardContext";
 import { BASE, Shell } from "./Shell";
 import Calls from "./screens/Calls";
 import Insights from "./screens/Insights";
+import Kitchen from "./screens/Kitchen";
 import Menu from "./screens/Menu";
 import Messages from "./screens/Messages";
 import Now from "./screens/Now";
@@ -42,12 +43,21 @@ function Screen() {
 
 function Gate() {
   const d = useDashboard();
+  const [location] = useLocation();
   if (d.authState === "loading") {
     // Stay on the dark ground the visitor came from, so nothing flashes.
     return <div className={`cd${d.theme === "dark" || IN_DEMO ? " d-dark" : ""}`} aria-busy="true" />;
   }
   if (d.authState === "signed_out") return <SignIn />;
   if (d.noAccess) return <NoAccess />;
+  // The Kitchen screen fills the tablet: no menu, no top bar.
+  if (location.replace(BASE, "").split("/").filter(Boolean)[0] === "kitchen") {
+    return (
+      <div className={`cd d-dark`}>
+        <Kitchen />
+      </div>
+    );
+  }
   return (
     <Shell>
       <Screen />

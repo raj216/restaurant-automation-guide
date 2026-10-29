@@ -110,7 +110,7 @@ export function ReasonDialog({
   );
 }
 
-/** "Send to POS": one tap, no retyping. The order moves to In POS only if the POS has it. */
+/** "Send to kitchen": one tap, no retyping. The order is "Sent to kitchen" only once the POS or kitchen screen has it. */
 export function SendToPosButton({ order, size, spaced }: { order: Order; size?: "lg"; spaced?: boolean }) {
   const d = useDashboard();
   const [busy, setBusy] = useState(false);
@@ -127,7 +127,7 @@ export function SendToPosButton({ order, size, spaced }: { order: Order; size?: 
   return (
     <Button kind="primary" size={size} className={spaced ? "d-sp" : ""} onClick={() => void send()} disabled={busy}>
       <Icon name="clipboard" />
-      {busy ? "Sending…" : "Send to POS"}
+      {busy ? "Sending…" : "Send to kitchen"}
     </Button>
   );
 }
@@ -135,7 +135,7 @@ export function SendToPosButton({ order, size, spaced }: { order: Order; size?: 
 /** The order's POS status: sent, or didn't reach the POS (enter it by hand), and why. */
 export function PosStatus({ order }: { order: Order }) {
   const d = useDashboard();
-  const line = posStatusLine(posJobFor(order, d.data.posJobs), d.data.pos?.provider);
+  const line = posStatusLine(posJobFor(order, d.data.posJobs), d.data.pos?.provider, d.displayState(order), d.now);
   if (!line) return null;
   return (
     <div className={`d-posline d-pos-${line.tone}`} role={line.tone === "red" ? "alert" : undefined}>

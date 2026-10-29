@@ -556,3 +556,39 @@
   .cd .d-toasts{bottom:74px}
   .cd .d-toast{font-size:14px;padding:10px 12px 10px 14px}
 }
+
+/* ---- The Kitchen screen: a tablet in the kitchen. Dark, big type, made to read from a step away. ---- */
+.d-kds{flex:1 1 auto;min-width:0;height:100%;overflow-y:auto;box-sizing:border-box;padding:20px 24px 28px;background:#15140f;color:#f6f3ee;font-size:18px;display:flex;flex-direction:column;gap:18px}
+.d-kds-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.d-kds-top>b{font-size:24px}
+.d-kds-muted{color:#c4bcad}
+.d-kds-status{margin-left:auto;display:flex;align-items:center;gap:8px;color:#c4bcad;font-size:16px}
+.d-kds-dot{width:10px;height:10px;border-radius:50%;background:#4cc77a}
+.d-kds-dot.d-off{background:#ff6b5e}
+.d-kds-clock{font-size:22px;font-weight:700}
+.d-kds-exit{color:#c4bcad;font-size:15px;text-decoration:underline}
+.d-kds-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start}
+.d-kds-cols>section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.d-kds-cols h2{margin:0;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#c4bcad}
+.d-kds-empty{color:#c4bcad;margin:8px 0}
+.d-kds-ticket{background:#24221c;border:2px solid #3a372e;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.d-kds-ticket.d-kds-new{border-color:#8b74ff}
+.d-kds-ticket.d-kds-late{border-color:#e0a52a}
+.d-kds-ticket.d-kds-cancelled{border-color:#ff6b5e;background:#3a1714}
+.d-kds-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.d-kds-head b{font-size:22px}
+.d-kds-code{font-family:"Geist Mono Variable",ui-monospace,monospace;font-size:20px;font-weight:700}
+.d-kds-age{margin-left:auto;font-weight:700}
+.d-kds-late .d-kds-age{color:#f5c76a}
+.d-kds-allergy{background:#ffffff;color:#9b1c14;border-radius:10px;padding:8px 12px;font-weight:800;font-size:19px}
+.d-kds-cancel{background:#ff6b5e;color:#15140f;border-radius:10px;padding:8px 12px;font-weight:800;font-size:19px}
+.d-kds-items{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:20px;line-height:1.35}
+.d-kds-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.d-kds-btn{margin-left:auto;text-align:center;justify-content:center;min-height:56px;min-width:150px;padding:0 22px;border:0;border-radius:12px;background:#3a372e;color:#f6f3ee;font:inherit;font-size:20px;font-weight:800;cursor:pointer}
+.d-kds-btn.d-kds-go{background:#8b74ff;color:#15140f}
+.d-kds-btn.d-kds-ok{background:#ff6b5e;color:#15140f}
+.d-kds-btn:disabled{opacity:.6}
+.d-kds-start{position:fixed;inset:0;background:rgba(21,20,15,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+.d-kds-start .d-kds-btn{margin-left:0;min-height:72px;font-size:24px}
+.d-kds-start p{color:#c4bcad;max-width:420px}
+@media (max-width:760px){.d-kds-cols{grid-template-columns:minmax(0,1fr)}}
