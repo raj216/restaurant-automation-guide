@@ -242,7 +242,7 @@ export function OrderPanel({ orderId, onClose, sheet }: { orderId: string; onClo
       </div>
 
       <div className="d-pf" style={{ flexWrap: "wrap" }}>
-        <OrderActions order={order} big />
+        <OrderActions order={order} big inPanel />
         <button type="button" className="d-btn d-ghost d-lg d-sp" aria-label="Print slip" onClick={() => setPrinting(true)}>
           <Icon name="printer" />
           <span className="d-hide-phone">Print slip</span>

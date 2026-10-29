@@ -1,4 +1,5 @@
-// Orders: every order that reached the restaurant, with tabs, search and a detail panel.
+// Orders: the history. Every order that reached the restaurant, with filters (same words
+// as the steps), search and a detail panel. Live work happens on Today.
 
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -21,7 +22,7 @@ export default function Orders({ selectedId }: { selectedId: string | null }) {
   const [, navigate] = useLocation();
   const tz = d.restaurant?.timezone ?? "America/New_York";
   const wide = useMedia(WIDE);
-  const [tab, setTab] = useState<OrderTab>("needs_review");
+  const [tab, setTab] = useState<OrderTab>("all");
   const [query, setQuery] = useState("");
   const [range, setRange] = useState<RangeId | "all">("all");
   const [drafts, setDrafts] = useState(false);
@@ -85,6 +86,7 @@ export default function Orders({ selectedId }: { selectedId: string | null }) {
   return (
     <main className="d-content d-col-flow">
       <PageHeader title="Orders" />
+      <p className="d-muted" style={{ margin: "-8px 0 0" }}>Every order that reached you. Live work happens on Today.</p>
       <div className="d-split" style={{ flex: 1 }}>
         <div className="d-list-col">
           <div className="d-row d-wrap">
@@ -102,7 +104,7 @@ export default function Orders({ selectedId }: { selectedId: string | null }) {
                   }}
                 >
                   {t.label}
-                  {t.id !== "all" && counts[t.id] > 0 ? <span className="d-n">{counts[t.id]}</span> : null}
+                  {counts[t.id] > 0 ? <span className="d-n">{counts[t.id]}</span> : null}
                 </button>
               ))}
             </div>

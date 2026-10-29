@@ -1,55 +1,45 @@
-// Now: the live board. One glance tells the host what needs doing.
+// Today: the one live board. Orders move left to right through three lanes,
+//   To check → In the kitchen → Picked up,
+// with everyone to call back on the side, and one sentence from Brio on top saying what
+// to do first. Each order lives here and nowhere else live; Orders is the history.
 
 import { useMemo, useState } from "react";
+import { Link } from "wouter";
 import { useDashboard } from "../DashboardContext";
-import { callTime } from "../lib/labels";
-import { isLowPriorityTopic, TOPIC_LABEL, TOPIC_ORDER, topicOf } from "../lib/labels";
+import { BASE } from "../Shell";
 import { computeInsights } from "../lib/insights";
-import { needsReview, recentEscalated, recentInProgress, sortNewestFirst, sortOldestFirst } from "../lib/orders";
-import { prefs } from "../lib/prefs";
-import { orderCode, telHref } from "../lib/format";
-import { formatTime, relativeAndTime, relative } from "../lib/time";
-import { Button, Empty, Icon, OrderStatusPill, SectionHeader, Skeletons } from "../ui";
-import { Collapsible, escalatedCaller, MessageCard, ReservationCard, ReviewCard, TOPIC_ICON } from "../parts";
-import type { GuestRequest, MessageTopic } from "../lib/types";
+import { needsReview, recentInProgress, sortOldestFirst } from "../lib/orders";
+import { minutesSince } from "../lib/time";
+import { brioLine } from "../lib/today";
+import { ReviewCard } from "../parts";
+import { Empty, Skeletons } from "../ui";
+import { CallbackRow, useCallbacks } from "./Callbacks";
+
+type Lane = "check" | "kitchen" | "callback";
 
 export default function Now() {
   const d = useDashboard();
   const tz = d.restaurant?.timezone ?? "America/New_York";
-  const [dismissed, setDismissed] = useState(() => prefs.getDismissed());
+  const [lane, setLane] = useState<Lane>("check");
 
-  const review = useMemo(() => sortOldestFirst(d.data.orders.filter(needsReview)), [d.data.orders]);
-  // Orders staff are working on stay here until they're picked up (last 12 hours).
-  const inProgress = useMemo(() => sortOldestFirst(d.data.orders.filter(o => recentInProgress(o, d.now))), [d.data.orders, d.now]);
-  const escalated = useMemo(
-    () => sortNewestFirst(d.data.orders.filter(o => recentEscalated(o, d.now) && !dismissed.has(o.id))),
-    [d.data.orders, d.now, dismissed],
+  const withState = (o: (typeof d.data.orders)[number]) => ({ ...o, state: d.displayState(o) });
+  const check = useMemo(() => sortOldestFirst(d.data.orders.map(withState).filter(needsReview)), [d.data.orders, d.pending]); // eslint-disable-line react-hooks/exhaustive-deps
+  const kitchen = useMemo(
+    () => sortOldestFirst(d.data.orders.map(withState).filter(o => recentInProgress(o, d.now))),
+    [d.data.orders, d.now, d.pending], // eslint-disable-line react-hooks/exhaustive-deps
   );
-  const reservations = useMemo(
-    () =>
-      d.data.requests
-        .filter(r => r.kind === "reservation" && r.status === "pending_staff_review")
-        .sort((a, b) => new Date(a.requested_time ?? a.created_at).getTime() - new Date(b.requested_time ?? b.created_at).getTime()),
-    [d.data.requests],
+  const pickedToday = useMemo(() => computeInsights(d.data, "today", d.now, tz), [d.data, d.now, tz]);
+  const pickedUpCount = useMemo(
+    () => d.data.orders.filter(o => d.displayState(o) === "fulfilled" && d.now.getTime() - new Date(o.updated_at).getTime() < 12 * 3600_000).length,
+    [d],
   );
-  const messages = useMemo(() => d.data.requests.filter(r => r.kind === "callback" && r.status === "pending_staff_review"), [d.data.requests]);
-  const byTopic = useMemo(() => {
-    const groups = new Map<MessageTopic, GuestRequest[]>();
-    for (const m of sortNewestFirst(messages)) {
-      const t = topicOf(m);
-      groups.set(t, [...(groups.get(t) ?? []), m]);
-    }
-    return TOPIC_ORDER.filter(t => groups.has(t)).map(t => ({ topic: t, items: groups.get(t)! }));
-  }, [messages]);
-
-  const today = useMemo(() => computeInsights(d.data, "today", d.now, tz), [d.data, d.now, tz]);
-  const everythingClear = review.length + inProgress.length + escalated.length + reservations.length + messages.length === 0;
-  const lastCall = useMemo(() => [...d.data.calls].filter(c => c.call_type !== "web_call").sort((a, b) => new Date(callTime(b)).getTime() - new Date(callTime(a)).getTime())[0], [d.data.calls]);
+  const { items: callbacks, dismiss } = useCallbacks(true);
+  const line = brioLine({ check, kitchenCount: kitchen.length, callbacks, minutesWaited: o => minutesSince(o.created_at, d.now) });
 
   if (!d.loaded && !d.offline) {
     return (
       <main className="d-content">
-        <div className="d-now-grid" style={{ width: "100%" }}>
+        <div className="d-today" style={{ width: "100%" }}>
           <Skeletons count={3} />
           <Skeletons count={3} />
         </div>
@@ -58,107 +48,83 @@ export default function Now() {
   }
 
   return (
-    <main className="d-content">
-      <div className="d-now-grid">
-        <div className="d-col">
-          <SectionHeader title="Orders waiting for review" count={review.length} />
-          {review.length === 0 ? <Empty title="No orders waiting">Orders Brio takes will show up here the moment they come in.</Empty> : null}
-          {review.map(o => (
-            <ReviewCard key={o.id} order={o} />
-          ))}
-
-          {inProgress.length > 0 ? (
-            <>
-              <SectionHeader title="In progress" count={inProgress.length} />
-              {inProgress.map(o => (
-                <ReviewCard key={o.id} order={o} inProgress />
-              ))}
-            </>
-          ) : null}
-
-          {escalated.length > 0 ? (
-            <>
-              <SectionHeader title="Needs a person" count={escalated.length} />
-              {escalated.map(o => {
-                const who = escalatedCaller(o, d.data.calls);
-                const number = o.customer_phone ?? d.data.calls.find(c => c.call_id === o.call_id)?.from_number ?? null;
-                return (
-                  <article className="d-card" key={o.id}>
-                    <div className="d-row d-wrap">
-                      <span className="d-code">{orderCode(o.id)}</span>
-                      <OrderStatusPill state={o.state} />
-                      <span className="d-sp d-small d-muted">{relativeAndTime(o.created_at, d.now, tz)}</span>
-                    </div>
-                    <h3 className="d-name d-s">{who}</h3>
-                    <p className="d-small d-muted">Brio couldn't finish this call. The guest may be waiting for a call back.</p>
-                    <div className="d-row d-wrap">
-                      {number ? (
-                        <a className="d-btn d-primary d-sm" href={telHref(number)}>
-                          <Icon name="phone" />
-                          Call back
-                        </a>
-                      ) : null}
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => setDismissed(prefs.addDismissed(o.id))}
-                      >
-                        Dismiss
-                      </Button>
-                      <span className="d-sp d-small d-faint">Hides on this device only</span>
-                    </div>
-                  </article>
-                );
-              })}
-            </>
-          ) : null}
-        </div>
-
-        <div className="d-col">
-          <SectionHeader title="Reservation requests" count={reservations.length} />
-          {reservations.length === 0 ? <Empty title="No requests to confirm" /> : null}
-          {reservations.map(r => (
-            <ReservationCard key={r.id} request={r} />
-          ))}
-
-          <SectionHeader title="Messages to handle" count={messages.length} />
-          {messages.length === 0 ? <Empty title="No messages" /> : null}
-          {byTopic.map(({ topic, items }) =>
-            isLowPriorityTopic(topic) ? (
-              <Collapsible key={topic} title={TOPIC_LABEL[topic]} count={items.length} icon={TOPIC_ICON[topic]}>
-                {items.map(m => (
-                  <MessageCard key={m.id} request={m} compact />
-                ))}
-              </Collapsible>
-            ) : (
-              items.map(m => <MessageCard key={m.id} request={m} />)
-            ),
-          )}
-
-          <SectionHeader title="Brio today" />
-          <div className="d-card" style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <div>
-              <div className="d-big">{today.callsAnswered}</div>
-              <div className="d-small d-muted">calls answered</div>
-            </div>
-            <div>
-              <div className="d-big">{today.ordersSent}</div>
-              <div className="d-small d-muted">orders sent for review</div>
-            </div>
-            <div>
-              <div className="d-big">{today.spamBlocked}</div>
-              <div className="d-small d-muted">spam {today.spamBlocked === 1 ? "call" : "calls"} blocked</div>
-            </div>
-          </div>
-        </div>
+    <main className="d-content d-col-flow">
+      <div className="d-brio" role="status">
+        <span className="d-brio-dot" aria-hidden="true">
+          B
+        </span>
+        <span>
+          <b>Brio:</b> {line}
+        </span>
       </div>
 
-      {everythingClear ? (
-        <div className="d-empty d-card" style={{ width: "100%" }}>
-          <h3>All caught up. Brio is answering calls.</h3>
-          <p>{lastCall ? `Last call ${relative(callTime(lastCall), d.now)} · ${formatTime(callTime(lastCall), tz)}.` : "No calls yet."}</p>
-        </div>
-      ) : null}
+      <div className="d-lane-tabs" role="tablist" aria-label="Lanes">
+        <button type="button" role="tab" aria-selected={lane === "check"} className={lane === "check" ? "d-on" : ""} onClick={() => setLane("check")}>
+          To check · {check.length}
+        </button>
+        <button type="button" role="tab" aria-selected={lane === "kitchen"} className={lane === "kitchen" ? "d-on" : ""} onClick={() => setLane("kitchen")}>
+          Kitchen · {kitchen.length}
+        </button>
+        <button type="button" role="tab" aria-selected={lane === "callback"} className={lane === "callback" ? "d-on" : ""} onClick={() => setLane("callback")}>
+          Call back · {callbacks.length}
+        </button>
+      </div>
+
+      <div className="d-today" data-lane={lane}>
+        <section className="d-lane d-lane-check" aria-label="To check">
+          <h2 className="d-lane-h">
+            To check <span className="d-lane-n d-n-amber">{check.length}</span>
+            <span className="d-sp d-small d-muted">Oldest first</span>
+          </h2>
+          {check.length === 0 ? <Empty title="Nothing to check">New orders from Brio land here.</Empty> : null}
+          {check.map(o => (
+            <ReviewCard key={o.id} order={o} />
+          ))}
+        </section>
+
+        <section className="d-lane d-lane-kitchen" aria-label="In the kitchen">
+          <h2 className="d-lane-h">
+            In the kitchen <span className="d-lane-n d-n-blue">{kitchen.length}</span>
+          </h2>
+          {kitchen.length === 0 ? <Empty title="Nothing in the kitchen" /> : null}
+          {kitchen.map(o => (
+            <ReviewCard key={o.id} order={o} inProgress />
+          ))}
+          <Link href={`${BASE}/orders`} className="d-picked">
+            <span>Picked up today</span>
+            <span>{pickedUpCount} ›</span>
+          </Link>
+        </section>
+
+        <aside className="d-lane d-lane-callback" aria-label="Call back">
+          <h2 className="d-lane-h">
+            Call back <span className="d-lane-n d-n-purple">{callbacks.length}</span>
+            <Link href={`${BASE}/callbacks`} className="d-sp d-small d-muted">
+              See all
+            </Link>
+          </h2>
+          {callbacks.length === 0 ? <Empty title="Nobody to call back" /> : null}
+          <div className="d-cb-list">
+            {callbacks.map(item => (
+              <CallbackRow key={item.id} item={item} onDismiss={dismiss} />
+            ))}
+          </div>
+          <div className="d-stats">
+            <div>
+              <b>{pickedToday.callsAnswered}</b>
+              <span>calls answered</span>
+            </div>
+            <div>
+              <b>{pickedToday.ordersSent}</b>
+              <span>orders</span>
+            </div>
+            <div>
+              <b>{pickedToday.spamBlocked}</b>
+              <span>spam blocked</span>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }

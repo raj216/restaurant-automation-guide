@@ -47,10 +47,15 @@ describe("orders", () => {
     expect(actionsFor("pos_accepted").map(a => a.to)).toEqual(["fulfilled", "cancelled"]);
     expect(actionsFor("fulfilled")).toEqual([]);
   });
-  it("sorts orders into tabs", () => {
-    const o = { state: "rejected" } as Order;
-    expect(inTab(o, "problems")).toBe(true);
-    expect(inTab(o, "done")).toBe(false);
+  it("sorts orders into the history filters, with the same words as the steps", () => {
+    const o = (state: Order["state"]) => ({ state }) as Order;
+    expect(inTab(o("rejected"), "cancelled")).toBe(true); // rejected and cancelled both read "Cancelled"
+    expect(inTab(o("cancelled"), "cancelled")).toBe(true);
+    expect(inTab(o("rejected"), "picked_up")).toBe(false);
+    expect(inTab(o("pos_entered"), "in_kitchen")).toBe(true);
+    expect(inTab(o("pos_accepted"), "in_kitchen")).toBe(true);
+    expect(inTab(o("escalated"), "all")).toBe(true);
+    expect(inTab(o("escalated"), "cancelled")).toBe(false); // a call to return is not a cancellation
   });
   it("keeps orders staff are working on from the last 12 hours on the live board", () => {
     const now = new Date("2026-10-21T18:00:00Z");

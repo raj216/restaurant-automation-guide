@@ -1,9 +1,10 @@
 // Cards and dialogs shared by several screens.
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { useDashboard } from "./DashboardContext";
 import { BASE } from "./Shell";
+import { hrefTo } from "./base";
 import { isStateConflict, setRequestStatus } from "./lib/data";
 import { callerLabel, customerLabel, formatMoney, formatPhone, looksLikeCardNumber, orderCode, orderSummary, telHref } from "./lib/format";
 import { MESSAGE_STATUS, REQUEST_STATUS, TOPIC_LABEL, topicOf } from "./lib/labels";
@@ -11,7 +12,8 @@ import { actionsFor, shouldPulse, waitTone, type OrderAction } from "./lib/order
 import { CANCEL_FAILED_NOTE, canSendToPos, posJobFor, posStatusLine, sendResultMessage } from "./lib/pos";
 import { countdown, dayAndTime, formatTime, longDay, minutesSince, relativeAndTime } from "./lib/time";
 import type { GuestRequest, MessageTopic, Order, RequestStatus } from "./lib/types";
-import { AllergyBadge, Button, Icon, OrderStatusPill, Pill, type IconKey } from "./ui";
+import { AllergyBadge, Button, Icon, OrderStatusPill, Pill, useDismiss, type IconKey } from "./ui";
+import { kitchenStep, whyItWaits } from "./lib/today";
 import { showMessage } from "./Toasts";
 
 export function PhoneLink({ number, label }: { number: string | null | undefined; label?: string }) {
@@ -110,8 +112,8 @@ export function ReasonDialog({
   );
 }
 
-/** "Send to kitchen": one tap, no retyping. The order is "Sent to kitchen" only once the POS or kitchen screen has it. */
-export function SendToPosButton({ order, size, spaced }: { order: Order; size?: "lg"; spaced?: boolean }) {
+/** Sends an order to the kitchen (POS or Kitchen screen) and says how it went. */
+export function useSendToKitchen(order: Order) {
   const d = useDashboard();
   const [busy, setBusy] = useState(false);
   const send = async () => {
@@ -124,15 +126,20 @@ export function SendToPosButton({ order, size, spaced }: { order: Order; size?: 
       setBusy(false);
     }
   };
+  return { send, busy };
+}
+
+/** "Send to kitchen": one tap, no retyping. The order is "In the kitchen" only once the POS or kitchen screen has it. */
+export function SendToPosButton({ order, size, spaced }: { order: Order; size?: "lg"; spaced?: boolean }) {
+  const { send, busy } = useSendToKitchen(order);
   return (
-    <Button kind="primary" size={size} className={spaced ? "d-sp" : ""} onClick={() => void send()} disabled={busy}>
-      <Icon name="clipboard" />
+    <Button kind="primary" size={size} grow className={spaced ? "d-sp" : ""} onClick={() => void send()} disabled={busy}>
       {busy ? "Sending…" : "Send to kitchen"}
     </Button>
   );
 }
 
-/** The order's POS status: sent, or didn't reach the POS (enter it by hand), and why. */
+/** The order's kitchen status: sent, or didn't reach the kitchen (enter it by hand), and why. */
 export function PosStatus({ order }: { order: Order }) {
   const d = useDashboard();
   const line = posStatusLine(posJobFor(order, d.data.posJobs), d.data.pos?.provider, d.displayState(order), d.now);
@@ -148,43 +155,151 @@ export function PosStatus({ order }: { order: Order }) {
   );
 }
 
-/** The buttons for an order, by state. Forward steps wait 5 seconds so staff can Undo. */
-export function OrderActions({ order, big }: { order: Order; big?: boolean }) {
-  const d = useDashboard();
-  const [dialog, setDialog] = useState<OrderAction | null>(null);
-  const waiting = d.undo.pending(order.id);
-  const actions = actionsFor(order.state);
-  const posSend = canSendToPos(order.state, d.data.pos, posJobFor(order, d.data.posJobs));
-  if (actions.length === 0) return null;
-  if (waiting) {
-    return <span className="d-small d-muted">Saving {waiting.label.toLowerCase()}… tap Undo below to stop it.</span>;
-  }
+export interface MenuItem {
+  label: string;
+  onSelect?: () => void;
+  href?: string;
+  danger?: boolean;
+}
+
+/** The "⋯" button: the less common actions, out of the way but one tap from anywhere. */
+export function MoreMenu({ items, size }: { items: MenuItem[]; size?: "lg" }) {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  const ref = useDismiss(open, close);
+  if (items.length === 0) return null;
   return (
-    <>
-      {posSend ? <SendToPosButton order={order} size={big ? "lg" : undefined} /> : null}
-      {actions.map(a =>
-        a.kind === "forward" ? (
-          <Button
-            key={a.to}
-            kind={posSend ? "secondary" : "primary"}
-            size={big ? "lg" : undefined}
-            onClick={() => d.startStep(order, a.to, a.reason ?? "staff_update", a.label)}
-          >
-            {posSend && a.to === "pos_entered" ? "Entered by hand" : a.label}
-          </Button>
-        ) : (
-          <Button key={a.to} kind={a.kind === "reject" ? "danger" : "secondary"} size={big ? "lg" : undefined} onClick={() => setDialog(a)}>
-            {a.label}
-          </Button>
-        ),
-      )}
-      {dialog ? <ReasonDialog order={order} action={dialog} onClose={() => setDialog(null)} /> : null}
-    </>
+    <div className="d-more" ref={ref}>
+      <button
+        type="button"
+        className={`d-btn d-secondary d-more-btn${size === "lg" ? " d-lg" : ""}`}
+        aria-label="More actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.9" fill="currentColor" />
+          <circle cx="12" cy="12" r="1.9" fill="currentColor" />
+          <circle cx="19" cy="12" r="1.9" fill="currentColor" />
+        </svg>
+      </button>
+      {open ? (
+        <div className="d-omenu" role="menu">
+          {items.map(item =>
+            item.href ? (
+              <a key={item.label} role="menuitem" className={`d-menu-item${item.danger ? " d-danger" : ""}`} href={item.href} onClick={close}>
+                {item.label}
+              </a>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                className={`d-menu-item${item.danger ? " d-danger" : ""}`}
+                onClick={() => {
+                  close();
+                  item.onSelect?.();
+                }}
+              >
+                {item.label}
+              </button>
+            ),
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-/** An order waiting for review, as it appears on the live board. */
-/** An order card with its next step. `inProgress`: already with staff, so no waiting timer or alert colors. */
+const REJECT: OrderAction = { to: "rejected", label: "Can't make it (reject)", reason: null, kind: "reject" };
+const CANCEL: OrderAction = { to: "cancelled", label: "Guest cancelled", reason: null, kind: "cancel" };
+
+/**
+ * One big button for the step the order is at, and everything else behind "⋯".
+ *   To check        Send to kitchen (or Entered in POS without a kitchen link; Call guest for after-hours)
+ *   In the kitchen  Picked up
+ *   Call the guest  Call back
+ */
+export function OrderActions({ order, big, inPanel }: { order: Order; big?: boolean; inPanel?: boolean }) {
+  const d = useDashboard();
+  const [dialog, setDialog] = useState<OrderAction | null>(null);
+  const kitchen = useSendToKitchen(order);
+  const waiting = d.undo.pending(order.id);
+  const size = big ? "lg" : undefined;
+  if (waiting) {
+    return <span className="d-small d-muted">Saving {waiting.label.toLowerCase()}… tap Undo below to stop it.</span>;
+  }
+  const posSend = canSendToPos(order.state, d.data.pos, posJobFor(order, d.data.posJobs));
+  const after = order.intake_mode === "after_hours_request";
+  const phone = order.customer_phone ? telHref(order.customer_phone) : null;
+  const first = (order.customer_name ?? "the guest").split(" ")[0];
+  const enterByHand = () => d.startStep(order, "pos_entered", "staff_entered_in_pos", "Entered in POS");
+  const open: MenuItem[] = inPanel ? [] : [{ label: "Open details", href: hrefTo(`/orders/${order.id}`) }];
+  const callItem: MenuItem[] = phone ? [{ label: `Call ${first}`, href: phone }] : [];
+
+  let primary: ReactNode = null;
+  let menu: MenuItem[] = [];
+  if (order.state === "pending_staff_review") {
+    const sendItem: MenuItem = posSend ? { label: "Send to kitchen", onSelect: () => void kitchen.send() } : { label: "Entered in POS", onSelect: enterByHand };
+    if (after && phone) {
+      primary = (
+        <a className={`d-btn d-primary d-grow${big ? " d-lg" : ""}`} href={phone}>
+          <Icon name="phone" />
+          Call guest to confirm
+        </a>
+      );
+      menu = [sendItem, ...(posSend ? [{ label: "Entered in POS by hand", onSelect: enterByHand }] : []), ...open];
+    } else {
+      primary = posSend ? (
+        <SendToPosButton order={order} size={size} />
+      ) : (
+        <Button kind="primary" size={size} grow onClick={enterByHand}>
+          Entered in POS
+        </Button>
+      );
+      menu = [...(posSend ? [{ label: "Entered in POS by hand", onSelect: enterByHand }] : []), ...callItem, ...open];
+    }
+    menu = [...menu, { label: `${REJECT.label}…`, onSelect: () => setDialog(REJECT), danger: true }, { label: `${CANCEL.label}…`, onSelect: () => setDialog(CANCEL), danger: true }];
+  } else if (order.state === "pos_entered" || order.state === "pos_accepted") {
+    primary = (
+      <Button kind="primary" size={size} grow onClick={() => d.startPickedUp(order)}>
+        Picked up
+      </Button>
+    );
+    const kitchenHasIt: MenuItem[] =
+      order.state === "pos_entered" && d.data.pos?.provider !== "kitchen_screen"
+        ? [{ label: "Kitchen has it", onSelect: () => d.startStep(order, "pos_accepted", "staff_accepted_in_pos", "Kitchen has it") }]
+        : [];
+    menu = [
+      ...kitchenHasIt,
+      ...callItem,
+      ...open,
+      ...(order.state === "pos_entered" ? [{ label: `${REJECT.label}…`, onSelect: () => setDialog(REJECT), danger: true }] : []),
+      { label: `${CANCEL.label}…`, onSelect: () => setDialog(CANCEL), danger: true },
+    ];
+  } else if (order.state === "escalated" && phone) {
+    primary = (
+      <a className={`d-btn d-primary d-grow${big ? " d-lg" : ""}`} href={phone}>
+        <Icon name="phone" />
+        Call back
+      </a>
+    );
+    menu = open;
+  } else {
+    menu = open;
+    if (inPanel) return null;
+  }
+  return (
+    <div className="d-actions">
+      {primary}
+      <MoreMenu items={menu} size={size} />
+      {dialog ? <ReasonDialog order={order} action={dialog} onClose={() => setDialog(null)} /> : null}
+    </div>
+  );
+}
+
+/** An order on the Today board: what it is, why it waits (To check), and one big button. */
 export function ReviewCard({ order, inProgress = false }: { order: Order; inProgress?: boolean }) {
   const d = useDashboard();
   const tz = d.restaurant?.timezone ?? "America/New_York";
@@ -194,80 +309,52 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
   const after = order.intake_mode === "after_hours_request";
   const deadline = order.staff_review_deadline ? countdown(order.staff_review_deadline, d.now) : null;
   const pulse = state === "pending_staff_review" && !after && shouldPulse(waited);
-  const first = actionsFor(order.state).find(a => a.kind === "forward");
-  const waiting = d.undo.pending(order.id);
-  const posSend = canSendToPos(state, d.data.pos, posJobFor(order, d.data.posJobs));
+  const step = kitchenStep(state);
+  const pickup = after && order.requested_pickup_time
+    ? dayAndTime(order.requested_pickup_time, d.now, tz)
+    : order.requested_pickup_time
+      ? formatTime(order.requested_pickup_time, tz)
+      : "ASAP";
 
   return (
-    <article className={`d-card${tone !== "normal" ? " d-attn" : ""}${pulse ? " d-pulse" : ""}`}>
+    <article className={`d-card d-ocard${tone !== "normal" ? " d-attn" : ""}${pulse ? " d-pulse" : ""}`}>
       <div className="d-row d-wrap">
         <Link href={`${BASE}/orders/${order.id}`} className="d-code">{orderCode(order.id)}</Link>
-        <OrderStatusPill state={state} />
+        {step ? <span className={`d-step${step === "Sent" ? "" : " d-step-has"}`}>{step}</span> : null}
         {after ? (
           <Pill tone="purple" icon="moon">
-            After-hours request
+            Request for later
           </Pill>
         ) : null}
-        {inProgress ? (
-          <span className="d-sp d-small d-muted">Ordered {formatTime(order.created_at, tz)}</span>
-        ) : (
-          <span className={`d-sp d-pill ${tone === "red" ? "d-p-red" : tone === "amber" ? "d-p-amber" : "d-p-gray"}`}>
-            <Icon name="clock" />
-            Waiting {waited < 1 ? "<1" : waited} min<span className="d-hide-phone"> · {formatTime(order.created_at, tz)}</span>
-          </span>
-        )}
-      </div>
-      <div className="d-row d-namerow">
-        <h3 className="d-name">
-          <Link href={`${BASE}/orders/${order.id}`}>{customerLabel(order)}</Link>
-        </h3>
-        {order.allergy_note ? (
-          <span className="d-sp">
-            <AllergyBadge note={order.allergy_note} />
-          </span>
-        ) : null}
-      </div>
-      <p className="d-sum">{orderSummary(order)}</p>
-      <PosStatus order={order} />
-      <div className="d-meta">
-        <span>
-          <b>{formatMoney(order.subtotal_cents, order.currency)}</b> before tax
+        <span className={`d-sp d-wait d-wait-${tone}`}>
+          {inProgress ? formatTime(order.created_at, tz) : waited < 1 ? "Just now" : `Waiting ${waited} min`}
         </span>
-        {after && order.requested_pickup_time ? (
-          <span>
-            Requested for <b>{dayAndTime(order.requested_pickup_time, d.now, tz)}</b>
-          </span>
-        ) : (
-          <span>
-            Pickup: <b>{order.requested_pickup_time ? formatTime(order.requested_pickup_time, tz) : "As soon as possible"}</b>
-          </span>
-        )}
+      </div>
+      <h3 className="d-name">
+        <Link href={`${BASE}/orders/${order.id}`}>{customerLabel(order)}</Link>
+      </h3>
+      {order.allergy_note ? (
+        <div>
+          <AllergyBadge note={order.allergy_note} />
+        </div>
+      ) : null}
+      <p className="d-sum">{orderSummary(order)}</p>
+      <p className="d-small d-muted" style={{ margin: 0 }}>
+        <b style={{ color: "var(--text)" }}>{formatMoney(order.subtotal_cents, order.currency)}</b> · Pickup {pickup}
         {after && order.staff_review_deadline && deadline ? (
-          <span style={deadline.overdue ? { color: "var(--red-fg)", fontWeight: 700 } : undefined}>
-            Review by <b style={{ color: "inherit" }}>{formatTime(order.staff_review_deadline, tz)}</b> · {deadline.text}
+          <span style={deadline.overdue ? { color: "var(--red-fg)", fontWeight: 700 } : undefined}> · confirm by {formatTime(order.staff_review_deadline, tz)}</span>
+        ) : null}
+      </p>
+      <PosStatus order={order} />
+      {state === "pending_staff_review" ? (
+        <div className="d-why">
+          <Icon name="info" size="s" />
+          <span>
+            <b>Why it waits for you:</b> {whyItWaits(order)}
           </span>
-        ) : null}
-      </div>
-      <div className="d-row d-wrap">
-        {after && order.customer_phone ? (
-          <a className="d-btn d-secondary" href={telHref(order.customer_phone)}>
-            <Icon name="phone" />
-            Call guest to confirm
-          </a>
-        ) : null}
-        {posSend && !waiting ? (
-          <SendToPosButton order={order} size={after ? undefined : "lg"} spaced />
-        ) : first && !waiting ? (
-          <Button kind="primary" size={after ? undefined : "lg"} className="d-sp" onClick={() => d.startStep(order, first.to, first.reason ?? "staff_update", first.label)}>
-            {first.label}
-          </Button>
-        ) : waiting ? (
-          <span className="d-sp d-small d-muted">Saving… Undo is at the bottom of the screen.</span>
-        ) : null}
-        <Link href={`${BASE}/orders/${order.id}`} className="d-btn d-ghost d-sm">
-          Open
-        </Link>
-      </div>
+        </div>
+      ) : null}
+      <OrderActions order={order} big={!inProgress && !after} />
     </article>
   );
 }

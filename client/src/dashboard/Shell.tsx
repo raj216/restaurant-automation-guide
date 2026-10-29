@@ -25,11 +25,11 @@ interface NavItem {
   ownerOnly?: boolean;
 }
 
+// One live board (Today), the history (Orders), and one list of people to phone (Call back).
 const NAV: NavItem[] = [
-  { path: "", label: "Now", icon: "home" },
+  { path: "", label: "Today", icon: "home" },
   { path: "/orders", label: "Orders", icon: "orders" },
-  { path: "/reservations", label: "Reservations", short: "Requests", icon: "calendar" },
-  { path: "/messages", label: "Messages", icon: "message" },
+  { path: "/callbacks", label: "Call back", icon: "message" },
   { path: "/calls", label: "Calls", icon: "phone" },
   { path: "/insights", label: "Insights", icon: "chart" },
   { path: "/menu", label: "Menu", icon: "book" },
@@ -50,7 +50,15 @@ export function useBadges() {
     const escalated = data.orders.filter(o => o.state === "escalated").length;
     const reservations = data.requests.filter(r => r.kind === "reservation" && r.status === "pending_staff_review").length;
     const messages = data.requests.filter(r => r.kind === "callback" && r.status === "pending_staff_review").length;
-    return { orders: orders + escalated, reviewing: orders, reservations, messages, now: orders + escalated + reservations + messages };
+    const recentEscalations = data.orders.filter(o => recentEscalated(o, new Date())).length;
+    return {
+      orders: orders + escalated,
+      reviewing: orders,
+      reservations,
+      messages,
+      callbacks: reservations + messages + recentEscalations,
+      now: orders + reservations + messages + recentEscalations,
+    };
   }, [data, displayState]);
 }
 
@@ -58,7 +66,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const d = useDashboard();
   const [location] = useLocation();
   const badges = useBadges();
-  const usesKitchenScreen = d.data.pos?.provider === "kitchen_screen" || IN_DEMO;
+  // The kitchen tablet's page is set up once from Settings; only the example dashboard lists it.
+  const usesKitchenScreen = IN_DEMO;
   // Last, so the phone's bottom bar keeps its four usual tabs.
   const nav = [
     ...NAV.filter(n => !n.ownerOnly || d.isOwner),
@@ -73,7 +82,7 @@ export function Shell({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, []);
   const countFor = (path: string) =>
-    path === "" ? badges.now : path === "/orders" ? badges.orders : path === "/reservations" ? badges.reservations : path === "/messages" ? badges.messages : 0;
+    path === "" ? badges.reviewing : path === "/callbacks" ? badges.callbacks : 0;
 
   return (
     <div className={`cd${d.theme === "dark" ? " d-dark" : ""}${booting ? " d-boot" : ""}`} onPointerDown={unlockSound}>

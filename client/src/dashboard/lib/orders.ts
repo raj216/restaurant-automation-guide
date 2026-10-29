@@ -16,15 +16,20 @@ export interface StatusStyle {
   icon: IconName;
 }
 
-/** The labels from the spec. Nothing says "accepted" before pos_accepted. */
+/**
+ * One word per step, read left to right: To check → In the kitchen → Picked up.
+ * "Sent" / "Kitchen has it" is shown next to "In the kitchen" (kitchenStep in today.ts).
+ * Rejected and cancelled both read "Cancelled"; who and why are shown under it.
+ * Nothing says "accepted" before the kitchen has it.
+ */
 export const ORDER_STATUS: Partial<Record<OrderState, StatusStyle>> = {
-  pending_staff_review: { label: "Needs review", tone: "amber", icon: "clock" },
-  pos_entered: { label: "Sent to kitchen", tone: "blue", icon: "clipboard" },
-  pos_accepted: { label: "Kitchen has it", tone: "green", icon: "check" },
+  pending_staff_review: { label: "To check", tone: "amber", icon: "clock" },
+  pos_entered: { label: "In the kitchen", tone: "blue", icon: "clipboard" },
+  pos_accepted: { label: "In the kitchen", tone: "blue", icon: "check" },
   fulfilled: { label: "Picked up", tone: "gray", icon: "check" },
-  rejected: { label: "Rejected", tone: "red", icon: "x" },
+  rejected: { label: "Cancelled", tone: "gray", icon: "x" },
   cancelled: { label: "Cancelled", tone: "gray", icon: "x" },
-  escalated: { label: "Needs a person", tone: "purple", icon: "user" },
+  escalated: { label: "Call the guest", tone: "purple", icon: "user" },
 };
 
 export function statusOf(state: OrderState): StatusStyle {
@@ -87,26 +92,27 @@ export function recentInProgress(order: Order, now: Date): boolean {
   return (order.state === "pos_entered" || order.state === "pos_accepted") && now.getTime() - new Date(order.created_at).getTime() <= TWELVE_HOURS;
 }
 
-export type OrderTab ="needs_review" | "in_progress" | "done" | "problems" | "all";
+export type OrderTab = "all" | "to_check" | "in_kitchen" | "picked_up" | "cancelled";
 
+/** The Orders page (history) filters. Same words as the steps. */
 export const ORDER_TABS: { id: OrderTab; label: string }[] = [
-  { id: "needs_review", label: "Needs review" },
-  { id: "in_progress", label: "In progress" },
-  { id: "done", label: "Done" },
-  { id: "problems", label: "Problems" },
   { id: "all", label: "All" },
+  { id: "to_check", label: "To check" },
+  { id: "in_kitchen", label: "In the kitchen" },
+  { id: "picked_up", label: "Picked up" },
+  { id: "cancelled", label: "Cancelled" },
 ];
 
 export function inTab(order: Order, tab: OrderTab): boolean {
   switch (tab) {
-    case "needs_review":
+    case "to_check":
       return order.state === "pending_staff_review";
-    case "in_progress":
+    case "in_kitchen":
       return order.state === "pos_entered" || order.state === "pos_accepted";
-    case "done":
+    case "picked_up":
       return order.state === "fulfilled";
-    case "problems":
-      return order.state === "rejected" || order.state === "cancelled" || order.state === "escalated";
+    case "cancelled":
+      return order.state === "rejected" || order.state === "cancelled";
     default:
       return true;
   }

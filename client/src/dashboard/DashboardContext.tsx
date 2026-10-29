@@ -71,6 +71,11 @@ interface Dashboard {
   pending: PendingStep[];
   /** Waits 5 seconds, then saves. */
   startStep(order: Order, to: OrderState, reason: string, label: string): void;
+  /**
+   * "Picked up", with the 5-second Undo. From "Sent" it also records that the kitchen had
+   * it first (two legal steps), so staff never need a separate "Kitchen has it" tap.
+   */
+  startPickedUp(order: Order): void;
   /** Saves right away (Reject, Cancel). */
   moveOrderNow(order: Order, to: OrderState, reason: string): Promise<void>;
   displayState(order: Order): OrderState;
@@ -313,6 +318,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [undo],
   );
 
+  const startPickedUp = useCallback(
+    (order: Order) => {
+      const steps: [OrderState, OrderState, string][] =
+        order.state === "pos_entered"
+          ? [
+              ["pos_entered", "pos_accepted", "staff_accepted_in_pos"],
+              ["pos_accepted", "fulfilled", "picked_up"],
+            ]
+          : [["pos_accepted", "fulfilled", "picked_up"]];
+      undo.schedule(
+        { orderId: order.id, restaurantId: order.restaurant_id, code: orderCode(order.id), from: order.state, to: "fulfilled", reason: "picked_up", label: "Picked up" },
+        async () => {
+          for (const [from, to, reason] of steps) await transitionOrder({ restaurantId: order.restaurant_id, orderId: order.id, from, to, reason });
+        },
+      );
+    },
+    [undo],
+  );
+
   const moveOrderNow = useCallback(
     async (order: Order, to: OrderState, reason: string) => {
       await transitionOrder({ restaurantId: order.restaurant_id, orderId: order.id, from: order.state, to, reason });
@@ -414,6 +438,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     undo,
     pending,
     startStep,
+    startPickedUp,
     moveOrderNow,
     displayState,
     sendToPos,

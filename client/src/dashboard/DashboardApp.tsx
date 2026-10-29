@@ -10,10 +10,9 @@ import Calls from "./screens/Calls";
 import Insights from "./screens/Insights";
 import Kitchen from "./screens/Kitchen";
 import Menu from "./screens/Menu";
-import Messages from "./screens/Messages";
+import Callbacks from "./screens/Callbacks";
 import Now from "./screens/Now";
 import Orders from "./screens/Orders";
-import Reservations from "./screens/Reservations";
 import Settings from "./screens/Settings";
 import SignIn, { NoAccess } from "./screens/SignIn";
 
@@ -24,10 +23,10 @@ function Screen() {
   switch (section) {
     case "orders":
       return <Orders selectedId={id ?? null} />;
-    case "reservations":
-      return <Reservations />;
+    case "callbacks":
+    case "reservations": // old links still work
     case "messages":
-      return <Messages />;
+      return <Callbacks />;
     case "calls":
       return <Calls selectedId={id ?? null} />;
     case "insights":
