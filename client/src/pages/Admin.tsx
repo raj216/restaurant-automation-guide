@@ -12,6 +12,7 @@ import {
   type Lead,
   type LeadStatus,
   type LeadsError,
+  wantsText,
 } from "@/lib/leadsAdmin";
 import { RpcError } from "@/lib/supabase";
 import { LogoMark } from "@/site/Logo";
@@ -328,6 +329,8 @@ function LeadsBoard({
         lead.email,
         lead.location,
         lead.pos,
+        lead.minutes,
+        wantsText(lead.wants),
         lead.need,
         lead.notes,
       ]
@@ -587,6 +590,9 @@ function LeadsBoard({
                       {lead.pos && (
                         <span className="admin-tag">{lead.pos}</span>
                       )}
+                      {lead.minutes && (
+                        <span className="admin-tag">{lead.minutes} min</span>
+                      )}
                       {lead.contact_preference && (
                         <span className="admin-tag">
                           {lead.contact_preference}
@@ -776,7 +782,9 @@ function LeadDetail({
 
   const firstName = lead.name?.split(/\s+/)[0] || "there";
   const replyLink = lead.email
-    ? `mailto:${lead.email}?subject=${encodeURIComponent(`Your CoHost AI pilot for ${lead.restaurant}`)}&body=${encodeURIComponent(`Hi ${firstName},\n\nThanks for signing ${lead.restaurant} up for the CoHost AI pilot. `)}`
+    ? lead.form === "custom"
+      ? `mailto:${lead.email}?subject=${encodeURIComponent(`Your CoHost AI plan for ${lead.restaurant}`)}&body=${encodeURIComponent(`Hi ${firstName},\n\nThanks for asking about a CoHost AI plan for ${lead.restaurant}. `)}`
+      : `mailto:${lead.email}?subject=${encodeURIComponent(`Your CoHost AI pilot for ${lead.restaurant}`)}&body=${encodeURIComponent(`Hi ${firstName},\n\nThanks for signing ${lead.restaurant} up for the CoHost AI pilot. `)}`
     : null;
   const dial = lead.phone?.replace(/[^\d+]/g, "");
   const phoneLink = dial ? `tel:${dial}` : null;
@@ -851,7 +859,11 @@ function LeadDetail({
           )}
         </Fact>
         <Fact label="Signed up with">
-          {lead.form === "pilot" ? "The 7-day pilot form" : "The contact form"}
+          {lead.form === "pilot"
+            ? "The 7-day pilot form"
+            : lead.form === "custom"
+              ? "The Build My Plan box (pricing)"
+              : "The contact form"}
         </Fact>
         {lead.name && <Fact label="Name">{lead.name}</Fact>}
         {lead.email && (
@@ -870,11 +882,33 @@ function LeadDetail({
           <Fact label="City / neighborhood">{lead.location}</Fact>
         )}
         {lead.pos && <Fact label="Current POS">{lead.pos}</Fact>}
+        {lead.locations && <Fact label="Restaurants">{lead.locations}</Fact>}
+        {lead.minutes && <Fact label="Minutes a month">{lead.minutes}</Fact>}
       </dl>
 
-      {lead.need && (
+      {lead.wants && lead.wants.length > 0 && (
         <section className="admin-block">
-          <h3>What happens when the phone gets busy?</h3>
+          <h3>What should Brio take off their plate?</h3>
+          <p className="admin-wants">
+            {lead.wants.map(id => (
+              <span className="admin-tag" key={id}>
+                {wantsText([id])}
+              </span>
+            ))}
+          </p>
+          {lead.form === "pilot" && lead.need && (
+            <blockquote className="admin-quote">{lead.need}</blockquote>
+          )}
+        </section>
+      )}
+
+      {lead.need && lead.form !== "pilot" && (
+        <section className="admin-block">
+          <h3>
+            {lead.form === "custom"
+              ? "What else should Brio handle?"
+              : "What happens when the phone gets busy?"}
+          </h3>
           <blockquote className="admin-quote">{lead.need}</blockquote>
         </section>
       )}

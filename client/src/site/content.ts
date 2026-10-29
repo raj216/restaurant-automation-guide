@@ -12,6 +12,7 @@ export const NAV = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Example Dashboard", href: "/demo" },
   { label: "POS Roadmap", href: "#roadmap" },
+  { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -212,6 +213,98 @@ export const ROADMAP = {
   button: "Join Beta Priority List",
 };
 
+/**
+ * The plans. Each shows its weekly price big, with the monthly bill under it
+ * (`monthly`, what's actually charged); every plan has the same Brio, only
+ * the minutes differ. `popular` gets the spectrum border and the badge.
+ */
+export const PRICING = {
+  eyebrow: "Pricing",
+  titleStart: "One Brio. Every feature. ",
+  titleHighlight: "Just pick your minutes",
+  titleEnd: ".",
+  lede: "Every plan gets the full Brio: the same human-sounding voice, the same manager dashboard and the same 24/7 support. The only difference is how many minutes of calls Brio answers each month.",
+  perWeek: "/week",
+  billed: (monthly: number) => `Billed monthly at $${monthly}`,
+  minutes: (minutes: string) => `${minutes} minutes of calls a month`,
+  popular: "Most popular",
+  included: "Everything included",
+  plans: [
+    {
+      name: "Counter",
+      fit: "For cafés and counter-service spots",
+      weekly: 37,
+      monthly: 149,
+      minutes: "400",
+      share: 400 / 1500,
+      popular: false,
+    },
+    {
+      name: "Dining Room",
+      fit: "For full-service restaurants with a busy line",
+      weekly: 62,
+      monthly: 249,
+      minutes: "800",
+      share: 800 / 1500,
+      popular: true,
+    },
+    {
+      name: "Full House",
+      fit: "For packed rooms and big takeout weekends",
+      weekly: 112,
+      monthly: 449,
+      minutes: "1,500",
+      share: 1,
+      popular: false,
+    },
+  ],
+  features: [
+    "Picks up instantly, day or night",
+    "Works 365 days a year, holidays included",
+    "Emotional, human-sounding voice",
+    "To-go orders and reservation requests",
+    "Menu, hours and allergen questions",
+    "Scam and robocall blocking",
+    "Live manager dashboard",
+  ],
+  custom: {
+    name: "Custom",
+    title: "More minutes, or more than one location?",
+    text: "We'll build a plan around your restaurant: the minutes you need and anything extra you'd like Brio to handle.",
+    button: "Build My Plan",
+    /** The box Build My Plan opens. Requests land on the Leads page (/admin). */
+    form: {
+      title: "Build your plan",
+      text: "Tell us about your restaurant, and we'll put together a plan that fits.",
+      restaurant: "Restaurant name",
+      restaurantHint: "e.g. Demo Coffee House",
+      phone: "Best phone number",
+      email: "Email",
+      locations: "How many restaurants?",
+      minutes: "Minutes of calls a month",
+      minutesPick: "Choose one",
+      need: "What else should Brio handle?",
+      needHint: "Optional. Catering calls, private events, anything special.",
+      submit: "Send My Plan Request",
+      sending: "Sending…",
+      close: "Close",
+      done: "Thank you! We've got your request and will reach out soon with a plan built around your restaurant.",
+      doneButton: "Done",
+    },
+  },
+  promisesTitle: "Every plan includes",
+  promises: [
+    {
+      label: "Emotional, human-like AI",
+      note: "Callers hear a warm voice, not a robot",
+    },
+    { label: "24/7 support", note: "Help whenever you need it" },
+    { label: "No setup fee", note: "We set up your menu for you" },
+    { label: "No contracts", note: "Turn it off with a single click" },
+  ],
+  note: "Prices are per week, billed monthly. Minutes are per month.",
+};
+
 export const FAQ = {
   eyebrow: "Questions & Answers",
   title: "Built for restaurant operators",
@@ -241,6 +334,24 @@ export const PILOT = {
   text: "Test Brio during your weekend dinner rushes. If your front-of-house staff doesn’t immediately feel the relief, turn off call forwarding with a single click. No contracts. No setup fees.",
   restaurant: "Restaurant Name (e.g. Demo Coffee House)",
   phone: "Your Cell Phone Number",
+  email: "Your Email",
+  /** Shown once the visitor starts the form. Optional; several can be picked. */
+  wants: {
+    question: "What should Brio take off your plate?",
+    hint: "Optional · tap all that apply",
+    options: [
+      { id: "every_call", label: "Every call, all day" },
+      { id: "rush", label: "Calls during the rush" },
+      { id: "after_hours", label: "Late nights & holidays" },
+      { id: "to_go", label: "To-go orders" },
+      { id: "reservations", label: "Reservations" },
+      { id: "questions", label: "Menu, hours & allergy questions" },
+      { id: "spam", label: "Scam & robocalls" },
+      { id: "other", label: "Other" },
+    ],
+    /** Opens when "Other" is picked. */
+    other: "Tell us what else Brio should handle",
+  },
   submit: "Start Free Pilot",
   done: "Demo request received! We will configure your menu profile and contact you within 2 hours.",
 };

@@ -1,3 +1,4 @@
+import { PILOT } from "@/site/content";
 import { rpc } from "./supabase";
 
 // The Leads page's side of the database: sign in with the passcode, then
@@ -41,11 +42,15 @@ export interface LeadSource {
   seconds_to_send?: number;
 }
 
-/** Which form sent it: the 7-day pilot sign-up, or the earlier contact form. */
-export type LeadForm = "pilot" | "review";
+/** Which form sent it: the 7-day pilot sign-up, the pricing section's Build My Plan box, or the earlier contact form. */
+export type LeadForm = "pilot" | "custom" | "review";
 
 export const formLabel = (form: LeadForm) =>
-  form === "pilot" ? "7-day pilot" : "Contact form";
+  form === "pilot"
+    ? "7-day pilot"
+    : form === "custom"
+      ? "Custom plan"
+      : "Contact form";
 
 export interface Lead {
   id: string;
@@ -61,6 +66,11 @@ export interface Lead {
   pos: string | null;
   need: string | null;
   contact_preference: string | null;
+  // Custom-plan requests: how many restaurants, and the minutes a month.
+  locations?: number | null;
+  minutes?: string | null;
+  // Pilot sign-ups: what Brio should take off their plate (ids from PILOT.wants).
+  wants?: string[] | null;
   status: LeadStatus;
   notes: string;
   source: LeadSource;
@@ -212,7 +222,13 @@ const CSV_COLUMNS: [string, (lead: Lead) => string][] = [
   ["City / neighborhood", l => l.location ?? ""],
   ["Current POS", l => l.pos ?? ""],
   ["Best way to respond", l => l.contact_preference ?? ""],
-  ["What happens when the phone gets busy?", l => l.need ?? ""],
+  ["Restaurants", l => (l.locations ? String(l.locations) : "")],
+  ["Minutes a month", l => l.minutes ?? ""],
+  ["Brio should take on", l => wantsText(l.wants)],
+  [
+    "What happens when the phone gets busy? / What else should Brio handle?",
+    l => l.need ?? "",
+  ],
   ["Notes", l => l.notes],
   ["Page", l => l.source.page ?? ""],
   ["Came from", l => l.source.referrer ?? ""],
@@ -220,6 +236,15 @@ const CSV_COLUMNS: [string, (lead: Lead) => string][] = [
   ["Campaign medium", l => l.source.utm?.utm_medium ?? ""],
   ["Campaign name", l => l.source.utm?.utm_campaign ?? ""],
 ];
+
+/** The plain-English answers for a pilot sign-up's picks. */
+export function wantsText(wants: string[] | null | undefined): string {
+  return (wants ?? [])
+    .map(
+      id => PILOT.wants.options.find(option => option.id === id)?.label ?? id
+    )
+    .join(" · ");
+}
 
 /** The sign-ups as a CSV file that Excel, Numbers and Google Sheets open directly. */
 export function leadsCsv(leads: Lead[]): string {

@@ -4,11 +4,16 @@ import { Faq } from "@/site/Faq";
 import { Footer } from "@/site/Footer";
 import { Hero } from "@/site/Hero";
 import { HowItWorks } from "@/site/HowItWorks";
-import { usePauseOffscreen, useSpotlight } from "@/site/motion";
+import {
+  usePauseOffscreen,
+  useSectionLinks,
+  useSpotlight,
+} from "@/site/motion";
 import { Motto } from "@/site/Motto";
 import { useDemoTransition } from "@/site/demoTransition";
 import { Nav } from "@/site/Nav";
 import { Pilot } from "@/site/Pilot";
+import { Pricing } from "@/site/Pricing";
 import { Stats } from "@/site/Stats";
 import { ToastProvider } from "@/site/Toasts";
 import "@/site/site.css";
@@ -36,6 +41,7 @@ function ScrollProgress() {
 export default function Home() {
   useSpotlight();
   usePauseOffscreen();
+  useSectionLinks();
   useDemoTransition();
   return (
     <LazyMotion features={domAnimation} strict>
@@ -52,6 +58,7 @@ export default function Home() {
               <Stats />
               <Motto />
               <HowItWorks />
+              <Pricing />
               <Faq />
               <Pilot />
             </main>
