@@ -13,7 +13,8 @@ import { CANCEL_FAILED_NOTE, canSendToPos, posJobFor, posStatusLine, sendResultM
 import { countdown, dayAndTime, formatTime, longDay, minutesSince, relativeAndTime } from "./lib/time";
 import type { GuestRequest, MessageTopic, Order, RequestStatus } from "./lib/types";
 import { AllergyBadge, Button, Icon, OrderStatusPill, Pill, useDismiss, type IconKey } from "./ui";
-import { kitchenStep, whyItWaits } from "./lib/today";
+import { kitchenStep, ticketLine, whyItWaits } from "./lib/today";
+import { reprintTicket } from "./lib/data";
 import { showMessage } from "./Toasts";
 
 export function PhoneLink({ number, label }: { number: string | null | undefined; label?: string }) {
@@ -271,8 +272,24 @@ export function OrderActions({ order, big, inPanel }: { order: Order; big?: bool
       order.state === "pos_entered" && d.data.pos?.provider !== "kitchen_screen"
         ? [{ label: "Kitchen has it", onSelect: () => d.startStep(order, "pos_accepted", "staff_accepted_in_pos", "Kitchen has it") }]
         : [];
+    const reprint: MenuItem[] = d.data.pos?.kitchen_tickets
+      ? [
+          {
+            label: "Print kitchen ticket again",
+            onSelect: () =>
+              void reprintTicket(order.restaurant_id, order.id).then(
+                () => {
+                  showMessage(`${orderCode(order.id)}: another copy is on its way to the printer (it says REPRINT).`);
+                  void d.refresh();
+                },
+                () => showMessage("Couldn't ask the printer. Check your connection.", "warn"),
+              ),
+          },
+        ]
+      : [];
     menu = [
       ...kitchenHasIt,
+      ...reprint,
       ...callItem,
       ...open,
       ...(order.state === "pos_entered" ? [{ label: `${REJECT.label}…`, onSelect: () => setDialog(REJECT), danger: true }] : []),
@@ -321,6 +338,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
       <div className="d-row d-wrap">
         <Link href={`${BASE}/orders/${order.id}`} className="d-code">{orderCode(order.id)}</Link>
         {step ? <span className={`d-step${step === "Sent" ? "" : " d-step-has"}`}>{step}</span> : null}
+        {posJobFor(order, d.data.posJobs)?.requested_by_kind === "pos_integration" ? <span className="d-step d-step-auto">Auto-sent</span> : null}
         {after ? (
           <Pill tone="purple" icon="moon">
             Request for later
@@ -346,11 +364,15 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
         ) : null}
       </p>
       <PosStatus order={order} />
+      {(() => {
+        const t = ticketLine(d.data.printJobs, order.id, iso => formatTime(iso, tz));
+        return t ? <p className={`d-small ${t.bad ? "d-ticket-bad" : "d-muted"}`} style={{ margin: 0 }}>{t.text}</p> : null;
+      })()}
       {state === "pending_staff_review" ? (
         <div className="d-why">
           <Icon name="info" size="s" />
           <span>
-            <b>Why it waits for you:</b> {whyItWaits(order)}
+            <b>Why it waits for you:</b> {whyItWaits(order, { autoSend: d.data.pos?.auto_send === true })}
           </span>
         </div>
       ) : null}

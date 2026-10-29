@@ -210,8 +210,10 @@ export interface PosConnection {
     missing_in_pos?: string[];
     not_linked?: string[];
   };
-  /** Option B "auto-send simple orders". Off unless the owner of CoHost approves it. */
+  /** "Send simple orders straight to the kitchen". Owners switch it in Settings › Kitchen. */
   auto_send: boolean;
+  /** Print a kitchen ticket when an order goes to the kitchen. Owners switch it. */
+  kitchen_tickets: boolean;
 }
 
 export type PosJobStatus = "sending" | "sent" | "failed" | "cancel_pending" | "cancelled" | "cancel_failed";
@@ -225,6 +227,19 @@ export interface PosJob {
   external_order_id: string | null;
   sent_at: string | null;
   updated_at: string;
+  /** "pos_integration" when auto-send sent it, "staff" when a person did. */
+  requested_by_kind?: "staff" | "pos_integration" | null;
+}
+
+/** One kitchen ticket waiting for, or sent to, the restaurant's receipt printer. */
+export interface PrintJob {
+  id: string;
+  order_id: string;
+  kind: "kitchen" | "reprint";
+  status: "queued" | "printing" | "printed" | "failed";
+  last_error: string | null;
+  created_at: string;
+  printed_at: string | null;
 }
 
 /** What the live board polls for. */
@@ -238,6 +253,8 @@ export interface LiveData {
   posJobs?: PosJob[];
   /** Kitchen tablets and when they last checked in (restaurants using the Kitchen screen). */
   kitchenScreens?: KitchenScreen[];
+  /** Recent kitchen tickets (restaurants that print them). */
+  printJobs?: PrintJob[];
 }
 
 export interface KitchenScreen {

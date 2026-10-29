@@ -11,6 +11,7 @@ const conn = (status: PosConnection["status"]): PosConnection => ({
   menu_synced_at: null,
   menu_sync_issues: {},
   auto_send: false,
+  kitchen_tickets: false,
 });
 const job = (status: PosJob["status"], extra: Partial<PosJob> = {}): PosJob => ({
   order_id: "o1",

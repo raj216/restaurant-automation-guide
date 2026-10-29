@@ -5,6 +5,9 @@ import { useDashboard } from "../DashboardContext";
 import { validateClosedDates, validateTransferNumber, validateWindows } from "../lib/brioStatus";
 import { PROVIDER_NAME, cleanError } from "../lib/pos";
 import { screenOnline } from "../lib/kitchen";
+import { setKitchenSwitches } from "../lib/data";
+import { prefs } from "../lib/prefs";
+import { printTestTicket } from "../PrintStation";
 import { Link } from "wouter";
 import { hrefTo } from "../base";
 import { relative } from "../lib/time";
@@ -262,6 +265,7 @@ function ConnectedPos() {
         ) : (
           <p className="d-small d-muted">No tablet has opened the Kitchen screen yet.</p>
         )}
+        <KitchenSwitches />
       </section>
     );
   }
@@ -314,18 +318,102 @@ function ConnectedPos() {
           {busy === "sync" ? "Checking menu…" : "Check menu against POS"}
         </Button>
       </div>
-      <div className="d-row" style={{ marginTop: 12 }}>
+      <KitchenSwitches />
+    </section>
+  );
+}
+
+const ALWAYS_WAITS = [
+  "Any allergy note",
+  "After-hours requests (you call to confirm)",
+  "Big orders: over $150 or more than 20 items",
+  "Payment by link instead of at pickup",
+  "When the POS or kitchen tablet isn't connected",
+];
+
+/** The owner's two switches (owner decision 2026-10-29) and this device's print station. */
+function KitchenSwitches() {
+  const d = useDashboard();
+  const pos = d.data.pos;
+  const [saving, setSaving] = useState<"auto" | "tickets" | null>(null);
+  const [station, setStation] = useState(() => Boolean(prefs.getPrintStation()));
+  if (!pos || !d.restaurant) return null;
+  const restaurantId = d.restaurant.id;
+  const flip = async (which: "auto" | "tickets", next: boolean) => {
+    setSaving(which);
+    try {
+      await setKitchenSwitches(restaurantId, which === "auto" ? { pos_auto_send: next } : { kitchen_tickets: next });
+      await d.refresh();
+      showMessage(
+        which === "auto"
+          ? next
+            ? "Simple orders now go straight to the kitchen. Everything else still waits for you."
+            : "Auto-send is off. Every order waits for a tap."
+          : next
+            ? "Kitchen tickets are on. Pick a print station below."
+            : "Kitchen tickets are off.",
+      );
+    } catch {
+      showMessage("Couldn't save. Only owners can change this.", "warn");
+    } finally {
+      setSaving(null);
+    }
+  };
+  return (
+    <>
+      <div className="d-switchrow">
         <div>
-          <b>Auto-send simple orders: {pos.auto_send ? "On" : "Off"}</b>
+          <b>Send simple orders straight to the kitchen</b>
           <p className="d-hint">
-            When on, a simple order (no allergy note, during staffed hours, POS working) goes to the POS the moment the caller says yes, without a staff tap.
-            Everything else still waits for "Send to kitchen". This changes a safety rule, so only CoHost can switch it on, after approval.
+            An everyday order goes to the kitchen seconds after the caller says yes. You can still cancel it. These always wait for you:
+          </p>
+          <ul className="d-waitlist">
+            {ALWAYS_WAITS.map(w => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </div>
+        <span className="d-sp">
+          <Toggle on={pos.auto_send} green label="Send simple orders straight to the kitchen" disabled={saving !== null || !d.isOwner} onChange={next => void flip("auto", next)} />
+        </span>
+      </div>
+      <div className="d-switchrow">
+        <div>
+          <b>Print a kitchen ticket</b>
+          <p className="d-hint">
+            When an order goes to the kitchen, a ticket prints: allergy on top, items, guest, "NOT PAID". Once per order; extra copies say REPRINT. Nothing prints
+            while an order is still being checked.
           </p>
         </div>
         <span className="d-sp">
-          <Toggle on={pos.auto_send} label="Auto-send simple orders" onChange={() => undefined} disabled />
+          <Toggle on={pos.kitchen_tickets} green label="Print a kitchen ticket" disabled={saving !== null || !d.isOwner} onChange={next => void flip("tickets", next)} />
         </span>
       </div>
-    </section>
+      {pos.kitchen_tickets ? (
+        <div className="d-switchrow d-sub">
+          <div>
+            <b>This device is the print station</b>
+            <p className="d-hint">
+              Turn this on at the computer or tablet with the receipt printer, and leave the dashboard open. For printing with no pop-up, start Chrome with
+              "--kiosk-printing".
+            </p>
+            <Button kind="secondary" size="sm" onClick={() => (printTestTicket() ? undefined : showMessage("Open the dashboard again and try once more.", "warn"))}>
+              Print a test ticket
+            </Button>
+          </div>
+          <span className="d-sp">
+            <Toggle
+              on={station}
+              label="This device is the print station"
+              onChange={next => {
+                prefs.setPrintStation(next);
+                setStation(next);
+                showMessage(next ? "This device now prints the kitchen tickets." : "This device no longer prints kitchen tickets.");
+              }}
+            />
+          </span>
+        </div>
+      ) : null}
+    </>
   );
 }

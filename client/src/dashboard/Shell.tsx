@@ -13,6 +13,7 @@ import { prefs } from "./lib/prefs";
 import { formatNow, formatTime, relative } from "./lib/time";
 import { Button, Icon, useDismiss, type IconKey } from "./ui";
 import { ToastHost } from "./Toasts";
+import { PrintStation } from "./PrintStation";
 
 import { BASE, EMBED, hrefTo, IN_DEMO } from "./base";
 export { BASE };
@@ -152,6 +153,7 @@ export function Shell({ children }: { children: ReactNode }) {
             You're offline. Showing the last update from {d.lastUpdated ? formatTime(d.lastUpdated, d.restaurant?.timezone ?? "America/New_York") : "earlier"}.
           </div>
         ) : null}
+        <PrintStation />
         {children}
         <nav className="d-tabbar" aria-label="Main">
           {nav.slice(0, 4).map(item => {

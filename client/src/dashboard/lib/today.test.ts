@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brioLine, callbackItems, kitchenStep, partyLine, whyItWaits } from "./today";
+import { brioLine, callbackItems, kitchenStep, partyLine, ticketLine, whyItWaits } from "./today";
 import { statusOf } from "./orders";
 import type { GuestRequest, Order } from "./types";
 
@@ -127,5 +127,24 @@ describe("Brio's one line", () => {
     expect(brioLine({ check: [], kitchenCount: 2, callbacks: cb, minutesWaited: minutes })).toBe("Nothing to check. 1 guest to call back, starting with Rachel M.");
     expect(brioLine({ check: [], kitchenCount: 2, callbacks: [], minutesWaited: minutes })).toBe("All checked. 2 orders are in the kitchen.");
     expect(brioLine({ check: [], kitchenCount: 0, callbacks: [], minutesWaited: minutes })).toBe("All caught up. I'm answering the phone.");
+  });
+});
+
+describe("auto-send and kitchen tickets on the card", () => {
+  it("a simple order still waiting with auto-send on says the kitchen couldn't be reached", () => {
+    expect(whyItWaits(order(), { autoSend: true })).toBe("auto-send couldn't reach the kitchen. Send it yourself.");
+    expect(whyItWaits(order({ allergy_note: "nuts" }), { autoSend: true })).toMatch(/^allergy note/); // the real reason still wins
+  });
+  it("shows the latest ticket: printed, waiting, or didn't print (with how to fix it)", () => {
+    const t = (iso: string) => iso.slice(11, 16);
+    const job = (over: object) => ({ order_id: "o1", kind: "kitchen", status: "printed", printed_at: "2026-10-29T20:14:00Z", last_error: null, ...over });
+    expect(ticketLine([], "o1", t)).toBeNull();
+    expect(ticketLine([job({})], "o1", t)).toEqual({ text: "Ticket printed 20:14", bad: false });
+    expect(ticketLine([job({ kind: "reprint" })], "o1", t)?.text).toBe("Ticket printed 20:14 (reprint)");
+    expect(ticketLine([job({ status: "queued", printed_at: null })], "o1", t)?.text).toBe("Ticket waiting for the printer");
+    expect(ticketLine([job({ status: "failed", printed_at: null, last_error: "out of paper" })], "o1", t)).toEqual({
+      text: "Ticket didn't print: out of paper. Print it again from ⋯",
+      bad: true,
+    });
   });
 });

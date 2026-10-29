@@ -21,12 +21,17 @@ export function kitchenStep(state: OrderState): "Sent" | "Kitchen has it" | null
 }
 
 /** Why an order in To check is waiting for a person, in plain words. */
-export function whyItWaits(order: Pick<Order, "allergy_note" | "intake_mode" | "subtotal_cents" | "line_items" | "payment_method">): string {
+export function whyItWaits(
+  order: Pick<Order, "allergy_note" | "intake_mode" | "subtotal_cents" | "line_items" | "payment_method">,
+  { autoSend = false }: { autoSend?: boolean } = {},
+): string {
   if (order.allergy_note) return "allergy note. A person checks these.";
   if (order.intake_mode === "after_hours_request") return "after-hours request. Call the guest to confirm.";
   const items = (Array.isArray(order.line_items) ? order.line_items : []).reduce((n, l) => n + (l.quantity ?? 0), 0);
   if ((order.subtotal_cents ?? 0) > BIG_ORDER_CENTS || items > BIG_ORDER_ITEMS) return "big order. Worth a quick look.";
   if (order.payment_method === "payment_link") return "paid by link. Check the payment.";
+  // A simple order still waiting while auto-send is on: the kitchen couldn't be reached.
+  if (autoSend) return "auto-send couldn't reach the kitchen. Send it yourself.";
   return "every order is checked by a person before the kitchen.";
 }
 
@@ -148,6 +153,16 @@ export function brioLine({
   }
   if (kitchenCount > 0) return `All checked. ${kitchenCount === 1 ? "1 order is" : `${kitchenCount} orders are`} in the kitchen.`;
   return "All caught up. I'm answering the phone.";
+}
+
+/** The order's kitchen ticket, in a few words, or null when it has none. */
+export function ticketLine(jobs: { order_id: string; kind: string; status: string; printed_at: string | null; last_error: string | null }[] | undefined, orderId: string, time: (iso: string) => string): { text: string; bad: boolean } | null {
+  const mine = (jobs ?? []).filter(j => j.order_id === orderId);
+  if (mine.length === 0) return null;
+  const latest = mine[0]; // newest first
+  if (latest.status === "printed" && latest.printed_at) return { text: `Ticket printed ${time(latest.printed_at)}${latest.kind === "reprint" ? " (reprint)" : ""}`, bad: false };
+  if (latest.status === "failed") return { text: `Ticket didn't print${latest.last_error ? `: ${latest.last_error}` : ""}. Print it again from ⋯`, bad: true };
+  return { text: "Ticket waiting for the printer", bad: false };
 }
 
 /** "2 people · Sat 7:00 PM" for a table request. */

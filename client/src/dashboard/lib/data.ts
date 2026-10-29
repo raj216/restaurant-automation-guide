@@ -23,6 +23,7 @@ import type {
   KitchenScreen,
   PosConnection,
   PosJob,
+  PrintJob,
   Restaurant,
   RequestStatus,
 } from "./types";
@@ -192,28 +193,31 @@ async function fetchCalls(restaurantId: string): Promise<CallLog[]> {
 }
 
 const POS_COLS = "restaurant_id,provider,status,last_error,last_checked_at,menu_synced_at,menu_sync_issues";
-const POS_JOB_COLS = "order_id,status,attempts,last_error,external_order_id,sent_at,updated_at";
+const POS_JOB_COLS = "order_id,status,attempts,last_error,external_order_id,sent_at,updated_at,requested_by_kind";
+const PRINT_COLS = "id,order_id,kind,status,last_error,created_at,printed_at";
 
 /**
  * The restaurant's POS link and its recent POS jobs. If any of it can't be read (no POS
  * set up, or the database doesn't have the POS tables yet), the answer is "no POS": the
  * Send to POS button stays hidden and staff enter orders by hand, as before.
  */
-async function fetchPos(restaurantId: string): Promise<{ pos: PosConnection | null; posJobs: PosJob[]; kitchenScreens: KitchenScreen[] }> {
-  const none = { pos: null, posJobs: [], kitchenScreens: [] };
+async function fetchPos(restaurantId: string): Promise<{ pos: PosConnection | null; posJobs: PosJob[]; kitchenScreens: KitchenScreen[]; printJobs: PrintJob[] }> {
+  const none = { pos: null, posJobs: [], kitchenScreens: [], printJobs: [] };
   try {
-    const [conn, jobs, auto, screens] = await Promise.all([
+    const [conn, jobs, switches, screens, prints] = await Promise.all([
       db().from("pos_connections").select(POS_COLS).eq("restaurant_id", restaurantId).maybeSingle(),
       db().from("pos_sync_jobs").select(POS_JOB_COLS).eq("restaurant_id", restaurantId).order("updated_at", { ascending: false }).limit(300),
-      db().from("restaurants").select("pos_auto_send").eq("id", restaurantId).maybeSingle(),
+      db().from("restaurants").select("pos_auto_send,kitchen_tickets").eq("id", restaurantId).maybeSingle(),
       db().from("kitchen_screens").select("screen_id,label,last_seen_at").eq("restaurant_id", restaurantId).order("last_seen_at", { ascending: false }).limit(20),
+      db().from("print_jobs").select(PRINT_COLS).eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(200),
     ]);
     if (conn.error || !conn.data) return none;
-    const autoSend = !auto.error && (auto.data as { pos_auto_send?: boolean } | null)?.pos_auto_send === true;
+    const sw = switches.error ? null : (switches.data as { pos_auto_send?: boolean; kitchen_tickets?: boolean } | null);
     return {
-      pos: { ...(conn.data as Omit<PosConnection, "auto_send">), auto_send: autoSend },
+      pos: { ...(conn.data as Omit<PosConnection, "auto_send" | "kitchen_tickets">), auto_send: sw?.pos_auto_send === true, kitchen_tickets: sw?.kitchen_tickets === true },
       posJobs: jobs.error ? [] : ((jobs.data ?? []) as PosJob[]),
       kitchenScreens: screens.error ? [] : ((screens.data ?? []) as KitchenScreen[]),
+      printJobs: prints.error ? [] : ((prints.data ?? []) as PrintJob[]),
     };
   } catch {
     return none;
@@ -241,6 +245,35 @@ export async function fetchKitchenBoard(restaurantId: string): Promise<{ orders:
     orders: [...((active.data ?? []) as unknown as Order[]), ...((cancelled.data ?? []) as unknown as Order[])],
     jobs: (jobs.data ?? []) as PosJob[],
   };
+}
+
+/** Owners only (the database refuses anyone else): auto-send and kitchen tickets. */
+export async function setKitchenSwitches(restaurantId: string, patch: { pos_auto_send?: boolean; kitchen_tickets?: boolean }): Promise<void> {
+  if (IN_DEMO) return;
+  const { data, error } = await db().from("restaurants").update(patch).eq("id", restaurantId).select("id");
+  if (error) fail(error);
+  if (!data || data.length === 0) throw new DataError("Only owners can change this.", "no_rows");
+}
+
+/** The print station takes the next kitchen ticket to print (null: nothing waiting). */
+export async function claimPrintJob(restaurantId: string, stationId: string): Promise<PrintJob | null> {
+  if (IN_DEMO) return null;
+  const { data, error } = await db().rpc("print_claim", { p_restaurant_id: restaurantId, p_station_id: stationId });
+  if (error) fail(error);
+  return (data as PrintJob | null) ?? null;
+}
+
+export async function finishPrintJob(jobId: string, ok: boolean, error?: string): Promise<void> {
+  if (IN_DEMO) return;
+  const res = await db().rpc("print_done", { p_job_id: jobId, p_ok: ok, p_error: error ?? null });
+  if (res.error) fail(res.error);
+}
+
+/** Another copy of the kitchen ticket. It prints REPRINT. */
+export async function reprintTicket(restaurantId: string, orderId: string): Promise<void> {
+  if (IN_DEMO) return;
+  const { error } = await db().rpc("print_reprint", { p_restaurant_id: restaurantId, p_order_id: orderId });
+  if (error) fail(error);
 }
 
 /** The Kitchen tablet checks in (every 30 seconds while open). */

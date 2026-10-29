@@ -7,6 +7,7 @@ const KEYS = {
   restaurant: "cohost.dash.restaurant",
   dismissed: "cohost.dash.dismissed",
   seen: "cohost.dash.seen",
+  printStation: "cohost.dash.printStation",
 } as const;
 
 function read(key: string): string | null {
@@ -66,6 +67,20 @@ export const prefs = {
     set.add(id);
     write(KEYS.dismissed, JSON.stringify([...set].slice(-200)));
     return set;
+  },
+  /** This device prints the kitchen tickets (it has the receipt printer). Its own id, or null. */
+  getPrintStation(): string | null {
+    const id = read(KEYS.printStation);
+    return id && /^[A-Za-z0-9_-]{8,64}$/.test(id) ? id : null;
+  },
+  setPrintStation(on: boolean): string | null {
+    if (!on) {
+      write(KEYS.printStation, "");
+      return null;
+    }
+    const id = prefs.getPrintStation() ?? `station-${Math.random().toString(36).slice(2, 12)}`;
+    write(KEYS.printStation, id);
+    return id;
   },
   /** When the bell was last opened. */
   getSeen(): number {
