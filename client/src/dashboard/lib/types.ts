@@ -258,12 +258,16 @@ export interface LiveData {
   /** The "Pay first" add-on (off unless CoHost switched it on for this restaurant). */
   payFirst?: PayFirst | null;
   payments?: OrderPayment[];
+  /**
+   * The restaurant's one big-order amount (cents, at most $150). A big order always waits
+   * for a person, with or without a pay link. Missing until the database has it.
+   */
+  bigOrderCents?: number;
 }
 
 export interface PayFirst {
   enabled: boolean;
   link: string | null;
-  min_cents: number;
 }
 
 /** A pay-first order's payment: when the link was texted, when staff saw it paid. */

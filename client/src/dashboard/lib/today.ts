@@ -9,7 +9,10 @@ import { TOPIC_LABEL, topicOf } from "./labels";
 import type { PillTone } from "./orders";
 import type { CallLog, GuestRequest, Order, OrderState } from "./types";
 
-/** Orders over this, or with more items than BIG_ORDER_ITEMS, are called a big order. */
+/**
+ * A big order: the restaurant's big-order amount or more ($150 unless the owner set it
+ * lower), or more than BIG_ORDER_ITEMS items. Same rule as the server (src/domain/bigOrder.js).
+ */
 export const BIG_ORDER_CENTS = 15_000;
 export const BIG_ORDER_ITEMS = 20;
 
@@ -23,13 +26,14 @@ export function kitchenStep(state: OrderState): "Sent" | "Kitchen has it" | null
 /** Why an order in To check is waiting for a person, in plain words. */
 export function whyItWaits(
   order: Pick<Order, "allergy_note" | "intake_mode" | "subtotal_cents" | "line_items" | "payment_method">,
-  { autoSend = false }: { autoSend?: boolean } = {},
+  { autoSend = false, bigOrderCents = BIG_ORDER_CENTS }: { autoSend?: boolean; bigOrderCents?: number } = {},
 ): string {
   if (order.allergy_note) return "allergy note. A person checks these.";
   if (order.intake_mode === "after_hours_request") return "after-hours request. Call the guest to confirm.";
   const items = (Array.isArray(order.line_items) ? order.line_items : []).reduce((n, l) => n + (l.quantity ?? 0), 0);
-  if ((order.subtotal_cents ?? 0) > BIG_ORDER_CENTS || items > BIG_ORDER_ITEMS) return "big order. Worth a quick look.";
   if (order.payment_method === "payment_link") return "big order: the guest pays first, by the restaurant's own link.";
+  const big = Math.min(bigOrderCents, BIG_ORDER_CENTS); // never looser than $150
+  if ((order.subtotal_cents ?? 0) >= big || items > BIG_ORDER_ITEMS) return "big order. A person checks these.";
   // A simple order still waiting while auto-send is on: the kitchen couldn't be reached.
   if (autoSend) return "auto-send couldn't reach the kitchen. Send it yourself.";
   return "every order is checked by a person before the kitchen.";

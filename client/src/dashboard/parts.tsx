@@ -425,7 +425,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
         <div className="d-why">
           <Icon name="info" size="s" />
           <span>
-            <b>Why it waits for you:</b> {whyItWaits(order, { autoSend: d.data.pos?.auto_send === true })}
+            <b>Why it waits for you:</b> {whyItWaits(order, { autoSend: d.data.pos?.auto_send === true, bigOrderCents: d.data.bigOrderCents })}
           </span>
         </div>
       ) : null}

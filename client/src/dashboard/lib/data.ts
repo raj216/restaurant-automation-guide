@@ -292,8 +292,8 @@ export async function paymentMarkPaid(restaurantId: string, orderId: string, how
   if (error) fail(error);
 }
 
-/** Owners only: the restaurant's own payment link and the amount that pays first. */
-export async function savePayFirst(restaurantId: string, patch: { pay_first_link: string | null; pay_first_min_cents: number }): Promise<void> {
+/** Owners only: the restaurant's own payment link, and/or its big-order amount (cents, $20 to $150). */
+export async function savePayFirst(restaurantId: string, patch: { pay_first_link?: string | null; big_order_cents?: number }): Promise<void> {
   if (IN_DEMO) return;
   const { data, error } = await db().from("restaurants").update(patch).eq("id", restaurantId).select("id");
   if (error) fail(error);
@@ -311,17 +311,19 @@ export async function pingKitchenScreen(restaurantId: string, screenId: string, 
  * The "Pay first" add-on and recent payments. Anything unreadable (add-on not set up, or
  * the database doesn't have it yet) means "off": orders are paid at pickup, as before.
  */
-async function fetchPayFirst(restaurantId: string): Promise<{ payFirst: PayFirst | null; payments: OrderPayment[] }> {
+async function fetchPayFirst(restaurantId: string): Promise<{ payFirst: PayFirst | null; payments: OrderPayment[]; bigOrderCents?: number }> {
   try {
     const [settings, payments] = await Promise.all([
-      db().from("restaurants").select("pay_first_enabled,pay_first_link,pay_first_min_cents").eq("id", restaurantId).maybeSingle(),
+      db().from("restaurants").select("pay_first_enabled,pay_first_link,big_order_cents").eq("id", restaurantId).maybeSingle(),
       db().from("order_payments").select("order_id,link_sent_at,paid_at,paid_how").eq("restaurant_id", restaurantId).order("updated_at", { ascending: false }).limit(300),
     ]);
-    const s = settings.error ? null : (settings.data as { pay_first_enabled?: boolean; pay_first_link?: string | null; pay_first_min_cents?: number } | null);
-    if (!s?.pay_first_enabled) return { payFirst: null, payments: [] };
+    const s = settings.error ? null : (settings.data as { pay_first_enabled?: boolean; pay_first_link?: string | null; big_order_cents?: number } | null);
+    const bigOrderCents = typeof s?.big_order_cents === "number" ? s.big_order_cents : undefined;
+    if (!s?.pay_first_enabled) return { payFirst: null, payments: [], bigOrderCents };
     return {
-      payFirst: { enabled: true, link: s.pay_first_link ?? null, min_cents: s.pay_first_min_cents ?? 6000 },
+      payFirst: { enabled: true, link: s.pay_first_link ?? null },
       payments: payments.error ? [] : ((payments.data ?? []) as OrderPayment[]),
+      bigOrderCents,
     };
   } catch {
     return { payFirst: null, payments: [] };

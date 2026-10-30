@@ -110,6 +110,7 @@ export default function Settings() {
         </section>
 
         <ConnectedPos />
+        <BigOrderSettings />
         <PayFirstSettings />
 
         <section className="d-set">
@@ -420,33 +421,85 @@ function KitchenSwitches() {
 }
 
 /**
+ * Big orders (owner decision 2026-10-30): one amount, the same with or without a pay
+ * link. A big order always waits for a person; with Pay first it is also paid first.
+ * Owners can make it stricter (lower), never looser than $150.
+ */
+function BigOrderSettings() {
+  const d = useDashboard();
+  const cents = d.data.bigOrderCents;
+  const [amount, setAmount] = useState(cents ? String(Math.round(cents / 100)) : "150");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (cents) setAmount(String(Math.round(cents / 100)));
+  }, [cents]);
+  if (cents === undefined || !d.restaurant) return null;
+  const save = async () => {
+    const dollars = Number(amount);
+    if (!Number.isInteger(dollars) || dollars < 20 || dollars > 150) return setError("Pick a whole amount from $20 to $150.");
+    setError(null);
+    setSaving(true);
+    try {
+      await savePayFirst(d.restaurant!.id, { big_order_cents: dollars * 100 });
+      await d.refresh();
+      showMessage(`Orders of $${dollars} or more now always wait for a person.`);
+    } catch {
+      setError("Couldn't save. Only owners can change this.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <section className="d-set">
+      <h3>Big orders</h3>
+      <p className="d-hint">
+        A big order always waits for a person, even with "Send simple orders straight to the kitchen" on. So do allergy notes, requests for later and
+        anything unusual.{d.data.payFirst ? " With Pay first, big orders are also paid first." : ""}
+      </p>
+      <label className="d-label" htmlFor="big-amount">
+        Big order from
+      </label>
+      <div className="d-row">
+        <span className="d-muted">$</span>
+        <input id="big-amount" type="number" inputMode="numeric" min={20} max={150} value={amount} onChange={e => setAmount(e.target.value)} style={{ width: 120 }} />
+        <span className="d-muted">or more, or more than 20 items. $150 at most.</span>
+      </div>
+      {error ? <div className="d-error" role="alert">{error}</div> : null}
+      <div className="d-row" style={{ marginTop: 12 }}>
+        <Button kind="secondary" size="sm" onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+/**
  * Pay first (add-on): shown only where CoHost switched it on. The owner gives their own
- * payment link (Square, Stripe, Toast...) and the amount from which orders pay first.
+ * payment link (Square, Stripe, Toast...). Big orders (the amount above) pay first.
  */
 function PayFirstSettings() {
   const d = useDashboard();
   const pay = d.data.payFirst;
   const [link, setLink] = useState(pay?.link ?? "");
-  const [amount, setAmount] = useState(pay ? String(Math.round(pay.min_cents / 100)) : "60");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // The saved values arrive after the first paint: show them once they do.
+  // The saved link arrives after the first paint: show it once it does.
   useEffect(() => {
     setLink(pay?.link ?? "");
-    setAmount(pay ? String(Math.round(pay.min_cents / 100)) : "60");
-  }, [pay?.link, pay?.min_cents]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pay?.link]);
   if (!pay || !d.restaurant) return null;
+  const dollars = Math.round((d.data.bigOrderCents ?? 15_000) / 100);
   const save = async () => {
     const trimmed = link.trim();
-    const dollars = Number(amount);
-    if (trimmed && !/^https:\/\/\S{4,}$/.test(trimmed)) return setError("The link must start with https:// (copy it from your payment app).");
-    if (!Number.isInteger(dollars) || dollars < 10 || dollars > 10000) return setError("Pick a whole amount from $10 to $10,000.");
+    if (trimmed && (!/^https:\/\/\S{4,}$/.test(trimmed) || trimmed.length > 500)) return setError("The link must start with https:// (copy it from your payment app).");
     setError(null);
     setSaving(true);
     try {
-      await savePayFirst(d.restaurant!.id, { pay_first_link: trimmed || null, pay_first_min_cents: dollars * 100 });
+      await savePayFirst(d.restaurant!.id, { pay_first_link: trimmed || null });
       await d.refresh();
-      showMessage(trimmed ? `Orders of $${dollars} or more now pay first.` : "Saved. Without a link, every order is paid at pickup.");
+      showMessage(trimmed ? `Big orders ($${dollars} or more) now pay first.` : "Saved. Without a link, every order is paid at pickup.");
     } catch {
       setError("Couldn't save. Only owners can change this.");
     } finally {
@@ -457,22 +510,14 @@ function PayFirstSettings() {
     <section className="d-set">
       <h3>Pay first for big orders</h3>
       <p className="d-hint">
-        Orders of this amount or more are paid before they go to the kitchen. Brio tells the caller you'll text a secure payment link. On Today you tap
-        "Text the pay link", then "Mark paid" when it shows in your payment app, then send it to the kitchen. Brio never takes card details.
+        Big orders (${dollars} or more, set above) are paid before they go to the kitchen. Brio tells the caller you'll text a secure payment link. On Today
+        you tap "Text the pay link", then "Mark paid" when it shows in your payment app, then send it to the kitchen. Brio never takes card details.
       </p>
       <label className="d-label" htmlFor="payfirst-link">
         Your payment link
       </label>
       <input id="payfirst-link" type="url" inputMode="url" placeholder="https://square.link/u/…" value={link} onChange={e => setLink(e.target.value)} />
-      <label className="d-label" htmlFor="payfirst-amount" style={{ marginTop: 12 }}>
-        Pay first from
-      </label>
-      <div className="d-row">
-        <span className="d-muted">$</span>
-        <input id="payfirst-amount" type="number" inputMode="numeric" min={10} max={10000} value={amount} onChange={e => setAmount(e.target.value)} style={{ width: 120 }} />
-        <span className="d-muted">and over. Smaller orders are paid at pickup.</span>
-      </div>
-      {!pay.link ? <p className="d-small" style={{ color: "var(--amber-fg)" }}>No link yet: every order is paid at pickup until you add one.</p> : null}
+      {!pay.link ? <p className="d-small" style={{ color: "var(--amber-fg)" }}>No link yet: every order is paid at pickup until you add one. Big orders still wait for a person.</p> : null}
       {error ? <div className="d-error" role="alert">{error}</div> : null}
       <div className="d-row" style={{ marginTop: 12 }}>
         <Button kind="secondary" size="sm" onClick={() => void save()} disabled={saving}>
