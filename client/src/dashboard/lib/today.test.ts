@@ -68,7 +68,7 @@ describe("why an order waits", () => {
     expect(whyItWaits(order({ intake_mode: "after_hours_request" }))).toMatch(/^after-hours request/);
     expect(whyItWaits(order({ subtotal_cents: 15_001 }))).toMatch(/^big order/);
     expect(whyItWaits(order({ line_items: [{ name: "Latte", quantity: 21, unit_price_cents: 1, line_total_cents: 21 }] }))).toMatch(/^big order/);
-    expect(whyItWaits(order({ payment_method: "payment_link" }))).toMatch(/^paid by link/);
+    expect(whyItWaits(order({ payment_method: "payment_link" }))).toMatch(/^big order: the guest pays first/);
     expect(whyItWaits(order())).toBe("every order is checked by a person before the kitchen.");
   });
 });

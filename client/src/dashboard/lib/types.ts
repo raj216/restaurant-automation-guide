@@ -255,6 +255,23 @@ export interface LiveData {
   kitchenScreens?: KitchenScreen[];
   /** Recent kitchen tickets (restaurants that print them). */
   printJobs?: PrintJob[];
+  /** The "Pay first" add-on (off unless CoHost switched it on for this restaurant). */
+  payFirst?: PayFirst | null;
+  payments?: OrderPayment[];
+}
+
+export interface PayFirst {
+  enabled: boolean;
+  link: string | null;
+  min_cents: number;
+}
+
+/** A pay-first order's payment: when the link was texted, when staff saw it paid. */
+export interface OrderPayment {
+  order_id: string;
+  link_sent_at: string | null;
+  paid_at: string | null;
+  paid_how: "link" | "in_person" | null;
 }
 
 export interface KitchenScreen {

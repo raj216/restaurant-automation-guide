@@ -24,6 +24,8 @@ import type {
   PosConnection,
   PosJob,
   PrintJob,
+  OrderPayment,
+  PayFirst,
   Restaurant,
   RequestStatus,
 } from "./types";
@@ -276,6 +278,28 @@ export async function reprintTicket(restaurantId: string, orderId: string): Prom
   if (error) fail(error);
 }
 
+/** Pay first: staff texted the restaurant's payment link to the guest. */
+export async function paymentLinkSent(restaurantId: string, orderId: string): Promise<void> {
+  if (IN_DEMO) return;
+  const { error } = await db().rpc("payment_link_sent", { p_restaurant_id: restaurantId, p_order_id: orderId });
+  if (error) fail(error);
+}
+
+/** Pay first: staff saw the payment (in their payment app, or in person). */
+export async function paymentMarkPaid(restaurantId: string, orderId: string, how: "link" | "in_person"): Promise<void> {
+  if (IN_DEMO) return;
+  const { error } = await db().rpc("payment_mark_paid", { p_restaurant_id: restaurantId, p_order_id: orderId, p_how: how });
+  if (error) fail(error);
+}
+
+/** Owners only: the restaurant's own payment link and the amount that pays first. */
+export async function savePayFirst(restaurantId: string, patch: { pay_first_link: string | null; pay_first_min_cents: number }): Promise<void> {
+  if (IN_DEMO) return;
+  const { data, error } = await db().from("restaurants").update(patch).eq("id", restaurantId).select("id");
+  if (error) fail(error);
+  if (!data || data.length === 0) throw new DataError("Only owners can change this.", "no_rows");
+}
+
 /** The Kitchen tablet checks in (every 30 seconds while open). */
 export async function pingKitchenScreen(restaurantId: string, screenId: string, label: string | null): Promise<void> {
   if (IN_DEMO) return;
@@ -283,19 +307,41 @@ export async function pingKitchenScreen(restaurantId: string, screenId: string, 
   if (error) fail(error);
 }
 
+/**
+ * The "Pay first" add-on and recent payments. Anything unreadable (add-on not set up, or
+ * the database doesn't have it yet) means "off": orders are paid at pickup, as before.
+ */
+async function fetchPayFirst(restaurantId: string): Promise<{ payFirst: PayFirst | null; payments: OrderPayment[] }> {
+  try {
+    const [settings, payments] = await Promise.all([
+      db().from("restaurants").select("pay_first_enabled,pay_first_link,pay_first_min_cents").eq("id", restaurantId).maybeSingle(),
+      db().from("order_payments").select("order_id,link_sent_at,paid_at,paid_how").eq("restaurant_id", restaurantId).order("updated_at", { ascending: false }).limit(300),
+    ]);
+    const s = settings.error ? null : (settings.data as { pay_first_enabled?: boolean; pay_first_link?: string | null; pay_first_min_cents?: number } | null);
+    if (!s?.pay_first_enabled) return { payFirst: null, payments: [] };
+    return {
+      payFirst: { enabled: true, link: s.pay_first_link ?? null, min_cents: s.pay_first_min_cents ?? 6000 },
+      payments: payments.error ? [] : ((payments.data ?? []) as OrderPayment[]),
+    };
+  } catch {
+    return { payFirst: null, payments: [] };
+  }
+}
+
 /** Everything the live board polls for, in one go. */
 export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
   if (IN_DEMO) return demo.demoLiveData();
-  const [reached, escalated, requests, calls, pos] = await Promise.all([
+  const [reached, escalated, requests, calls, pos, pay] = await Promise.all([
     fetchReachedOrders(restaurantId),
     fetchEscalatedOrders(restaurantId),
     fetchRequests(restaurantId),
     fetchCalls(restaurantId),
     fetchPos(restaurantId),
+    fetchPayFirst(restaurantId),
   ]);
   const byId = new Map<string, Order>();
   for (const o of [...reached, ...escalated]) byId.set(o.id, o);
-  return { orders: [...byId.values()], requests, calls, ...pos };
+  return { orders: [...byId.values()], requests, calls, ...pos, ...pay };
 }
 
 const PAGE = 1000;

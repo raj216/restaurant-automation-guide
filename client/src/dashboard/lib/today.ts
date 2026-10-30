@@ -29,7 +29,7 @@ export function whyItWaits(
   if (order.intake_mode === "after_hours_request") return "after-hours request. Call the guest to confirm.";
   const items = (Array.isArray(order.line_items) ? order.line_items : []).reduce((n, l) => n + (l.quantity ?? 0), 0);
   if ((order.subtotal_cents ?? 0) > BIG_ORDER_CENTS || items > BIG_ORDER_ITEMS) return "big order. Worth a quick look.";
-  if (order.payment_method === "payment_link") return "paid by link. Check the payment.";
+  if (order.payment_method === "payment_link") return "big order: the guest pays first, by the restaurant's own link.";
   // A simple order still waiting while auto-send is on: the kitchen couldn't be reached.
   if (autoSend) return "auto-send couldn't reach the kitchen. Send it yourself.";
   return "every order is checked by a person before the kitchen.";

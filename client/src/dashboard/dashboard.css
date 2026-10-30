@@ -673,3 +673,8 @@
 .cd .d-waitlist{margin:0 0 4px;padding-left:20px;font-size:14px;color:var(--text-2);line-height:1.6}
 .cd .d-step.d-step-auto{background:var(--purple-bg);color:var(--purple-fg)}
 .cd .d-ticket-bad{color:var(--red-fg);font-weight:600;margin:0}
+.cd .d-step.d-step-pay{background:#d9f2ee;color:#0b5a52}
+.cd .d-step.d-step-pay.d-paid{background:var(--green-bg);color:var(--green-fg)}
+.cd.d-dark .d-step.d-step-pay{background:#12352f;color:#8fe0d2}
+.cd .d-payline{color:#0b5a52;font-weight:600}
+.cd.d-dark .d-payline{color:#8fe0d2}

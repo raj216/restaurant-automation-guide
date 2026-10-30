@@ -5,7 +5,7 @@
 
 import { formatPhone, orderCode } from "./format";
 import { formatTime } from "./time";
-import type { Order } from "./types";
+import type { Order, OrderPayment } from "./types";
 
 export interface KitchenTicket {
   banner: "REPRINT" | "TEST TICKET" | null;
@@ -22,7 +22,10 @@ export interface KitchenTicket {
 
 export const KITCHEN_STATES = ["pos_entered", "pos_accepted", "fulfilled"];
 
-export function kitchenTicket(order: Order, { kind, tz, now }: { kind: "kitchen" | "reprint" | "test"; tz: string; now: Date }): KitchenTicket {
+export function kitchenTicket(
+  order: Order,
+  { kind, tz, now, payment }: { kind: "kitchen" | "reprint" | "test"; tz: string; now: Date; payment?: OrderPayment },
+): KitchenTicket {
   if (kind !== "test" && !KITCHEN_STATES.includes(order.state)) {
     throw new Error("Only an order in the kitchen gets a kitchen ticket");
   }
@@ -39,7 +42,13 @@ export function kitchenTicket(order: Order, { kind, tz, now }: { kind: "kitchen"
     })),
     guest: order.customer_name ?? "Phone guest",
     phone: order.customer_phone ? formatPhone(order.customer_phone) : "",
-    payment: order.payment_method === "payment_link" ? "PAID BY LINK: CHECK" : "NOT PAID · pay at pickup",
+    // PAID only when a person saw the payment (pay first add-on); otherwise the counter collects it.
+    payment:
+      order.payment_method !== "payment_link"
+        ? "NOT PAID · pay at pickup"
+        : payment?.paid_at
+          ? `PAID · ${payment.paid_how === "in_person" ? "in person" : "by link"}`
+          : "NOT PAID · pay link not paid yet",
     source: "Phone order · Brio",
   };
 }

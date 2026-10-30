@@ -63,7 +63,8 @@ export function PrintStation() {
         try {
           const order = d.data.orders.find(o => o.id === job.order_id) ?? (await fetchOrder(restaurant.id, job.order_id));
           if (!order) throw new Error("order not visible");
-          await printTicket(kitchenTicket(order, { kind: job.kind, tz, now: new Date() }), setTicket);
+          const payment = d.data.payments?.find(p => p.order_id === order.id);
+          await printTicket(kitchenTicket(order, { kind: job.kind, tz, now: new Date(), payment }), setTicket);
           await finishPrintJob(job.id, true);
         } catch (err) {
           await finishPrintJob(job.id, false, err instanceof Error ? err.message : "printer error").catch(() => undefined);
