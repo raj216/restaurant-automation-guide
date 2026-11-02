@@ -90,15 +90,13 @@ export function noteKind(note: string | null | undefined): "allergy" | "diet" | 
 }
 
 /**
- * The marks worth showing on this line. At a restaurant that serves meat: all of them (veg /
- * non-veg matters on every order). Elsewhere (a coffee shop): only the ones about the guest's
- * diet, so a plain order stays clean and a vegan guest never sees a confusing "Veg" dot.
+ * The marks worth showing on this line: at a restaurant that serves meat, all of them (veg /
+ * non-veg matters on every order). At a coffee shop, none: like a real POS ticket, a drink is
+ * its name and its changes, and a guest's diet is one note on top plus a plain-word line on
+ * any item that doesn't fit (dietFlag).
  */
-export function visibleMarks(item: Pick<LineItem, "dietary_tags">, { servesMeat, note }: { servesMeat?: boolean; note?: string | null }): DishMark[] {
-  const marks = dishMarks(item.dietary_tags);
-  if (servesMeat) return marks;
-  const n = guestNeeds(note);
-  return marks.filter(m => ((n.vegan || n.vegetarian) && m === "vegan") || (n.vegetarian && m === "veg") || (n.glutenFree && m === "gluten_free"));
+export function visibleMarks(item: Pick<LineItem, "dietary_tags">, { servesMeat }: { servesMeat?: boolean; note?: string | null }): DishMark[] {
+  return servesMeat ? dishMarks(item.dietary_tags) : [];
 }
 
 /** True when this mark is there because of the guest's choices ("vegan with these changes"). */
@@ -114,19 +112,35 @@ export function dietWords(note: string | null | undefined): string | null {
   return words.length ? words.join(" and ") : null;
 }
 
+const DIET_WORD: Record<"vegan" | "vegetarian" | "gluten_free", string> = { vegan: "vegan", vegetarian: "vegetarian", gluten_free: "gluten-free" };
+
 /**
- * For a guest with a diet: what this dish is NOT marked as on the menu, or null when it
- * fits. "Not marked vegan on the menu. Ask the guest." Plain code, never a guess.
+ * For a guest with a diet: a plain-word line when this item doesn't fit, or null when it does.
+ * The words come from the menu, frozen on the line when Brio took the order (diet_hints):
+ *   "Not vegan: the caramel syrup has dairy"   the menu says why
+ *   "For vegan: no cream"                      what the guest's choices are still missing
+ *   "The menu doesn't say if it's vegan"       the restaurant gave us nothing about it
  */
-export function dietFlag(item: Pick<LineItem, "dietary_tags">, note: string | null | undefined): string | null {
+export function dietFlag(item: Pick<LineItem, "dietary_tags" | "diet_hints">, note: string | null | undefined): string | null {
   const n = guestNeeds(note);
   const tags = Array.isArray(item.dietary_tags) ? item.dietary_tags : [];
-  const missing = [
-    n.vegan && !tags.includes("vegan") ? "vegan" : null,
-    n.vegetarian && !tags.includes("vegetarian") && !tags.includes("vegan") ? "vegetarian" : null,
-    n.glutenFree && !tags.includes("gluten_free") ? "gluten-free" : null,
-  ].filter(Boolean);
-  return missing.length ? `Not marked ${missing.join(" or ")} on the menu` : null;
+  const unmet = (
+    [
+      n.vegan && !tags.includes("vegan") ? "vegan" : null,
+      n.vegetarian && !tags.includes("vegetarian") && !tags.includes("vegan") ? "vegetarian" : null,
+      n.glutenFree && !tags.includes("gluten_free") ? "gluten_free" : null,
+    ] as const
+  ).filter((t): t is "vegan" | "vegetarian" | "gluten_free" => t !== null);
+  if (unmet.length === 0) return null;
+  return unmet
+    .map(tag => {
+      const hint = item.diet_hints?.[tag];
+      if (tag !== "gluten_free" && tags.includes("non_veg")) return `Not ${DIET_WORD[tag]}: it's non-veg`;
+      if (hint?.because) return `Not ${DIET_WORD[tag]}: ${hint.because}`;
+      if (hint?.needs?.length) return `For ${DIET_WORD[tag]}: ${hint.needs.join(" and ")}`;
+      return `The menu doesn't say if it's ${DIET_WORD[tag]}`;
+    })
+    .join(". ");
 }
 
 /** Spice dots: [true, true, true, false] for level 3 of 4. */

@@ -74,12 +74,15 @@ describe("the guest's diet", () => {
     expect(dietWords("non-vegetarian")).toBeNull();
   });
   it("flags every dish the menu doesn't mark for it, and only those", () => {
-    expect(dietFlag(latte, "vegan")).toBe("Not marked vegan on the menu");
+    expect(dietFlag(latte, "vegan")).toBe("The menu doesn't say if it's vegan");
     expect(dietFlag(latte, "vegetarian")).toBeNull();
-    expect(dietFlag(tikka, "vegetarian")).toBe("Not marked vegetarian on the menu");
+    expect(dietFlag(tikka, "vegetarian")).toBe("Not vegetarian: it's non-veg");
     expect(dietFlag(tikka, "celiac")).toBeNull();
-    expect(dietFlag(latte, "vegan, gluten-free")).toBe("Not marked vegan or gluten-free on the menu");
-    expect(dietFlag({ dietary_tags: undefined }, "vegan")).toBe("Not marked vegan on the menu");
+    expect(dietFlag(latte, "vegan, gluten-free")).toBe("The menu doesn't say if it's vegan. The menu doesn't say if it's gluten-free");
+    expect(dietFlag({ dietary_tags: undefined }, "vegan")).toBe("The menu doesn't say if it's vegan");
+    // The menu's own words, frozen on the line: why it isn't, or what's still missing.
+    expect(dietFlag({ dietary_tags: ["vegetarian"], diet_hints: { vegan: { because: "the caramel syrup has dairy" } } }, "vegan")).toBe("Not vegan: the caramel syrup has dairy");
+    expect(dietFlag({ dietary_tags: ["vegetarian"], diet_hints: { vegan: { needs: ["no cream"] } } }, "vegan")).toBe("For vegan: no cream");
     expect(dietFlag(latte, "peanut allergy")).toBeNull();
   });
 });
@@ -118,7 +121,7 @@ describe("why it waits and the printed ticket", () => {
       name: "Chicken Tikka Masala",
       marks: "[NON-VEG] [GLUTEN-FREE]",
       choices: ["SPICE: HOT (3/4)", "NO cilantro"],
-      flag: "NOT MARKED VEGETARIAN ON THE MENU",
+      flag: "NOT VEGETARIAN: IT'S NON-VEG",
     });
     expect(t.lines[1]).toMatchObject({ name: "grande Caffè Latte", marks: "[VEG]", choices: ["SWAP oat milk", "EXTRA sugar", "LESS ice", "warmed"], flag: null });
   });
@@ -133,13 +136,11 @@ describe("only what helps (owner decision 2026-11-02)", () => {
     expect(noteKind("Tree nuts")).toBe("allergy");
     expect(noteKind(null)).toBeNull();
   });
-  it("a coffee shop shows marks only for a guest's diet; a restaurant with meat always shows them", () => {
+  it("a coffee shop shows no marks; a restaurant with meat always shows them", () => {
+    // A coffee shop: never a mark on a drink, diet or not (like a real POS ticket).
     expect(visibleMarks(latte, {})).toEqual([]);
-    expect(visibleMarks(latte, { note: "Tree nuts" })).toEqual([]);
     expect(visibleMarks(latte, { note: "vegan" })).toEqual([]);
-    expect(visibleMarks({ dietary_tags: ["vegan", "vegetarian"] }, { note: "vegan" })).toEqual(["vegan"]);
-    expect(visibleMarks(latte, { note: "vegetarian" })).toEqual(["veg"]);
-    expect(visibleMarks(tikka, { note: "celiac" })).toEqual(["gluten_free"]);
+    expect(visibleMarks({ dietary_tags: ["vegan", "vegetarian"] }, { note: "vegan" })).toEqual([]);
     expect(visibleMarks(tikka, { servesMeat: true })).toEqual(["non_veg", "gluten_free"]);
   });
   it("a mark the guest's choices earned says so", () => {
@@ -147,7 +148,7 @@ describe("only what helps (owner decision 2026-11-02)", () => {
     expect(markFromChanges(oatLatte, "vegan")).toBe(true);
     expect(markFromChanges(latte, "veg")).toBe(false);
     expect(dietFlag(oatLatte, "vegan")).toBeNull();
-    const t = kitchenTicket(order({ allergy_note: "vegan", line_items: [{ ...latte, ...oatLatte }] }), { kind: "kitchen", tz: "America/New_York", now: new Date() });
+    const t = kitchenTicket(order({ allergy_note: "vegan", line_items: [{ ...latte, ...oatLatte }] }), { kind: "kitchen", tz: "America/New_York", now: new Date(), servesMeat: true });
     expect(t.allergy).toBe("DIET: VEGAN");
     expect(t.lines[0]).toMatchObject({ marks: "[VEGAN WITH CHANGES]", flag: null });
   });

@@ -75,6 +75,8 @@ export interface LineItem {
   dietary_tags?: string[];
   /** Labels the guest's choices gave or took away, by the menu's own rules ("vegan" with oat milk and no cream). */
   diet_changes?: { added?: string[]; removed?: string[] };
+  /** Why the line isn't vegan / vegetarian / gluten-free..., in the menu's own words. */
+  diet_hints?: Partial<Record<string, { because?: string; needs?: string[] }>>;
 }
 
 export interface Order {

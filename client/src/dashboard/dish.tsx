@@ -108,7 +108,7 @@ export function DietFlag({ text, kitchen }: { text: string; kitchen?: boolean })
         <path d="M12 10 V14" />
         <path d="M12 17.5 V17.6" />
       </svg>
-      {kitchen ? text.toUpperCase() : `${text}. Ask the guest.`}
+      {kitchen ? text.toUpperCase() : text}
     </div>
   );
 }
