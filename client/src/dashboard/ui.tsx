@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { statusOf, type PillTone } from "./lib/orders";
+import { dietWords } from "./lib/dish";
 import type { OrderState } from "./lib/types";
 
 const PATHS = {
@@ -193,7 +194,8 @@ export function AllergyBadge({ note, short }: { note: string; short?: boolean })
   return (
     <span className="d-allergy">
       <Icon name="alert" />
-      {short ? "Allergy" : `Allergy · ${note}`}
+      {/* A diet ("vegan", "gluten-free") travels in the allergy note: name it so. */}
+      {dietWords(note) ? (short ? "Allergy / diet" : `Allergy / diet · ${note}`) : short ? "Allergy" : `Allergy · ${note}`}
     </span>
   );
 }

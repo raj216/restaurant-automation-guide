@@ -57,6 +57,11 @@ export interface OrderModifier {
   option_name: string;
   price_cents?: number;
   placement?: "before" | "with" | "comma";
+  /** What kind of change it is: NO / ADD / EXTRA / LESS / SWAP / SPICE (missing on older orders). */
+  kind?: "no" | "add" | "extra" | "less" | "swap" | "spice";
+  /** For spice: this level and how many the restaurant has ("hot" = 3 of 4). */
+  level?: number;
+  levels?: number;
 }
 
 export interface LineItem {
@@ -66,6 +71,8 @@ export interface LineItem {
   unit_price_cents: number;
   line_total_cents: number;
   modifiers?: OrderModifier[];
+  /** The menu's own labels when the order was taken (vegan, vegetarian, non_veg, gluten_free...). */
+  dietary_tags?: string[];
 }
 
 export interface Order {

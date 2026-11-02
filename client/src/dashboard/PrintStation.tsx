@@ -101,12 +101,14 @@ export function TicketPaper({ ticket }: { ticket: KitchenTicket }) {
         <div className="d-kt-line" key={i}>
           <b>
             {line.quantity} {line.name}
+            {line.marks ? ` ${line.marks}` : ""}
           </b>
           {line.choices.map(c => (
             <div key={c} className="d-kt-choice">
               {c}
             </div>
           ))}
+          {line.flag ? <div className="d-kt-flag">!! {line.flag}</div> : null}
         </div>
       ))}
       <div className="d-kt-rule" />

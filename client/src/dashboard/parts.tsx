@@ -17,6 +17,7 @@ import { kitchenStep, ticketLine, whyItWaits } from "./lib/today";
 import { paymentLinkSent, paymentMarkPaid, reprintTicket } from "./lib/data";
 import { payLine, payMessage, payStage, paymentFor, smsHref } from "./lib/payFirst";
 import { showMessage } from "./Toasts";
+import { OrderLines } from "./dish";
 
 export function PhoneLink({ number, label }: { number: string | null | undefined; label?: string }) {
   if (!number) return null;
@@ -405,7 +406,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
           <AllergyBadge note={order.allergy_note} />
         </div>
       ) : null}
-      <p className="d-sum">{orderSummary(order)}</p>
+      {Array.isArray(order.line_items) && order.line_items.length ? <OrderLines order={order} /> : <p className="d-sum">{orderSummary(order)}</p>}
       <p className="d-small d-muted" style={{ margin: 0 }}>
         <b style={{ color: "var(--text)" }}>{formatMoney(order.subtotal_cents, order.currency)}</b> · Pickup {pickup}
         {after && order.staff_review_deadline && deadline ? (

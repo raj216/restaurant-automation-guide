@@ -10,7 +10,9 @@ import { hrefTo, IN_DEMO } from "../base";
 import { chime, unlockSound } from "../lib/alerts";
 import { fetchKitchenBoard, isStateConflict, pingKitchenScreen, transitionOrder } from "../lib/data";
 import { orderCode } from "../lib/format";
-import { ageLabel, kitchenBoard, kitchenLine, newScreenId, type KitchenTicket } from "../lib/kitchen";
+import { ageLabel, kitchenBoard, newScreenId, type KitchenTicket } from "../lib/kitchen";
+import { OrderLines } from "../dish";
+import { dietWords } from "../lib/dish";
 import { formatTime } from "../lib/time";
 import type { Order, PosJob } from "../lib/types";
 
@@ -201,17 +203,12 @@ function Ticket({ ticket, tz, children }: { ticket: KitchenTicket; tz: string; c
         <span className="d-kds-age">{ageLabel(ticket.minutes)}</span>
       </div>
       {kind === "cancelled" ? <div className="d-kds-cancel">CANCELLED: DO NOT MAKE</div> : null}
-      {order.allergy_note ? <div className="d-kds-allergy">ALLERGY: {order.allergy_note}</div> : null}
-      <ul className="d-kds-items">
-        {items.map((item, i) => {
-          const line = kitchenLine(item);
-          return (
-            <li key={i}>
-              <b>{line.quantity}×</b> {line.name} {line.choices ? <span className="d-kds-muted">{line.choices}</span> : null}
-            </li>
-          );
-        })}
-      </ul>
+      {order.allergy_note ? (
+        <div className="d-kds-allergy">
+          {dietWords(order.allergy_note) ? "ALLERGY / DIET" : "ALLERGY"}: {order.allergy_note}
+        </div>
+      ) : null}
+      {items.length ? <OrderLines order={order} kitchen /> : null}
       <div className="d-kds-foot">
         <span className="d-kds-muted">Pickup {order.requested_pickup_time ? formatTime(order.requested_pickup_time, tz) : "ASAP"}</span>
         {children}

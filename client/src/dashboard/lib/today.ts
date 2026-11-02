@@ -6,6 +6,7 @@
 
 import { callerLabel, formatMoney } from "./format";
 import { TOPIC_LABEL, topicOf } from "./labels";
+import { dietWords } from "./dish";
 import type { PillTone } from "./orders";
 import type { CallLog, GuestRequest, Order, OrderState } from "./types";
 
@@ -28,7 +29,10 @@ export function whyItWaits(
   order: Pick<Order, "allergy_note" | "intake_mode" | "subtotal_cents" | "line_items" | "payment_method">,
   { autoSend = false, bigOrderCents = BIG_ORDER_CENTS }: { autoSend?: boolean; bigOrderCents?: number } = {},
 ): string {
-  if (order.allergy_note) return "allergy note. A person checks these.";
+  if (order.allergy_note) {
+    const diet = dietWords(order.allergy_note);
+    return diet ? `${diet} guest. A person checks every item.` : "allergy note. A person checks these.";
+  }
   if (order.intake_mode === "after_hours_request") return "after-hours request. Call the guest to confirm.";
   const items = (Array.isArray(order.line_items) ? order.line_items : []).reduce((n, l) => n + (l.quantity ?? 0), 0);
   if (order.payment_method === "payment_link") return "big order: the guest pays first, by the restaurant's own link.";

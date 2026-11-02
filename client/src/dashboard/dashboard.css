@@ -678,3 +678,51 @@
 .cd.d-dark .d-step.d-step-pay{background:#12352f;color:#8fe0d2}
 .cd .d-payline{color:#0b5a52;font-weight:600}
 .cd.d-dark .d-payline{color:#8fe0d2}
+/* ---- Dish marks and the guest's changes (lib/dish.ts, dish.tsx) ---- */
+.cd .d-marks{display:inline-flex;align-items:center;gap:4px;flex:none}
+.cd .d-mark{display:inline-block;flex:none}
+.cd .d-mark-gf{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:4px;background:#fff;border:2px solid #a86800;color:#7a4b00;font-size:9px;font-weight:800;line-height:1}
+.cd .d-markchip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 6px;border-radius:7px;font-size:13px;font-weight:700}
+.cd .d-markchip-veg,.cd .d-markchip-vegan{background:#e3f3e7;color:#14532d}
+.cd .d-markchip-non_veg{background:#f6e6dc;color:#6b2a0b}
+.cd .d-markchip-gluten_free{background:#fdf0d2;color:#6b4100}
+.cd .d-lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cd .d-ln{display:flex;flex-direction:column;gap:5px;padding:9px 0;border-bottom:1px solid var(--border)}
+.cd .d-ln:last-child{border-bottom:0}
+.cd .d-ln-top{display:flex;align-items:center;gap:9px;min-width:0}
+.cd .d-ln-q{min-width:26px;color:var(--text-2)}
+.cd .d-ln-n{flex:1 1 auto;min-width:0;font-size:16px}
+.cd .d-ln-p{font-weight:700;margin-left:6px}
+.cd .d-chgs{display:flex;flex-direction:column;gap:4px;padding-left:35px}
+.cd .d-chg{display:flex;align-items:center;gap:8px;font-size:15px}
+.cd .d-chg-w{flex:none;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:800;letter-spacing:.05em}
+.cd .d-chg-no{background:var(--red-bg);color:var(--red-fg)}
+.cd .d-chg-add,.cd .d-chg-extra{background:var(--green-bg);color:var(--green-fg)}
+.cd .d-chg-less{background:var(--gray-bg);color:var(--gray-fg)}
+.cd .d-chg-swap{background:var(--blue-bg);color:var(--blue-fg)}
+.cd .d-chg-spice{background:var(--amber-bg);color:var(--amber-fg)}
+.cd .d-cap{text-transform:capitalize}
+.cd .d-dots{display:inline-flex;gap:3px}
+.cd .d-dot{width:9px;height:9px;border-radius:50%;box-sizing:border-box;border:1.5px solid #c25400}
+.cd .d-dot.d-on{background:#c25400}
+.cd .d-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cd .d-dietflag{display:flex;align-items:center;gap:8px;margin-left:35px;padding:6px 10px;border-radius:8px;background:var(--amber-bg);color:var(--amber-fg);font-size:14px;font-weight:700}
+.cd.d-dark .d-dot{border-color:#f5a03a}.cd.d-dark .d-dot.d-on{background:#f5a03a}
+/* The kitchen screen: bigger, its own dark colours, marks on a white tile like on packaging. */
+.cd .d-lines-k .d-ln{border-color:#3a372e;padding:7px 0}
+.cd .d-lines-k .d-ln-q{min-width:30px;color:#f6f3ee;font-size:21px}
+.cd .d-lines-k .d-ln-n{font-size:21px}
+.cd .d-lines-k .d-marks{background:#fff;border-radius:6px;padding:3px}
+.cd .d-lines-k .d-chgs{padding-left:40px;gap:5px}
+.cd .d-lines-k .d-chg{font-size:19px;font-weight:600}
+.cd .d-lines-k .d-chg-w{font-size:13px}
+.cd .d-lines-k .d-chg-no{background:#451815;color:#ff9c92}
+.cd .d-lines-k .d-chg-add,.cd .d-lines-k .d-chg-extra{background:#123522;color:#7fdca1}
+.cd .d-lines-k .d-chg-less{background:#34323b;color:#cfcac0}
+.cd .d-lines-k .d-chg-swap{background:#14274d;color:#9bc0ff}
+.cd .d-lines-k .d-chg-spice{background:#3a2c0e;color:#f5c76a}
+.cd .d-lines-k .d-dot{width:11px;height:11px;border:2px solid #f5a03a}
+.cd .d-lines-k .d-dot.d-on{background:#f5a03a}
+.cd .d-lines-k .d-dietflag{margin-left:40px;background:#3a2c0e;color:#f5c76a;font-size:16px}
+.cd .d-kt-flag{padding-left:6mm;font-weight:800}
+@media (max-width:640px){.cd .d-chgs{padding-left:0}.cd .d-dietflag{margin-left:0}.cd .d-ln-n{font-size:15px}}

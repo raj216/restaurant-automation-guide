@@ -19,7 +19,7 @@ describe("the kitchen ticket", () => {
     const t = kitchenTicket(order(), { kind: "kitchen", tz: "America/New_York", now: NOW });
     expect(t.banner).toBeNull();
     expect(t.allergy).toBe("ALLERGY: TREE NUTS");
-    expect(t.lines).toEqual([{ quantity: 1, name: "Flat White", choices: ["grande", "oat milk"] }]);
+    expect(t.lines).toEqual([{ quantity: 1, name: "Flat White", marks: "", choices: ["grande", "oat milk"], flag: null }]);
     expect(t.guest).toBe("Elena M.");
     expect(t.phone).toBe("(917) 555-0148");
     expect(t.payment).toBe("NOT PAID · pay at pickup");

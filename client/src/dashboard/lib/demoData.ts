@@ -11,6 +11,7 @@ import type {
   MenuItem,
   Order,
   OrderEvent,
+  OrderModifier,
   OrderState,
   Restaurant,
   RequestStatus,
@@ -71,7 +72,7 @@ let menu: MenuItem[] = MENU_ROWS.map(([sku, name, price, description, popular]) 
   price_cents: price,
   available: true,
   description,
-  dietary_tags: /acai|dragonfruit|passionfruit|citrus|hibiscus|cold-brew|americano|brewed/.test(sku) ? ["Vegan", "Dairy-free"] : ["Vegetarian"],
+  dietary_tags: /acai|dragonfruit|passionfruit|citrus|hibiscus|cold-brew|americano|brewed/.test(sku) ? ["vegan", "dairy_free"] : ["vegetarian"],
   popular,
   required_modifiers: [],
   optional_modifiers: [],
@@ -80,7 +81,7 @@ let menu: MenuItem[] = MENU_ROWS.map(([sku, name, price, description, popular]) 
 const price = (sku: string) => MENU_ROWS.find(r => r[0] === sku)![2];
 const nameOf = (sku: string) => MENU_ROWS.find(r => r[0] === sku)![1];
 
-type Pick = { name: string; cents: number; placement?: "before" | "with" | "comma" };
+type Pick = { name: string; cents: number; placement?: "before" | "with" | "comma"; kind?: OrderModifier["kind"] };
 
 /** One order line: the drink or pastry plus the choices the caller made (size, milk, ...). */
 function line(sku: string, quantity: number, ...picks: Pick[]): LineItem {
@@ -91,14 +92,17 @@ function line(sku: string, quantity: number, ...picks: Pick[]): LineItem {
     quantity,
     unit_price_cents: unit,
     line_total_cents: unit * quantity,
-    modifiers: picks.map(p => ({ option_name: p.name, price_cents: p.cents, placement: p.placement ?? "with" })),
+    modifiers: picks.map(p => ({ option_name: p.name, price_cents: p.cents, placement: p.placement ?? "with", ...(p.kind ? { kind: p.kind } : {}) })),
+    dietary_tags: menu.find(m => m.sku === sku)?.dietary_tags ?? [],
   };
 }
 
 const grande: Pick = { name: "grande", cents: 60, placement: "before" };
 const venti: Pick = { name: "venti", cents: 110, placement: "before" };
 const iced: Pick = { name: "iced", cents: 0, placement: "before" };
-const oat: Pick = { name: "oat milk", cents: 70 };
+const oat: Pick = { name: "oat milk", cents: 70, kind: "swap" };
+const noCream: Pick = { name: "no cream", cents: 0, placement: "comma", kind: "no" };
+const extraIce: Pick = { name: "extra ice", cents: 0, placement: "comma", kind: "extra" };
 const warmed: Pick = { name: "warmed", cents: 0, placement: "comma" };
 
 // ---- Orders ----
@@ -277,9 +281,13 @@ function build() {
   const o9 = makeOrder(hex(0x1308b5), "rejected", 130, "Chris W.", "+19175550166", [line("banana-bread", 1)]);
   const o10 = makeOrder(hex(0x1408c6), "cancelled", 26 * 60, "Mei L.", "+13475550172", [line("cappuccino", 1, grande), line("blueberry-muffin", 1)]);
   const o11 = makeOrder(hex(0x1508d7), "escalated", 40, null, "+17185550190", [], { call_id: "demo-call-esc" });
-  orders = [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11];
+  // A vegan guest: the latte and the croissant aren't marked vegan on the menu, so they are flagged.
+  const o12 = makeOrder(hex(0x1608e8), "pending_staff_review", 3, "Dana R.", "+16305551122", [line("cold-brew", 1, grande, extraIce), line("caffe-latte", 1, grande, oat, noCream), line("butter-croissant", 1)], {
+    allergy_note: "vegan",
+  });
+  orders = [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12];
 
-  for (const o of [o1, o2, o3, o4]) {
+  for (const o of [o1, o2, o3, o4, o12]) {
     const age = Math.round((NOW - new Date(o.created_at).getTime()) / 60_000);
     addEvent(o.id, null, "caller_confirmed", "caller_confirmed", age + 1);
     addEvent(o.id, "caller_confirmed", "pending_staff_review", "sent_for_staff_review", age);

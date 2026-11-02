@@ -4,7 +4,9 @@
 import { useEffect, useState } from "react";
 import { useDashboard } from "../DashboardContext";
 import { fetchCallDetail, fetchOrder, fetchOrderEvents } from "../lib/data";
-import { customerLabel, formatMoney, formatPhone, itemName, orderCode, orderSummary } from "../lib/format";
+import { customerLabel, formatMoney, formatPhone, orderCode, orderSummary } from "../lib/format";
+import { OrderLines } from "../dish";
+import { dietWords } from "../lib/dish";
 import { sentimentLabel } from "../lib/labels";
 import { actorLabel, readableReason, statusOf } from "../lib/orders";
 import { dayAndTime, formatDuration, formatTime, relative } from "../lib/time";
@@ -135,26 +137,18 @@ export function OrderPanel({ orderId, onClose, sheet }: { orderId: string; onClo
           <div className="d-allergy-banner" role="alert">
             <Icon name="alert" size="l" />
             <div>
-              <b>Allergy</b>
+              <b>{dietWords(order.allergy_note) ? "Allergy / diet" : "Allergy"}</b>
               <strong>{order.allergy_note}</strong>
-              <span>Brio asked the caller to mention it again at pickup.</span>
+              <span>
+                {dietWords(order.allergy_note) ? "Check every item below against it. " : ""}Brio asked the caller to mention it again at pickup.
+              </span>
             </div>
           </div>
         ) : null}
 
         <section>
           <h3 className="d-h3">Items, as Brio read them back</h3>
-          {items.length === 0 ? <p className="d-small d-muted">No items were saved with this order.</p> : null}
-          {items.map((item, i) => (
-            <div className="d-item" key={`${item.sku ?? item.name}-${i}`}>
-              <span className="d-q">{item.quantity}×</span>
-              <div>
-                <div className="d-nm">{itemName(item)}</div>
-                <div className="d-md">{formatMoney(item.unit_price_cents, order.currency)} each</div>
-              </div>
-              <span className="d-nm">{formatMoney(item.line_total_cents, order.currency)}</span>
-            </div>
-          ))}
+          {items.length === 0 ? <p className="d-small d-muted">No items were saved with this order.</p> : <OrderLines order={order} prices />}
           <div className="d-row" style={{ paddingTop: 8 }}>
             <span className="d-muted">Subtotal, before tax</span>
             <span className="d-sp d-big" style={{ fontSize: 24 }}>

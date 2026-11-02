@@ -7,6 +7,8 @@ import { formatMoney } from "../lib/format";
 import type { MenuItem } from "../lib/types";
 import { Empty, Pill, Skeletons, Toggle } from "../ui";
 import { showMessage } from "../Toasts";
+import { MarkChip } from "../dish";
+import { dishMarks } from "../lib/dish";
 import { PageHeader, SearchBox } from "./shared";
 
 export default function Menu() {
@@ -77,11 +79,10 @@ export default function Menu() {
               <div className="d-row d-wrap" style={{ gap: 8 }}>
                 <span className="d-t1">{i.name}</span>
                 {i.popular ? <Pill tone="accent">Popular</Pill> : null}
-                {i.dietary_tags?.map(t => (
-                  <Pill key={t} tone="gray">
-                    {t}
-                  </Pill>
+                {dishMarks(i.dietary_tags).map(m => (
+                  <MarkChip key={m} mark={m} />
                 ))}
+                {i.dietary_tags?.includes("dairy_free") ? <Pill tone="gray">Dairy-free</Pill> : null}
               </div>
               {i.description ? <div className="d-t2 d-ellip d-mrow-desc">{i.description}</div> : null}
             </div>
