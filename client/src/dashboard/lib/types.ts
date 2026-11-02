@@ -204,6 +204,16 @@ export interface MenuItem {
   popular: boolean;
   required_modifiers: ModifierGroup[];
   optional_modifiers: ModifierGroup[];
+  /** The restaurant's own rules: choices that make it vegan, take a label away, or why it can't be. */
+  diet_rules?: DietRule[];
+}
+
+export interface DietRule {
+  adds?: string;
+  removes?: string;
+  blocks?: string;
+  because?: string;
+  when?: { group: string; any: string[] }[];
 }
 
 export type PosProvider = "fake" | "clover" | "toast" | "kitchen_screen";

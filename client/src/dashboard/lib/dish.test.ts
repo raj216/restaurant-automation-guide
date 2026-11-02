@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dietFlag, dietWords, dishMarks, guestNeeds, lineChanges, lineTitle, markFromChanges, noteKind, spiceDots, visibleMarks } from "./dish";
+import { dietFlag, dietWords, dishMarks, guestNeeds, lineChanges, lineTitle, markFromChanges, menuDiet, noteKind, spiceDots, visibleMarks } from "./dish";
 import { kitchenTicket } from "./ticket";
 import { whyItWaits } from "./today";
 import type { LineItem, Order } from "./types";
@@ -151,5 +151,21 @@ describe("only what helps (owner decision 2026-11-02)", () => {
     const t = kitchenTicket(order({ allergy_note: "vegan", line_items: [{ ...latte, ...oatLatte }] }), { kind: "kitchen", tz: "America/New_York", now: new Date(), servesMeat: true });
     expect(t.allergy).toBe("DIET: VEGAN");
     expect(t.lines[0]).toMatchObject({ marks: "[VEGAN WITH CHANGES]", flag: null });
+  });
+});
+
+describe("the Menu page says the same, in plain words", () => {
+  const milk = { key: "milk", name: "milk", options: ["oat", "almond", "soy", "coconut"].map(k => ({ key: `${k}_milk`, name: `${k} milk`, price_cents: 70 })) };
+  const cream = { key: "cream", name: "cream", options: [{ key: "less_cream", name: "less cream", price_cents: 0 }, { key: "extra_cream", name: "extra cream", price_cents: 0 }, { key: "no_cream", name: "no cream", price_cents: 0 }] };
+  const dish = (dietary_tags: string[], diet_rules: object[], groups = [milk, cream]) => ({ dietary_tags, diet_rules, required_modifiers: [], optional_modifiers: groups });
+  it("a latte at a coffee shop: no Veg dot, just how to make it vegan", () => {
+    const latte = dish(["vegetarian"], [{ adds: "vegan", when: [{ group: "milk", any: ["oat_milk", "almond_milk", "soy_milk", "coconut_milk"] }, { group: "cream", any: ["no_cream"] }] }]);
+    expect(menuDiet(latte, {})).toEqual({ marks: [], dairyFree: false, lines: [{ ok: true, text: "Vegan with oat, almond, soy or coconut milk and no cream" }] });
+    expect(menuDiet(latte, { servesMeat: true }).marks).toEqual(["veg"]);
+  });
+  it("black coffee: Vegan once, and what takes it away; the caramel latte says why not", () => {
+    const coffee = dish(["vegan", "dairy_free"], [{ removes: "dairy_free", when: [{ group: "cream", any: ["less_cream", "extra_cream"] }] }], [cream]);
+    expect(menuDiet(coffee, {})).toEqual({ marks: ["vegan"], dairyFree: false, lines: [{ ok: false, text: "Not vegan with less cream or extra cream" }] });
+    expect(menuDiet(dish(["vegetarian"], [{ blocks: "vegan", because: "the caramel syrup has dairy" }]), {}).lines).toEqual([{ ok: false, text: "Not vegan: the caramel syrup has dairy" }]);
   });
 });

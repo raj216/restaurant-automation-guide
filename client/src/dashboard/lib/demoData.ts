@@ -4,6 +4,7 @@
 
 import type {
   CallLog,
+  DietRule,
   GuestRequest,
   LineItem,
   LiveData,
@@ -63,6 +64,30 @@ const MENU_ROWS: [string, string, number, string, boolean][] = [
   ["banana-bread", "Banana Bread", 375, "Classic banana bread with walnuts. Contains walnuts, wheat, dairy and eggs.", false],
 ];
 
+// The same diet rules as the live demo cafe (phone-orders demo/cafeDemoMenu.js), with the milk and
+// cream choices they name, so the Menu page reads exactly like the real one.
+const opt = (key: string, name: string, price_cents = 0) => ({ key, name, price_cents });
+const MILK = { key: "milk", name: "milk", options: [opt("oat_milk", "oat milk", 70), opt("almond_milk", "almond milk", 70), opt("soy_milk", "soy milk", 70), opt("coconut_milk", "coconut milk", 70)] };
+const CREAM = { key: "cream", name: "cream", options: [opt("less_cream", "less cream"), opt("extra_cream", "extra cream"), opt("no_cream", "no cream")] };
+const NON_DAIRY = { group: "milk", any: ["oat_milk", "almond_milk", "soy_milk", "coconut_milk"] };
+const NO_CREAM = { group: "cream", any: ["no_cream"] };
+const CREAM_IS_DAIRY: DietRule[] = [{ removes: "dairy_free", when: [{ group: "cream", any: ["less_cream", "extra_cream"] }] }];
+const DAIRY_AND_EGGS: DietRule[] = [{ blocks: "vegan", because: "it has dairy and eggs" }];
+const DEMO_DIET: Record<string, { groups: (typeof MILK)[]; rules: DietRule[] }> = {
+  "caffe-latte": { groups: [MILK, CREAM], rules: [{ adds: "vegan", when: [NON_DAIRY, NO_CREAM] }] },
+  "vanilla-latte": { groups: [MILK, CREAM], rules: [{ adds: "vegan", when: [NON_DAIRY, NO_CREAM] }] },
+  "cappuccino": { groups: [MILK, CREAM], rules: [{ adds: "vegan", when: [NON_DAIRY, NO_CREAM] }] },
+  "matcha-latte": { groups: [MILK], rules: [{ adds: "vegan", when: [NON_DAIRY] }] },
+  "chai-latte": { groups: [MILK], rules: [{ adds: "vegan", when: [NON_DAIRY] }] },
+  "flat-white": { groups: [MILK], rules: [{ adds: "vegan", when: [NON_DAIRY] }] },
+  "caramel-latte": { groups: [MILK, CREAM], rules: [{ blocks: "vegan", because: "the caramel syrup has dairy" }] },
+  "brewed-coffee": { groups: [CREAM], rules: CREAM_IS_DAIRY },
+  "cold-brew": { groups: [CREAM], rules: CREAM_IS_DAIRY },
+  "butter-croissant": { groups: [], rules: DAIRY_AND_EGGS },
+  "blueberry-muffin": { groups: [], rules: DAIRY_AND_EGGS },
+  "banana-bread": { groups: [], rules: DAIRY_AND_EGGS },
+};
+
 let menu: MenuItem[] = MENU_ROWS.map(([sku, name, price, description, popular]) => ({
   id: `demo-item-${sku}`,
   restaurant_id: RESTAURANT_ID,
@@ -75,7 +100,8 @@ let menu: MenuItem[] = MENU_ROWS.map(([sku, name, price, description, popular]) 
   dietary_tags: /acai|dragonfruit|passionfruit|citrus|hibiscus|cold-brew|americano|brewed/.test(sku) ? ["vegan", "dairy_free"] : ["vegetarian"],
   popular,
   required_modifiers: [],
-  optional_modifiers: [],
+  optional_modifiers: DEMO_DIET[sku]?.groups ?? [],
+  diet_rules: DEMO_DIET[sku]?.rules ?? [],
 }));
 
 const price = (sku: string) => MENU_ROWS.find(r => r[0] === sku)![2];

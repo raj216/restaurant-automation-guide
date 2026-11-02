@@ -475,7 +475,7 @@ export async function fetchMenu(restaurantId: string, version: number): Promise<
   const { data, error } = await db()
     .from("menu_items")
     .select(
-      "id,restaurant_id,menu_version,sku,name,price_cents,available,description,dietary_tags,popular,required_modifiers,optional_modifiers",
+      "id,restaurant_id,menu_version,sku,name,price_cents,available,description,dietary_tags,popular,required_modifiers,optional_modifiers,diet_rules",
     )
     .eq("restaurant_id", restaurantId)
     .eq("menu_version", version)

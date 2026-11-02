@@ -8,7 +8,7 @@ import type { MenuItem } from "../lib/types";
 import { Empty, Pill, Skeletons, Toggle } from "../ui";
 import { showMessage } from "../Toasts";
 import { MarkChip } from "../dish";
-import { dishMarks } from "../lib/dish";
+import { menuDiet } from "../lib/dish";
 import { PageHeader, SearchBox } from "./shared";
 
 export default function Menu() {
@@ -73,18 +73,25 @@ export default function Menu() {
       {!items && !error ? <Skeletons count={4} /> : null}
       {items && rows.length === 0 ? <Empty title="No items found" /> : null}
       <div className="d-list" style={{ width: "100%", maxWidth: 820, display: rows.length ? undefined : "none" }}>
-        {rows.map(i => (
+        {rows.map(i => {
+          const diet = menuDiet(i, { servesMeat: d.data.servesMeat });
+          return (
           <div className={`d-tr d-mrow${i.available ? "" : " d-out"}`} key={i.id}>
             <div className="d-mrow-main" style={{ minWidth: 0 }}>
               <div className="d-row d-wrap" style={{ gap: 8 }}>
                 <span className="d-t1">{i.name}</span>
                 {i.popular ? <Pill tone="accent">Popular</Pill> : null}
-                {dishMarks(i.dietary_tags).map(m => (
+                {diet.marks.map(m => (
                   <MarkChip key={m} mark={m} />
                 ))}
-                {i.dietary_tags?.includes("dairy_free") ? <Pill tone="gray">Dairy-free</Pill> : null}
+                {diet.dairyFree ? <Pill tone="gray">Dairy-free</Pill> : null}
               </div>
               {i.description ? <div className="d-t2 d-ellip d-mrow-desc">{i.description}</div> : null}
+              {diet.lines.map(l => (
+                <div key={l.text} className={l.ok ? "d-menudiet d-menudiet-yes" : "d-menudiet"}>
+                  {l.text}
+                </div>
+              ))}
             </div>
             <span className="d-t1 d-mrow-price">{formatMoney(i.price_cents, restaurant?.currency)}</span>
             <span className="d-row d-mrow-avail" style={{ gap: 8 }}>
@@ -94,7 +101,8 @@ export default function Menu() {
               <Toggle on={i.available} green label={`${i.name} available`} disabled={saving === i.id} onChange={next => void toggle(i, next)} />
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

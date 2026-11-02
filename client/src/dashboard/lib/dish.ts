@@ -4,7 +4,7 @@
 // diet ("vegan", "gluten-free, celiac") is read from the allergy note by plain code.
 // A dish with no mark says nothing: for a vegan guest it is flagged, never assumed.
 
-import type { LineItem, OrderModifier } from "./types";
+import type { LineItem, MenuItem, OrderModifier } from "./types";
 
 export type DishMark = "veg" | "non_veg" | "vegan" | "gluten_free";
 export type ChangeKind = "no" | "add" | "extra" | "less" | "swap" | "spice";
@@ -147,4 +147,40 @@ export function dietFlag(item: Pick<LineItem, "dietary_tags" | "diet_hints">, no
 export function spiceDots(change: Change): boolean[] {
   if (!change.level || !change.levels) return [];
   return Array.from({ length: Math.min(change.levels, 6) }, (_, i) => i < change.level!);
+}
+
+const RULE_WORD: Record<string, string> = { vegan: "vegan", vegetarian: "vegetarian", gluten_free: "gluten-free", dairy_free: "dairy-free" };
+
+/**
+ * What the Menu page says about a dish's diet, the same way orders do: marks only where they
+ * help (veg / non-veg only at a restaurant that serves meat; never "Veg" on a coffee), "Vegan"
+ * once (not "Vegan" + "Dairy-free"), and the restaurant's own rules in plain words:
+ * "Vegan with oat, almond, soy or coconut milk and no cream", "Not vegan: the caramel syrup has dairy".
+ */
+export function menuDiet(item: Pick<MenuItem, "dietary_tags" | "diet_rules" | "required_modifiers" | "optional_modifiers">, { servesMeat }: { servesMeat?: boolean }) {
+  const tags = Array.isArray(item.dietary_tags) ? item.dietary_tags : [];
+  const all = dishMarks(tags);
+  const marks = servesMeat ? all : all.filter(m => m === "vegan" || m === "gluten_free");
+  const dairyFree = tags.includes("dairy_free") && !tags.includes("vegan");
+  const groups = [...(item.required_modifiers ?? []), ...(item.optional_modifiers ?? [])];
+  const name = (group: string, key: string) => groups.find(g => g.key === group)?.options.find(o => o.key === key)?.name ?? key;
+  const orList = (names: string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`);
+  // "oat milk, almond milk, soy milk or coconut milk" reads better as "oat, almond, soy or coconut milk".
+  const tidy = (names: string[]) => {
+    const tail = names.every(n => / milk$/.test(n)) && names.length > 1 ? " milk" : "";
+    return orList(tail ? names.map(n => n.replace(/ milk$/, "")) : names) + tail;
+  };
+  const lines: { ok: boolean; text: string }[] = [];
+  for (const rule of Array.isArray(item.diet_rules) ? item.diet_rules : []) {
+    const word = RULE_WORD[rule.adds ?? rule.removes ?? rule.blocks ?? ""];
+    if (!word) continue;
+    const when = (rule.when ?? []).map(c => tidy((c.any ?? []).map(k => name(c.group, k))));
+    if (rule.blocks && rule.because) lines.push({ ok: false, text: `Not ${word}: ${rule.because}` });
+    else if (rule.adds && when.length && !tags.includes(rule.adds)) lines.push({ ok: true, text: `${word[0].toUpperCase()}${word.slice(1)} with ${when.join(" and ")}` });
+    else if (rule.removes && when.length) {
+      const lost = rule.removes === "dairy_free" && tags.includes("vegan") ? "vegan" : word;
+      lines.push({ ok: false, text: rule.because ? `Not ${lost}: ${rule.because}` : `Not ${lost} with ${when.join(" or ")}` });
+    }
+  }
+  return { marks, dairyFree, lines };
 }
