@@ -12,7 +12,7 @@ import { fetchKitchenBoard, isStateConflict, pingKitchenScreen, transitionOrder 
 import { orderCode } from "../lib/format";
 import { ageLabel, kitchenBoard, newScreenId, type KitchenTicket } from "../lib/kitchen";
 import { OrderLines } from "../dish";
-import { dietWords } from "../lib/dish";
+import { noteKind } from "../lib/dish";
 import { formatTime } from "../lib/time";
 import type { Order, PosJob } from "../lib/types";
 
@@ -145,14 +145,14 @@ export default function Kitchen() {
         <section aria-label="New orders">
           <h2>New · {board.fresh.length + board.cancelled.length}</h2>
           {board.cancelled.map(t => (
-            <Ticket key={`x-${t.order.id}`} ticket={t} tz={tz}>
+            <Ticket key={`x-${t.order.id}`} ticket={t} tz={tz} servesMeat={d.data.servesMeat}>
               <button type="button" className="d-kds-btn d-kds-ok" onClick={() => hide(t.order.id)}>
                 OK
               </button>
             </Ticket>
           ))}
           {board.fresh.map(t => (
-            <Ticket key={t.order.id} ticket={t} tz={tz}>
+            <Ticket key={t.order.id} ticket={t} tz={tz} servesMeat={d.data.servesMeat}>
               <button type="button" className="d-kds-btn d-kds-go" disabled={busy === t.order.id} onClick={() => void gotIt(t.order)}>
                 {busy === t.order.id ? "Saving…" : "Got it"}
               </button>
@@ -163,7 +163,7 @@ export default function Kitchen() {
         <section aria-label="Orders the kitchen has">
           <h2>Kitchen has it · {board.cooking.length}</h2>
           {board.cooking.map(t => (
-            <Ticket key={t.order.id} ticket={t} tz={tz}>
+            <Ticket key={t.order.id} ticket={t} tz={tz} servesMeat={d.data.servesMeat}>
               <button type="button" className="d-kds-btn" onClick={() => hide(t.order.id)}>
                 Done
               </button>
@@ -192,7 +192,7 @@ export default function Kitchen() {
   );
 }
 
-function Ticket({ ticket, tz, children }: { ticket: KitchenTicket; tz: string; children: React.ReactNode }) {
+function Ticket({ ticket, tz, servesMeat, children }: { ticket: KitchenTicket; tz: string; servesMeat?: boolean; children: React.ReactNode }) {
   const { order, kind } = ticket;
   const items = Array.isArray(order.line_items) ? order.line_items : [];
   return (
@@ -204,11 +204,13 @@ function Ticket({ ticket, tz, children }: { ticket: KitchenTicket; tz: string; c
       </div>
       {kind === "cancelled" ? <div className="d-kds-cancel">CANCELLED: DO NOT MAKE</div> : null}
       {order.allergy_note ? (
-        <div className="d-kds-allergy">
-          {dietWords(order.allergy_note) ? "ALLERGY / DIET" : "ALLERGY"}: {order.allergy_note}
-        </div>
+        noteKind(order.allergy_note) === "diet" ? (
+          <div className="d-kds-diet">DIET: {order.allergy_note}</div>
+        ) : (
+          <div className="d-kds-allergy">ALLERGY: {order.allergy_note}</div>
+        )
       ) : null}
-      {items.length ? <OrderLines order={order} kitchen /> : null}
+      {items.length ? <OrderLines order={order} kitchen servesMeat={servesMeat} /> : null}
       <div className="d-kds-foot">
         <span className="d-kds-muted">Pickup {order.requested_pickup_time ? formatTime(order.requested_pickup_time, tz) : "ASAP"}</span>
         {children}

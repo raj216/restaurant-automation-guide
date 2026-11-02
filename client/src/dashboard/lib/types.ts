@@ -71,8 +71,10 @@ export interface LineItem {
   unit_price_cents: number;
   line_total_cents: number;
   modifiers?: OrderModifier[];
-  /** The menu's own labels when the order was taken (vegan, vegetarian, non_veg, gluten_free...). */
+  /** The menu's own labels when the order was taken, after the guest's choices (vegan, vegetarian, non_veg, gluten_free...). */
   dietary_tags?: string[];
+  /** Labels the guest's choices gave or took away, by the menu's own rules ("vegan" with oat milk and no cream). */
+  diet_changes?: { added?: string[]; removed?: string[] };
 }
 
 export interface Order {
@@ -270,6 +272,8 @@ export interface LiveData {
    * for a person, with or without a pay link. Missing until the database has it.
    */
   bigOrderCents?: number;
+  /** The menu has non-veg dishes: show veg / non-veg marks on every order. */
+  servesMeat?: boolean;
 }
 
 export interface PayFirst {

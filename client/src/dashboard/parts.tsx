@@ -406,7 +406,7 @@ export function ReviewCard({ order, inProgress = false }: { order: Order; inProg
           <AllergyBadge note={order.allergy_note} />
         </div>
       ) : null}
-      {Array.isArray(order.line_items) && order.line_items.length ? <OrderLines order={order} /> : <p className="d-sum">{orderSummary(order)}</p>}
+      {Array.isArray(order.line_items) && order.line_items.length ? <OrderLines order={order} servesMeat={d.data.servesMeat} /> : <p className="d-sum">{orderSummary(order)}</p>}
       <p className="d-small d-muted" style={{ margin: 0 }}>
         <b style={{ color: "var(--text)" }}>{formatMoney(order.subtotal_cents, order.currency)}</b> · Pickup {pickup}
         {after && order.staff_review_deadline && deadline ? (

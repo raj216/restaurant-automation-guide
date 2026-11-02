@@ -333,17 +333,31 @@ async function fetchPayFirst(restaurantId: string): Promise<{ payFirst: PayFirst
 /** Everything the live board polls for, in one go. */
 export async function fetchLiveData(restaurantId: string): Promise<LiveData> {
   if (IN_DEMO) return demo.demoLiveData();
-  const [reached, escalated, requests, calls, pos, pay] = await Promise.all([
+  const [reached, escalated, requests, calls, pos, pay, servesMeat] = await Promise.all([
     fetchReachedOrders(restaurantId),
     fetchEscalatedOrders(restaurantId),
     fetchRequests(restaurantId),
     fetchCalls(restaurantId),
     fetchPos(restaurantId),
     fetchPayFirst(restaurantId),
+    fetchServesMeat(restaurantId),
   ]);
   const byId = new Map<string, Order>();
   for (const o of [...reached, ...escalated]) byId.set(o.id, o);
-  return { orders: [...byId.values()], requests, calls, ...pos, ...pay };
+  return { orders: [...byId.values()], requests, calls, ...pos, ...pay, servesMeat };
+}
+
+/**
+ * Does this restaurant's menu have a dish marked non-veg? Then every order shows veg / non-veg
+ * marks; otherwise (a coffee shop) marks show only for a guest with a diet. Unreadable: false.
+ */
+async function fetchServesMeat(restaurantId: string): Promise<boolean> {
+  try {
+    const { data, error } = await db().from("menu_items").select("id").eq("restaurant_id", restaurantId).contains("dietary_tags", ["non_veg"]).limit(1);
+    return !error && (data ?? []).length > 0;
+  } catch {
+    return false;
+  }
 }
 
 const PAGE = 1000;

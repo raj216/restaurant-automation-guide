@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { statusOf, type PillTone } from "./lib/orders";
-import { dietWords } from "./lib/dish";
+import { noteKind } from "./lib/dish";
+import { NoteBadge } from "./dish";
 import type { OrderState } from "./lib/types";
 
 const PATHS = {
@@ -190,12 +191,13 @@ export function OrderStatusPill({ state }: { state: OrderState }) {
   );
 }
 
+/** Red when someone could get sick (allergies, gluten-free / celiac); a calm green "Diet" for vegan or vegetarian only. */
 export function AllergyBadge({ note, short }: { note: string; short?: boolean }) {
+  if (noteKind(note) === "diet") return <NoteBadge note={note} short={short} />;
   return (
     <span className="d-allergy">
       <Icon name="alert" />
-      {/* A diet ("vegan", "gluten-free") travels in the allergy note: name it so. */}
-      {dietWords(note) ? (short ? "Allergy / diet" : `Allergy / diet · ${note}`) : short ? "Allergy" : `Allergy · ${note}`}
+      {short ? "Allergy" : `Allergy · ${note}`}
     </span>
   );
 }

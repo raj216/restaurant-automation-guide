@@ -73,6 +73,40 @@ export function guestNeeds(note: string | null | undefined): GuestNeeds {
   };
 }
 
+// Words that only describe a diet (same list as the server's dishMarks.js).
+const DIET_ONLY_WORDS =
+  /\b(vegan|vegetarian|veggie|plant[- ]based|gluten[- ]free|gluten|free|celiac|coeliac|disease|strict|strictly|diet|guest|guests|i'?m|i|am|we|are|is|one|all|of|us|the|a|only|and|need|needs|no)\b/gi;
+
+/**
+ * How the note is shown. "diet": only vegan or vegetarian, a calm green label. "allergy":
+ * anything else, red, because someone could get sick: allergies, and gluten-free / celiac
+ * (owner decision 2026-11-02). null: no note.
+ */
+export function noteKind(note: string | null | undefined): "allergy" | "diet" | null {
+  if (!note?.trim()) return null;
+  const n = guestNeeds(note);
+  const onlyDiet = note.replace(DIET_ONLY_WORDS, "").replace(/[^a-z]/gi, "") === "";
+  return (n.vegan || n.vegetarian) && !n.glutenFree && onlyDiet ? "diet" : "allergy";
+}
+
+/**
+ * The marks worth showing on this line. At a restaurant that serves meat: all of them (veg /
+ * non-veg matters on every order). Elsewhere (a coffee shop): only the ones about the guest's
+ * diet, so a plain order stays clean and a vegan guest never sees a confusing "Veg" dot.
+ */
+export function visibleMarks(item: Pick<LineItem, "dietary_tags">, { servesMeat, note }: { servesMeat?: boolean; note?: string | null }): DishMark[] {
+  const marks = dishMarks(item.dietary_tags);
+  if (servesMeat) return marks;
+  const n = guestNeeds(note);
+  return marks.filter(m => ((n.vegan || n.vegetarian) && m === "vegan") || (n.vegetarian && m === "veg") || (n.glutenFree && m === "gluten_free"));
+}
+
+/** True when this mark is there because of the guest's choices ("vegan with these changes"). */
+export function markFromChanges(item: Pick<LineItem, "diet_changes">, mark: DishMark): boolean {
+  const added = item.diet_changes?.added ?? [];
+  return mark === "veg" ? added.includes("vegetarian") : added.includes(mark);
+}
+
 /** "vegan", "gluten-free", "vegan and gluten-free", or null when the note isn't about a diet. */
 export function dietWords(note: string | null | undefined): string | null {
   const n = guestNeeds(note);

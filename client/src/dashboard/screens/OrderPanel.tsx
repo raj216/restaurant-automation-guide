@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useDashboard } from "../DashboardContext";
 import { fetchCallDetail, fetchOrder, fetchOrderEvents } from "../lib/data";
 import { customerLabel, formatMoney, formatPhone, orderCode, orderSummary } from "../lib/format";
-import { OrderLines } from "../dish";
-import { dietWords } from "../lib/dish";
+import { MarkIcon, OrderLines } from "../dish";
+import { dietWords, guestNeeds, noteKind } from "../lib/dish";
 import { sentimentLabel } from "../lib/labels";
 import { actorLabel, readableReason, statusOf } from "../lib/orders";
 import { dayAndTime, formatDuration, formatTime, relative } from "../lib/time";
@@ -133,11 +133,21 @@ export function OrderPanel({ orderId, onClose, sheet }: { orderId: string; onClo
 
       <div className="d-pb">
         <PosStatus order={order} />
-        {order.allergy_note ? (
+        {order.allergy_note && noteKind(order.allergy_note) === "diet" ? (
+          <div className="d-diet-banner" role="note">
+            <MarkIcon mark={guestNeeds(order.allergy_note).vegan ? "vegan" : "veg"} size={26} />
+            <div>
+              <b>Diet</b>
+              <strong>{order.allergy_note}</strong>
+              <span>Check every item below against it.</span>
+            </div>
+          </div>
+        ) : null}
+        {order.allergy_note && noteKind(order.allergy_note) === "allergy" ? (
           <div className="d-allergy-banner" role="alert">
             <Icon name="alert" size="l" />
             <div>
-              <b>{dietWords(order.allergy_note) ? "Allergy / diet" : "Allergy"}</b>
+              <b>Allergy</b>
               <strong>{order.allergy_note}</strong>
               <span>
                 {dietWords(order.allergy_note) ? "Check every item below against it. " : ""}Brio asked the caller to mention it again at pickup.
@@ -148,7 +158,7 @@ export function OrderPanel({ orderId, onClose, sheet }: { orderId: string; onClo
 
         <section>
           <h3 className="d-h3">Items, as Brio read them back</h3>
-          {items.length === 0 ? <p className="d-small d-muted">No items were saved with this order.</p> : <OrderLines order={order} prices />}
+          {items.length === 0 ? <p className="d-small d-muted">No items were saved with this order.</p> : <OrderLines order={order} prices servesMeat={d.data.servesMeat} />}
           <div className="d-row" style={{ paddingTop: 8 }}>
             <span className="d-muted">Subtotal, before tax</span>
             <span className="d-sp d-big" style={{ fontSize: 24 }}>

@@ -3,7 +3,7 @@
 // with its word first (NO / ADD / EXTRA / LESS / SWAP / SPICE), and a yellow flag where
 // a dish isn't marked for the guest's diet. The rules live in lib/dish.ts.
 
-import { CHANGE_WORD, MARK_LABEL, dietFlag, dishMarks, lineChanges, lineTitle, spiceDots, type DishMark } from "./lib/dish";
+import { CHANGE_WORD, MARK_LABEL, dietFlag, dishMarks, lineChanges, lineTitle, guestNeeds, markFromChanges, spiceDots, visibleMarks, type DishMark } from "./lib/dish";
 import { formatMoney } from "./lib/format";
 import type { LineItem, Order } from "./lib/types";
 
@@ -36,13 +36,29 @@ export function MarkIcon({ mark, size = 18 }: { mark: DishMark; size?: number })
 
 /** The dish's marks, or nothing when the menu gave none. */
 export function DishMarks({ tags, size }: { tags: readonly string[] | undefined; size?: number }) {
-  const marks = dishMarks(tags);
+  return <LineMarks item={{ dietary_tags: tags ? [...tags] : [] }} marks={dishMarks(tags)} size={size} />;
+}
+
+/** A line's marks; one the guest's choices earned ("vegan with oat milk") says "with changes". */
+function LineMarks({ item, marks, size }: { item: Pick<LineItem, "dietary_tags" | "diet_changes">; marks: DishMark[]; size?: number }) {
   if (marks.length === 0) return null;
+  const changed = marks.some(m => markFromChanges(item, m));
   return (
     <span className="d-marks">
+      {changed ? <span className="d-marks-why">with changes</span> : null}
       {marks.map(m => (
         <MarkIcon key={m} mark={m} size={size} />
       ))}
+    </span>
+  );
+}
+
+/** The calm green label for a guest's diet ("Diet · vegan"). Allergies stay red (ui.tsx AllergyBadge). */
+export function NoteBadge({ note, short }: { note: string; short?: boolean }) {
+  return (
+    <span className="d-diet">
+      <MarkIcon mark={guestNeeds(note).vegan ? "vegan" : "veg"} size={15} />
+      {short ? "Diet" : `Diet · ${note}`}
     </span>
   );
 }
@@ -101,7 +117,17 @@ export function DietFlag({ text, kitchen }: { text: string; kitchen?: boolean })
  * An order's lines: quantity, name, marks, then changes and any diet flag. `prices` adds
  * the line totals (order details); `kitchen` is the kitchen screen's wording.
  */
-export function OrderLines({ order, prices, kitchen }: { order: Pick<Order, "line_items" | "allergy_note" | "currency">; prices?: boolean; kitchen?: boolean }) {
+export function OrderLines({
+  order,
+  prices,
+  kitchen,
+  servesMeat,
+}: {
+  order: Pick<Order, "line_items" | "allergy_note" | "currency">;
+  prices?: boolean;
+  kitchen?: boolean;
+  servesMeat?: boolean;
+}) {
   const items = Array.isArray(order.line_items) ? order.line_items : [];
   return (
     <ul className={`d-lines${kitchen ? " d-lines-k" : ""}`}>
@@ -112,7 +138,7 @@ export function OrderLines({ order, prices, kitchen }: { order: Pick<Order, "lin
             <div className="d-ln-top">
               <b className="d-ln-q">{item.quantity}{kitchen ? "" : "×"}</b>
               <b className="d-ln-n">{lineTitle(item)}</b>
-              <DishMarks tags={item.dietary_tags} size={kitchen ? 22 : 18} />
+              <LineMarks item={item} marks={visibleMarks(item, { servesMeat, note: order.allergy_note })} size={kitchen ? 22 : 18} />
               {prices ? <span className="d-ln-p">{formatMoney(item.line_total_cents, order.currency)}</span> : null}
             </div>
             <Changes item={item} />

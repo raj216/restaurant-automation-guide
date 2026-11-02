@@ -281,8 +281,11 @@ function build() {
   const o9 = makeOrder(hex(0x1308b5), "rejected", 130, "Chris W.", "+19175550166", [line("banana-bread", 1)]);
   const o10 = makeOrder(hex(0x1408c6), "cancelled", 26 * 60, "Mei L.", "+13475550172", [line("cappuccino", 1, grande), line("blueberry-muffin", 1)]);
   const o11 = makeOrder(hex(0x1508d7), "escalated", 40, null, "+17185550190", [], { call_id: "demo-call-esc" });
-  // A vegan guest: the latte and the croissant aren't marked vegan on the menu, so they are flagged.
-  const o12 = makeOrder(hex(0x1608e8), "pending_staff_review", 3, "Dana R.", "+16305551122", [line("cold-brew", 1, grande, extraIce), line("caffe-latte", 1, grande, oat, noCream), line("butter-croissant", 1)], {
+  // A vegan guest. The latte is vegan WITH her changes (the menu's rule: a non-dairy milk and no
+  // cream), as the phone connector works it out; the caramel latte has no such rule and the
+  // croissant isn't vegan, so both are flagged for staff.
+  const veganLatte = { ...line("vanilla-latte", 1, grande, oat, noCream), dietary_tags: ["vegan", "vegetarian", "dairy_free"], diet_changes: { added: ["vegan", "dairy_free"], removed: [] } };
+  const o12 = makeOrder(hex(0x1608e8), "pending_staff_review", 3, "Dana R.", "+16305551122", [line("cold-brew", 1, grande, extraIce), veganLatte, line("caramel-latte", 1, grande, oat), line("butter-croissant", 1)], {
     allergy_note: "vegan",
   });
   orders = [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12];

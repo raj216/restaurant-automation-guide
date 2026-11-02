@@ -726,3 +726,12 @@
 .cd .d-lines-k .d-dietflag{margin-left:40px;background:#3a2c0e;color:#f5c76a;font-size:16px}
 .cd .d-kt-flag{padding-left:6mm;font-weight:800}
 @media (max-width:640px){.cd .d-chgs{padding-left:0}.cd .d-dietflag{margin-left:0}.cd .d-ln-n{font-size:15px}}
+/* A guest's diet (vegan / vegetarian only): calm green, never the red allergy alarm (owner decision 2026-11-02). */
+.cd .d-diet{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:999px;background:var(--green-bg);color:var(--green-fg);font-size:13px;font-weight:700;text-transform:none}
+.cd .d-diet-banner{display:flex;gap:14px;align-items:flex-start;background:var(--green-bg);color:var(--green-fg);border-radius:14px;padding:14px 16px}
+.cd .d-diet-banner b{display:block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
+.cd .d-diet-banner strong{display:block;font-size:22px;font-weight:800;line-height:1.2;margin:2px 0 4px;text-transform:capitalize}
+.cd .d-diet-banner span{font-size:14px;font-weight:500}
+.cd .d-kds-diet{background:#123522;color:#7fdca1;border:2px solid #2f8f4e;border-radius:10px;padding:8px 12px;font-weight:800;font-size:19px}
+.cd .d-marks-why{font-size:12px;font-weight:700;color:var(--green-fg);margin-right:2px;white-space:nowrap}
+.cd .d-lines-k .d-marks-why{color:#1f7a3a;font-size:13px;padding-left:3px}

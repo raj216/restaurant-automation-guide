@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dietFlag, dietWords, dishMarks, guestNeeds, lineChanges, lineTitle, spiceDots } from "./dish";
+import { dietFlag, dietWords, dishMarks, guestNeeds, lineChanges, lineTitle, markFromChanges, noteKind, spiceDots, visibleMarks } from "./dish";
 import { kitchenTicket } from "./ticket";
 import { whyItWaits } from "./today";
 import type { LineItem, Order } from "./types";
@@ -111,8 +111,8 @@ describe("why it waits and the printed ticket", () => {
     expect(whyItWaits(order({ state: "pending_staff_review", allergy_note: "peanuts" }))).toMatch(/^allergy note/);
   });
   it("the receipt prints the marks and changes as words, the diet on top", () => {
-    const t = kitchenTicket(order(), { kind: "kitchen", tz: "America/New_York", now: new Date("2026-11-02T18:05:00Z") });
-    expect(t.allergy).toBe("ALLERGY / DIET: VEGETARIAN");
+    const t = kitchenTicket(order(), { kind: "kitchen", tz: "America/New_York", now: new Date("2026-11-02T18:05:00Z"), servesMeat: true });
+    expect(t.allergy).toBe("DIET: VEGETARIAN");
     expect(t.lines[0]).toEqual({
       quantity: 1,
       name: "Chicken Tikka Masala",
@@ -121,5 +121,34 @@ describe("why it waits and the printed ticket", () => {
       flag: "NOT MARKED VEGETARIAN ON THE MENU",
     });
     expect(t.lines[1]).toMatchObject({ name: "grande Caffè Latte", marks: "[VEG]", choices: ["SWAP oat milk", "EXTRA sugar", "LESS ice", "warmed"], flag: null });
+  });
+});
+
+describe("only what helps (owner decision 2026-11-02)", () => {
+  it("red for allergies and celiac, calm green for a vegan or vegetarian guest", () => {
+    expect(noteKind("vegan")).toBe("diet");
+    expect(noteKind("Strictly vegetarian")).toBe("diet");
+    expect(noteKind("gluten-free, celiac")).toBe("allergy");
+    expect(noteKind("vegan, peanut allergy")).toBe("allergy");
+    expect(noteKind("Tree nuts")).toBe("allergy");
+    expect(noteKind(null)).toBeNull();
+  });
+  it("a coffee shop shows marks only for a guest's diet; a restaurant with meat always shows them", () => {
+    expect(visibleMarks(latte, {})).toEqual([]);
+    expect(visibleMarks(latte, { note: "Tree nuts" })).toEqual([]);
+    expect(visibleMarks(latte, { note: "vegan" })).toEqual([]);
+    expect(visibleMarks({ dietary_tags: ["vegan", "vegetarian"] }, { note: "vegan" })).toEqual(["vegan"]);
+    expect(visibleMarks(latte, { note: "vegetarian" })).toEqual(["veg"]);
+    expect(visibleMarks(tikka, { note: "celiac" })).toEqual(["gluten_free"]);
+    expect(visibleMarks(tikka, { servesMeat: true })).toEqual(["non_veg", "gluten_free"]);
+  });
+  it("a mark the guest's choices earned says so", () => {
+    const oatLatte = { dietary_tags: ["vegan", "vegetarian", "dairy_free"], diet_changes: { added: ["vegan", "dairy_free"], removed: [] } };
+    expect(markFromChanges(oatLatte, "vegan")).toBe(true);
+    expect(markFromChanges(latte, "veg")).toBe(false);
+    expect(dietFlag(oatLatte, "vegan")).toBeNull();
+    const t = kitchenTicket(order({ allergy_note: "vegan", line_items: [{ ...latte, ...oatLatte }] }), { kind: "kitchen", tz: "America/New_York", now: new Date() });
+    expect(t.allergy).toBe("DIET: VEGAN");
+    expect(t.lines[0]).toMatchObject({ marks: "[VEGAN WITH CHANGES]", flag: null });
   });
 });

@@ -3,7 +3,7 @@
 // "NOT PAID" for pay at pickup, and REPRINT on every extra copy so a second copy is
 // never taken for a second order. Only orders already in the kitchen get one.
 
-import { CHANGE_WORD, MARK_LABEL, dietFlag, dietWords, dishMarks, lineChanges, lineTitle } from "./dish";
+import { CHANGE_WORD, MARK_LABEL, dietFlag, lineChanges, lineTitle, markFromChanges, noteKind, visibleMarks } from "./dish";
 import { formatPhone, orderCode } from "./format";
 import { formatTime } from "./time";
 import type { Order, OrderPayment } from "./types";
@@ -26,7 +26,7 @@ export const KITCHEN_STATES = ["pos_entered", "pos_accepted", "fulfilled"];
 
 export function kitchenTicket(
   order: Order,
-  { kind, tz, now, payment }: { kind: "kitchen" | "reprint" | "test"; tz: string; now: Date; payment?: OrderPayment },
+  { kind, tz, now, payment, servesMeat }: { kind: "kitchen" | "reprint" | "test"; tz: string; now: Date; payment?: OrderPayment; servesMeat?: boolean },
 ): KitchenTicket {
   if (kind !== "test" && !KITCHEN_STATES.includes(order.state)) {
     throw new Error("Only an order in the kitchen gets a kitchen ticket");
@@ -36,14 +36,16 @@ export function kitchenTicket(
     code: orderCode(order.id),
     time: formatTime(now, tz),
     pickup: order.requested_pickup_time ? `PICKUP ${formatTime(order.requested_pickup_time, tz)}` : "PICKUP ASAP",
-    allergy: order.allergy_note ? `${dietWords(order.allergy_note) ? "ALLERGY / DIET" : "ALLERGY"}: ${order.allergy_note.toUpperCase()}` : null,
+    allergy: order.allergy_note ? `${noteKind(order.allergy_note) === "diet" ? "DIET" : "ALLERGY"}: ${order.allergy_note.toUpperCase()}` : null,
     // A receipt printer is black and white: the marks and change words are printed as words.
     lines: (Array.isArray(order.line_items) ? order.line_items : []).map(l => {
       const flag = dietFlag(l, order.allergy_note);
       return {
         quantity: l.quantity,
         name: lineTitle(l),
-        marks: dishMarks(l.dietary_tags).map(m => `[${MARK_LABEL[m].toUpperCase()}]`).join(" "),
+        marks: visibleMarks(l, { servesMeat, note: order.allergy_note })
+          .map(m => `[${MARK_LABEL[m].toUpperCase()}${markFromChanges(l, m) ? " WITH CHANGES" : ""}]`)
+          .join(" "),
         choices: lineChanges(l).map(c =>
           c.kind === "spice"
             ? `SPICE: ${c.text.toUpperCase()}${c.level && c.levels ? ` (${c.level}/${c.levels})` : ""}`
